@@ -5,6 +5,14 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Pay by card, bKash, Nagad or bank through SSLCommerz: the learner is sent to
+  the gateway and enrolled automatically once the payment clears.
+- Payments are confirmed with SSLCommerz directly rather than trusting what the
+  callback says, so a forged notification cannot unlock a course.
+- Repeated notifications from a gateway are recorded once and change nothing,
+  which matters because gateways retry.
+- Each tenant gets its own callback address, so one deployment can serve many
+  institutions with separate gateway accounts.
 - Sell a course: a learner starts an order and gets a payment reference plus
   the bank or wallet details to send money to.
 - Pay by bank transfer or mobile wallet, upload the deposit slip, and have a

@@ -88,8 +88,9 @@ func (s *Server) createOrder(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	instruction, err := provider.Start(r.Context(), payment.Order{
-		ID: order.ID.String(), TenantID: tenant.ID.String(), Reference: order.Reference,
-		AmountMinor: order.AmountMinor, Currency: order.Currency, PayerName: session.FullName,
+		ID: order.ID.String(), TenantID: tenant.ID.String(), TenantSlug: tenant.Slug,
+		Reference: order.Reference, AmountMinor: order.AmountMinor, Currency: order.Currency,
+		PayerName: session.FullName,
 	})
 	if err != nil {
 		return err

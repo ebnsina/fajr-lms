@@ -18,6 +18,8 @@ type Config struct {
 	MediaHosts      []string
 	S3              S3Config
 	Bank            BankConfig
+	SSLCommerz      SSLCommerzConfig
+	PublicURL       string
 	ShutdownTimeout time.Duration
 }
 
@@ -64,6 +66,17 @@ func Load() (Config, error) {
 		}
 	}
 
+	c.PublicURL = strings.TrimSuffix(env("FAJR_PUBLIC_URL", "http://localhost:8080"), "/")
+
+	c.SSLCommerz = SSLCommerzConfig{
+		StoreID:     env("FAJR_SSLCOMMERZ_STORE_ID", ""),
+		StorePasswd: env("FAJR_SSLCOMMERZ_STORE_PASSWORD", ""),
+		Sandbox:     env("FAJR_SSLCOMMERZ_SANDBOX", "true") == "true",
+	}
+	if c.SSLCommerz.Enabled() && c.SSLCommerz.StorePasswd == "" {
+		return Config{}, fmt.Errorf("config: FAJR_SSLCOMMERZ_STORE_ID needs FAJR_SSLCOMMERZ_STORE_PASSWORD")
+	}
+
 	c.Bank = BankConfig{
 		AccountName:   env("FAJR_BANK_ACCOUNT_NAME", ""),
 		AccountNumber: env("FAJR_BANK_ACCOUNT_NUMBER", ""),
@@ -97,6 +110,15 @@ type S3Config struct {
 }
 
 func (s S3Config) Enabled() bool { return s.Endpoint != "" }
+
+// SSLCommerzConfig is optional; without a store id the gateway is not offered.
+type SSLCommerzConfig struct {
+	StoreID     string
+	StorePasswd string
+	Sandbox     bool
+}
+
+func (s SSLCommerzConfig) Enabled() bool { return s.StoreID != "" }
 
 // BankConfig is the account a manual transfer is paid into.
 type BankConfig struct {

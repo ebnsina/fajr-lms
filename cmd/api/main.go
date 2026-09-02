@@ -59,10 +59,22 @@ func run() error {
 		return err
 	}
 
-	payments, err := payment.NewRegistry("bank_transfer", payment.BankTransfer{
+	methods := []payment.Provider{payment.BankTransfer{
 		AccountName: cfg.Bank.AccountName, AccountNumber: cfg.Bank.AccountNumber,
 		BankName: cfg.Bank.BankName, BranchName: cfg.Bank.BranchName,
-	})
+	}}
+	if cfg.SSLCommerz.Enabled() {
+		methods = append(methods, payment.SSLCommerz{
+			StoreID: cfg.SSLCommerz.StoreID, StorePasswd: cfg.SSLCommerz.StorePasswd,
+			Sandbox:    cfg.SSLCommerz.Sandbox,
+			SuccessURL: cfg.PublicURL + "/pay/done", FailURL: cfg.PublicURL + "/pay/failed",
+			CancelURL: cfg.PublicURL + "/pay/cancelled",
+			IPNURL:    cfg.PublicURL + "/v1/payment/{tenant}/sslcommerz/callback",
+		})
+		slog.Info("sslcommerz enabled", "sandbox", cfg.SSLCommerz.Sandbox)
+	}
+
+	payments, err := payment.NewRegistry("bank_transfer", methods...)
 	if err != nil {
 		return err
 	}

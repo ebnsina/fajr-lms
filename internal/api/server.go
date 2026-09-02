@@ -72,6 +72,9 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("DELETE /v1/enrollments/{id}", teaches(s.cancelEnrollment))
 	mux.Handle("PUT /v1/lessons/{id}/progress", inTenant(httpx.Handler(s.recordProgress)))
 
+	// Unauthenticated: gateways call this, not users. Everything is re-verified.
+	mux.Handle("POST /v1/payment/{tenant}/{provider}/callback", httpx.Handler(s.paymentCallback))
+
 	mux.Handle("GET /v1/payment/providers", inTenant(httpx.Handler(s.paymentProviders)))
 	mux.Handle("POST /v1/courses/{id}/orders", inTenant(httpx.Handler(s.createOrder)))
 	mux.Handle("GET /v1/orders", inTenant(httpx.Handler(s.listMyOrders)))

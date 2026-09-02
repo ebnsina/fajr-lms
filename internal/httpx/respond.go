@@ -103,3 +103,9 @@ func hasJSONType(ct string) bool {
 	}
 	return ct == "application/json"
 }
+
+// DecodeJSONLoose reads JSON without rejecting unknown fields, for payloads
+// written by somebody else's gateway.
+func DecodeJSONLoose(body io.Reader, dst any) error {
+	return json.NewDecoder(io.LimitReader(body, 1<<20)).Decode(dst)
+}

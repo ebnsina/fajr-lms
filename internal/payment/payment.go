@@ -31,6 +31,7 @@ var (
 type Order struct {
 	ID          string
 	TenantID    string
+	TenantSlug  string
 	Reference   string
 	AmountMinor int64
 	Currency    string
