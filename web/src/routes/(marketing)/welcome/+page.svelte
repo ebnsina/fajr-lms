@@ -360,33 +360,18 @@
 				</ul>
 			</div>
 
-			<!-- A page as the builder makes it, drawn rather than screenshotted so it
-			     never goes stale, and cropped by the frame the way a preview is. -->
-			<div class="preview" aria-hidden="true" use:reveal={{ y: 32 }}>
-				<div class="mockup">
-				<div class="chrome">
-					<span class="dot"></span><span class="dot"></span><span class="dot"></span>
-					<span class="url font-mono">/site/greenfield</span>
-				</div>
-				<div class="page">
-					<div class="topbar">
-						<span class="mark"></span>
-						<span class="link"></span><span class="link"></span><span class="link"></span>
-						<span class="pill"></span>
-					</div>
-					<div class="hero">
-						<span class="headline"></span>
-						<span class="sub"></span>
-						<span class="cta"></span>
-					</div>
-					<div class="tiles">
-						<span class="tile"></span><span class="tile"></span><span class="tile"></span>
-					</div>
-					<div class="notices">
-						<span class="row"></span><span class="row"></span><span class="row"></span>
-					</div>
-					</div>
-				</div>
+			<!-- Cropped and tilted by its frame, the way a template card shows a
+			     preview of something bigger. Photograph by Ivan Aleksic on Unsplash. -->
+			<div class="preview" use:reveal={{ y: 32 }}>
+				<img
+					class="shot"
+					src="/img/classroom.jpg"
+					alt="A classroom with desks in rows facing a chalkboard"
+					width="1200"
+					height="675"
+					loading="lazy"
+					decoding="async"
+				/>
 			</div>
 		</div>
 
@@ -549,7 +534,8 @@
 <style>
 	/* The drawn page preview: every part is a block, tinted from the same tokens
 	   as the real thing. */
-	/* The frame crops the page, so it reads as a preview rather than a diagram. */
+	/* The frame crops the photograph, so it reads as a preview of something
+	   bigger rather than a picture that has been placed. */
 	.preview {
 		padding: 1.75rem 1.75rem 0;
 		border: 1px solid var(--color-line);
@@ -558,137 +544,15 @@
 		overflow: hidden;
 	}
 
-	.mockup {
-		margin-block-end: -3rem;
+	.shot {
+		display: block;
+		inline-size: 100%;
+		block-size: auto;
+		margin-block-end: -2.5rem;
+		border-radius: 0.9rem;
 		border: 1px solid var(--color-line-strong);
-		border-radius: 1rem;
-		background: var(--color-surface);
-		overflow: hidden;
-	}
-
-	.chrome {
-		display: flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.6rem 0.8rem;
-		border-block-end: 1px solid var(--color-line);
-		background: var(--color-sunken);
-	}
-
-	.dot {
-		inline-size: 0.5rem;
-		block-size: 0.5rem;
-		border-radius: 999px;
-		background: var(--color-line-strong);
-	}
-
-	.url {
-		margin-inline-start: 0.6rem;
-		padding: 0.15rem 0.6rem;
-		border-radius: 999px;
-		background: var(--color-surface);
-		border: 1px solid var(--color-line);
-		font-size: 0.65rem;
-		color: var(--color-ink-faint);
-	}
-
-	.page {
-		display: flex;
-		flex-direction: column;
-		gap: 0.9rem;
-		padding: 0.9rem;
-	}
-
-	.topbar {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.mark {
-		inline-size: 2.4rem;
-		block-size: 0.5rem;
-		border-radius: 999px;
-		background: var(--color-brand);
-	}
-
-	.link {
-		inline-size: 1.6rem;
-		block-size: 0.35rem;
-		border-radius: 999px;
-		background: var(--color-line-strong);
-	}
-
-	.pill {
-		margin-inline-start: auto;
-		inline-size: 2.2rem;
-		block-size: 0.85rem;
-		border-radius: 999px;
-		background: var(--color-brand);
-	}
-
-	.hero {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.45rem;
-		padding: 1.4rem 0;
-		border-radius: 0.75rem;
-		background: var(--color-brand-soft);
-	}
-
-	.headline {
-		inline-size: 60%;
-		block-size: 0.8rem;
-		border-radius: 999px;
-		background: var(--color-brand-line);
-	}
-
-	.sub {
-		inline-size: 42%;
-		block-size: 0.4rem;
-		border-radius: 999px;
-		background: var(--color-line-strong);
-	}
-
-	.cta {
-		inline-size: 3.2rem;
-		block-size: 0.9rem;
-		border-radius: 999px;
-		background: var(--color-brand);
-	}
-
-	.tiles {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.5rem;
-	}
-
-	.tile {
-		block-size: 2.4rem;
-		border-radius: 0.6rem;
-		border: 1px solid var(--color-line);
-		background: var(--color-raised);
-	}
-
-	.notices {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-	}
-
-	.notices .row {
-		block-size: 0.4rem;
-		border-radius: 999px;
-		background: var(--color-line-strong);
-	}
-
-	.notices .row:nth-child(2) {
-		inline-size: 85%;
-	}
-
-	.notices .row:nth-child(3) {
-		inline-size: 70%;
+		transform: rotate(-2.2deg) scale(1.06);
+		transform-origin: 50% 0;
 	}
 
 	.answer {
