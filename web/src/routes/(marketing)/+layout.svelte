@@ -39,10 +39,32 @@
 		{@render children()}
 	</main>
 
-	<footer class="border-t border-line px-6 py-8">
-		<div class="mx-auto flex max-w-5xl flex-wrap items-center gap-4 text-sm text-ink-soft">
-			<span>Fajr LMS</span>
-			<span class="ms-auto">Built for schools in South Asia and the Gulf.</span>
+	<footer class="border-t border-line px-6 py-12">
+		<div class="mx-auto grid max-w-5xl gap-8 sm:grid-cols-3">
+			<div>
+				<p class="mb-1 font-semibold tracking-tight">Fajr LMS</p>
+				<p class="mb-0 text-sm text-ink-soft">
+					Teaching, grading and fees for schools in South Asia and the Gulf.
+				</p>
+			</div>
+			<div>
+				<h2 class="mb-2 text-sm font-medium">The product</h2>
+				<ul class="flex flex-col gap-1.5 text-sm text-ink-soft">
+					<li><a class="hover:text-ink" href="/welcome">What it does</a></li>
+					<li><a class="hover:text-ink" href="/pricing">Pricing</a></li>
+					<li><a class="hover:text-ink" href="/start">Open a school</a></li>
+				</ul>
+			</div>
+			<div>
+				<h2 class="mb-2 text-sm font-medium">Already with us</h2>
+				<ul class="flex flex-col gap-1.5 text-sm text-ink-soft">
+					<li><a class="hover:text-ink" href="/login">Sign in</a></li>
+					<li><a class="hover:text-ink" href="/tenant">Switch school</a></li>
+				</ul>
+			</div>
 		</div>
+		<p class="mx-auto mt-8 max-w-5xl text-sm text-ink-faint">
+			Built on open-source parts. Your data stays yours.
+		</p>
 	</footer>
 </div>

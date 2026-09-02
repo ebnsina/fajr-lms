@@ -15,6 +15,8 @@ func TestParseRejectsBadInput(t *testing.T) {
 		"script link":       `[{"type":"cta","heading":"Go","cta_label":"Go","cta_href":"javascript:alert(1)"}]`,
 		"label with no ref": `[{"type":"cta","heading":"Go","cta_label":"Go"}]`,
 		"too many courses":  `[{"type":"courses","limit":99}]`,
+		"stats with none":   `[{"type":"stats","items":[]}]`,
+		"notice with no id": `[{"type":"notices","items":[{"text":"12 June"}]}]`,
 		"not a list":        `{"type":"hero"}`,
 	}
 	for name, raw := range cases {
@@ -43,6 +45,18 @@ func TestParseKeepsGoodInput(t *testing.T) {
 	}
 	if _, err := Encode(blocks); err != nil {
 		t.Fatalf("encode: %v", err)
+	}
+}
+
+func TestParseKeepsNumbersAndNotices(t *testing.T) {
+	raw := `[{"type":"stats","items":[{"title":"1,240","text":"students"}]},
+	         {"type":"notices","heading":"Notice board","items":[{"title":"Results published","text":"12 June"}]}]`
+	blocks, err := Parse([]byte(raw))
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if len(blocks) != 2 || blocks[0].Items[0].Title != "1,240" {
+		t.Fatalf("unexpected blocks: %+v", blocks)
 	}
 }
 

@@ -51,6 +51,38 @@
 			{/each}
 		</div>
 	</section>
+{:else if block.type === 'stats'}
+	<section class="border-y border-line bg-raised px-6 py-12">
+		<div class="mx-auto max-w-5xl">
+			{#if block.heading}
+				<h2 class="mb-6 text-center text-2xl font-semibold" dir="auto">{block.heading}</h2>
+			{/if}
+			<dl class="grid gap-6 text-center sm:grid-cols-2 lg:grid-cols-4">
+				{#each block.items ?? [] as item, i (i)}
+					<div>
+						<dt class="font-mono text-3xl font-medium tabular-nums" dir="auto">{item.title}</dt>
+						{#if item.text}
+							<dd class="mt-1 mb-0 text-sm text-ink-soft" dir="auto">{item.text}</dd>
+						{/if}
+					</div>
+				{/each}
+			</dl>
+		</div>
+	</section>
+{:else if block.type === 'notices'}
+	<section class="mx-auto max-w-3xl px-6 py-12">
+		<h2 class="mb-4 text-2xl font-semibold" dir="auto">{block.heading || 'Notices'}</h2>
+		<ul class="divide-y divide-line border-y border-line">
+			{#each block.items ?? [] as item, i (i)}
+				<li class="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3">
+					<span class="flex-1 font-medium" dir="auto">{item.title}</span>
+					{#if item.text}
+						<span class="font-mono text-sm text-ink-soft" dir="auto">{item.text}</span>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	</section>
 {:else if block.type === 'courses'}
 	<section class="mx-auto max-w-5xl px-6 py-12">
 		{#if block.heading}

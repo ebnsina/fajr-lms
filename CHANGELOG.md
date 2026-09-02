@@ -5,6 +5,14 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Eight website templates — a school, a college, a madrasah and a university,
+  each written twice: once for Bangladesh and once for the Gulf, in the language
+  it teaches in. Picking one writes its pages as drafts and dresses the site.
+- Two new page sections: numbers (learners, teachers, the year you opened) and
+  a notice board.
+- A fuller front door: how it works in four steps, who it is built for, what the
+  big platforms leave out, what your data is worth to us, and the questions we
+  are asked.
 - Live classes have a page: staff paste the Google Meet or Zoom link and attach
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can

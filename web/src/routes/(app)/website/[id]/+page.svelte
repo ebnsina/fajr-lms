@@ -23,10 +23,13 @@
 		{ value: 'richtext', label: 'Words', hint: 'A heading and paragraphs' },
 		{ value: 'features', label: 'Cards', hint: 'A grid of short points' },
 		{ value: 'faq', label: 'Questions', hint: 'Question and answer pairs' },
+		{ value: 'stats', label: 'Numbers', hint: 'Learners, teachers, the year you opened' },
+		{ value: 'notices', label: 'Notices', hint: 'A notice board, newest first' },
 		{ value: 'courses', label: 'Courses', hint: 'What you are teaching' },
 		{ value: 'cta', label: 'Invitation', hint: 'A closing call to act' }
 	];
-	const listed = (type: SiteBlock['type']) => type === 'features' || type === 'faq';
+	const listed = (type: SiteBlock['type']) =>
+		['features', 'faq', 'stats', 'notices'].includes(type);
 	const name = (type: SiteBlock['type']) => kinds.find((k) => k.value === type)?.label ?? type;
 
 	function add(type: SiteBlock['type']) {

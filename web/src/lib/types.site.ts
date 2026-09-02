@@ -1,5 +1,5 @@
 export type SiteBlock = {
-	type: 'hero' | 'richtext' | 'features' | 'faq' | 'courses' | 'cta';
+	type: 'hero' | 'richtext' | 'features' | 'faq' | 'stats' | 'notices' | 'courses' | 'cta';
 	heading?: string;
 	text?: string;
 	image_url?: string;

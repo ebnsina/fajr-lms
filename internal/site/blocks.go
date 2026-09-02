@@ -41,12 +41,16 @@ var kinds = map[string]struct{ needsHeading, needsItems bool }{
 	"richtext": {},
 	"features": {needsItems: true},
 	"faq":      {needsItems: true},
+	"stats":    {needsItems: true},
+	"notices":  {needsItems: true},
 	"courses":  {},
 	"cta":      {needsHeading: true},
 }
 
 // Kinds lists the block types a page may use, for the editor to offer.
-func Kinds() []string { return []string{"hero", "richtext", "features", "faq", "courses", "cta"} }
+func Kinds() []string {
+	return []string{"hero", "richtext", "features", "faq", "stats", "notices", "courses", "cta"}
+}
 
 // Parse checks raw JSON from a client and returns the blocks it describes.
 // The error is worded for the person editing the page.

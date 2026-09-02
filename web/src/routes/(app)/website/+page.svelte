@@ -3,11 +3,16 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import Trash from '@lucide/svelte/icons/trash-2';
+	import { templates, regions, kindNames } from '$lib/site-templates';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 
 	let adding = $state(false);
+
+	let region = $state<'bengal' | 'gulf'>('bengal');
+	let browsing = $state(false);
+	const shown = $derived(templates.filter((row) => row.region === region));
 
 	const themes = [
 		{ value: 'plain', label: 'Plain' },
@@ -34,6 +39,11 @@
 		<a class="btn btn-sm btn-quiet" href="/site/{data.tenantSlug}" target="_blank" rel="noreferrer">
 			<ExternalLink size={16} aria-hidden="true" /> Visit the site
 		</a>
+		{#if data.pages.length > 0}
+			<button class="btn btn-sm btn-quiet" type="button" onclick={() => (browsing = !browsing)}>
+				Templates
+			</button>
+		{/if}
 		<button class="btn btn-sm" type="button" onclick={() => (adding = !adding)}>
 			<Plus size={16} aria-hidden="true" /> New page
 		</button>
@@ -42,6 +52,11 @@
 
 {#if form?.message}
 	<p class="banner banner-bad mb-4" role="alert">{form.message}</p>
+{:else if form?.made}
+	<p class="banner mb-4" role="status">
+		{form.made}
+		{form.made === 1 ? 'page' : 'pages'} added as drafts. Read them, then publish.
+	</p>
 {/if}
 
 {#if adding}
@@ -58,6 +73,65 @@
 		</div>
 		<button class="btn" type="submit">Create</button>
 	</form>
+{/if}
+
+{#if data.pages.length === 0 || browsing}
+	<section class="card mb-6">
+		<header class="mb-4 flex flex-wrap items-center justify-between gap-3">
+			<div>
+				<h2 class="mb-1 text-sm font-semibold tracking-wide uppercase text-ink-soft">
+					Start from a template
+				</h2>
+				<p class="mb-0 text-sm text-ink-soft">
+					Written for the kind of institution you are, in the language it teaches in. Everything
+					lands as a draft you can rewrite.
+				</p>
+			</div>
+			{#if data.pages.length > 0}
+				<button class="btn btn-sm btn-quiet" type="button" onclick={() => (browsing = false)}>
+					Close
+				</button>
+			{/if}
+		</header>
+
+		<div class="mb-4 flex flex-wrap gap-2">
+			{#each regions as choice (choice.value)}
+				<button
+					class="btn btn-sm"
+					class:btn-quiet={region !== choice.value}
+					type="button"
+					onclick={() => (region = choice.value)}
+					aria-pressed={region === choice.value}
+				>
+					{choice.label}
+				</button>
+			{/each}
+		</div>
+
+		<div class="grid gap-4 sm:grid-cols-2">
+			{#each shown as template (template.id)}
+				<form
+					class="flex flex-col rounded-3xl border border-line bg-raised p-5"
+					method="POST"
+					action="?/template"
+					use:enhance
+				>
+					<input type="hidden" name="template" value={template.id} />
+					<header class="mb-2 flex items-start justify-between gap-2">
+						<h3 class="mb-0 font-medium">{template.name}</h3>
+						<span class="chip">{kindNames[template.kind]}</span>
+					</header>
+					<p class="mb-4 flex-1 text-sm text-ink-soft">{template.summary}</p>
+					<div class="mb-4 flex flex-wrap gap-1.5">
+						{#each template.pages as page (page.slug)}
+							<span class="chip font-mono">/{page.slug}</span>
+						{/each}
+					</div>
+					<button class="btn btn-sm self-end" type="submit">Use this template</button>
+				</form>
+			{/each}
+		</div>
+	</section>
 {/if}
 
 <form class="card mb-6" method="POST" action="?/theme" use:enhance>
