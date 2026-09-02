@@ -135,12 +135,17 @@
 	<a class="btn" href="/courses/{data.slug}/lessons/{data.lessonId}">Back to the lesson</a>
 {:else if live}
 	<!-- Sitting the paper. Each answer saves on its own, so nothing is lost. -->
-	<div class="mb-5 flex flex-wrap items-center gap-3">
+	<!-- Sticky: the time left is the one thing worth seeing on every question,
+	     and it is useless once it has scrolled away. The negative margins let the
+	     bar span the panel so nothing shows through behind it. -->
+	<div
+		class="sticky top-0 z-10 -mx-4 -mt-4 mb-5 flex flex-wrap items-center gap-3 border-b border-line bg-surface px-4 pt-4 pb-3 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6 lg:-mx-8 lg:-mt-8 lg:px-8 lg:pt-8"
+	>
 		<span class="chip" dir="auto">Attempt {live.attempt.attempt_no} of {quiz.max_attempts}</span>
+		<span class="ms-auto text-sm text-ink-soft" dir="auto">Answers save as you go.</span>
 		{#if quiz.time_limit_s > 0}
 			<QuizTimer seconds={live.expires_in_s} />
 		{/if}
-		<span class="ms-auto text-sm text-ink-soft" dir="auto">Answers save as you go.</span>
 	</div>
 
 	<ol class="mb-6 list-none space-y-3 p-0">
