@@ -29,8 +29,7 @@
 	     screen both reach it without wading through the pitch. -->
 	<main class="flex flex-col px-6 py-8 sm:px-10 lg:px-16">
 		<div class="flex items-center gap-3">
-			<span class="text-lg font-semibold tracking-tight">Fajr LMS</span>
-			<span class="ms-auto"><ThemeToggle {theme} /></span>
+			<span class="font-display text-lg font-bold tracking-tight">Fajr LMS</span>
 		</div>
 
 		<div class="flex flex-1 items-center py-10">
@@ -41,9 +40,12 @@
 			</div>
 		</div>
 
-		{#if footer}
-			<div class="text-sm text-ink-soft" dir="auto">{@render footer()}</div>
-		{/if}
+		<div class="flex flex-wrap items-center gap-3 text-sm text-ink-soft">
+			{#if footer}
+				<span dir="auto">{@render footer()}</span>
+			{/if}
+			<span class="ms-auto"><ThemeToggle {theme} /></span>
+		</div>
 	</main>
 
 	<!-- Hidden below lg rather than stacked: on a phone it would push the form

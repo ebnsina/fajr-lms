@@ -4,6 +4,15 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 
 ## [Unreleased]
 
+### Changed
+- The front door is a proper landing page now: a shader gradient behind the
+  hero, the kind of institution rolling through the headline one at a time, a
+  bolder display face, more room to breathe, a bento of what the website does,
+  a comparison that says what each side actually offers, and motion as you
+  scroll. The menu sits in the middle and the theme switch moved to the footer.
+- The sign-in and school-picker pages keep their theme switch in the bottom
+  corner rather than beside the wordmark.
+
 ### Added
 - Eight website templates — a school, a college, a madrasah and a university,
   each written twice: once for Bangladesh and once for the Gulf, in the language

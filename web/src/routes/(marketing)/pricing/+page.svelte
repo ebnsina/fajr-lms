@@ -76,9 +76,11 @@
 	/>
 </svelte:head>
 
-<section class="px-6 py-16">
+<section class="px-6 pt-40 pb-20">
 	<div class="mx-auto max-w-3xl text-center">
-		<h1 class="text-4xl font-semibold">Priced by learners, not by features</h1>
+		<h1 class="font-display text-4xl font-extrabold tracking-tight text-balance sm:text-5xl">
+			Priced by learners, not by features
+		</h1>
 		<p class="mt-3 text-ink-soft">
 			Every plan teaches, grades and collects fees. What grows is how many people you teach.
 		</p>
@@ -87,8 +89,8 @@
 	<div class="mx-auto mt-12 grid max-w-5xl gap-4 lg:grid-cols-3">
 		{#each plans as plan (plan.name)}
 			<article class="card flex flex-col" class:border-brand-line={!plan.quiet}>
-				<h2 class="text-lg font-semibold">{plan.name}</h2>
-				<p class="mt-2 mb-0 font-mono text-3xl">
+				<h2 class="font-display text-xl font-bold">{plan.name}</h2>
+				<p class="mt-2 mb-0 font-mono text-3xl tabular-nums">
 					{plan.price === 0 ? 'Free' : money.format(plan.price)}
 					{#if plan.price > 0}<span class="font-sans text-sm text-ink-soft">/month</span>{/if}
 				</p>
@@ -108,9 +110,9 @@
 	</div>
 </section>
 
-<section class="border-t border-line px-6 py-16">
+<section class="border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
-		<h2 class="mb-6 text-2xl font-semibold">Questions we are asked</h2>
+		<h2 class="mb-8 font-display text-3xl font-bold tracking-tight">Questions we are asked</h2>
 		<div class="flex flex-col gap-3">
 			{#each faq as item (item.q)}
 				<div class="card">

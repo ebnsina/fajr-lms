@@ -1,6 +1,9 @@
 <script lang="ts">
+	import ShaderGradient from '$lib/components/marketing/ShaderGradient.svelte';
+	import RollingWords from '$lib/components/marketing/RollingWords.svelte';
+	import { reveal, parallax, countUp } from '$lib/actions/motion';
 	import Check from '@lucide/svelte/icons/check';
-	import X from '@lucide/svelte/icons/x';
+	import Minus from '@lucide/svelte/icons/minus';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Wallet from '@lucide/svelte/icons/wallet';
 	import WifiOff from '@lucide/svelte/icons/wifi-off';
@@ -9,6 +12,9 @@
 	import Users from '@lucide/svelte/icons/users';
 	import Layout from '@lucide/svelte/icons/layout-template';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+
+	const institutions = ['school', 'madrasah', 'college', 'academy', 'university'];
 
 	const reasons = [
 		{
@@ -81,12 +87,12 @@
 	];
 
 	const comparison = [
-		{ line: 'Enrollment paid by mobile wallet or bank slip', us: true, them: false },
-		{ line: 'Arabic and Bengali rendered properly, not bolted on', us: true, them: false },
-		{ line: 'A public website with a page builder included', us: true, them: false },
-		{ line: 'Attendance that reaches the guardian', us: true, them: false },
-		{ line: 'Every teaching feature on every plan', us: true, them: false },
-		{ line: 'Runs on open-source parts you could host yourself', us: true, them: false }
+		{ line: 'Fees by mobile wallet or a bank slip somebody approves', us: 'Built in', them: 'Card only' },
+		{ line: 'Arabic and Bengali rendered properly', us: 'From the start', them: 'A translation layer' },
+		{ line: 'A public website with a page builder', us: 'Included', them: 'A separate product' },
+		{ line: 'Attendance that reaches the guardian', us: 'Included', them: 'An add-on' },
+		{ line: 'Teaching features held back by plan', us: 'None', them: 'Most of them' },
+		{ line: 'Host it yourself if you want to', us: 'Open parts', them: 'No' }
 	];
 
 	const included = [
@@ -130,74 +136,92 @@
 	/>
 </svelte:head>
 
-<section class="border-b border-line bg-raised px-6 py-20 sm:py-28">
-	<div class="mx-auto max-w-3xl text-center">
-		<p class="mb-3 text-sm font-medium tracking-wide uppercase text-brand-text">
-			For madrasahs, schools, coaching centers and teachers
-		</p>
-		<h1 class="text-4xl font-semibold sm:text-5xl">Run the whole school year in one place</h1>
-		<p class="mx-auto mt-4 max-w-2xl text-lg text-ink-soft">
+<section class="relative isolate overflow-hidden px-6 pt-40 pb-28 sm:pt-48 sm:pb-36">
+	<ShaderGradient />
+	<div class="relative mx-auto max-w-4xl text-center">
+		<h1
+			class="font-display text-5xl leading-[1.05] font-extrabold tracking-tight text-balance text-ink sm:text-7xl"
+			use:reveal={{ y: 32 }}
+		>
+			Run the whole
+			<RollingWords words={institutions} />
+			year in one place
+		</h1>
+		<p class="mx-auto mt-7 max-w-2xl text-lg text-ink-soft sm:text-xl" use:reveal={{ delay: 0.1 }}>
 			Fajr LMS teaches, grades, collects the fees and keeps the guardians informed — in Arabic,
 			Bengali or English, on the phones your learners already own.
 		</p>
-		<div class="mt-8 flex flex-wrap justify-center gap-3">
-			<a class="btn" href="/start">Open a school</a>
+		<div class="mt-10 flex flex-wrap justify-center gap-3" use:reveal={{ delay: 0.2 }}>
+			<a class="btn" href="/start">
+				Open a school
+				<ArrowRight size={17} aria-hidden="true" />
+			</a>
 			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
 		</div>
-		<p class="mt-4 text-sm text-ink-soft">Free while you set it up. No card to begin.</p>
+		<p class="mt-5 text-sm text-ink-soft" use:reveal={{ delay: 0.3 }}>
+			Free while you set it up. No card to begin.
+		</p>
 	</div>
 </section>
 
-<section class="border-b border-line px-6 py-12">
-	<dl class="mx-auto grid max-w-5xl gap-6 text-center sm:grid-cols-4">
+<section class="px-6 py-16">
+	<dl class="mx-auto grid max-w-5xl gap-10 text-center sm:grid-cols-4" use:reveal={{ stagger: 'div' }}>
 		<div>
-			<dt class="font-mono text-3xl font-medium tabular-nums">3</dt>
-			<dd class="mt-1 mb-0 text-sm text-ink-soft">scripts rendered properly</dd>
+			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={3}>3</span></dt>
+			<dd class="mt-2 mb-0 text-sm text-ink-soft">scripts rendered properly</dd>
 		</div>
 		<div>
-			<dt class="font-mono text-3xl font-medium tabular-nums">4</dt>
-			<dd class="mt-1 mb-0 text-sm text-ink-soft">ways to take a fee</dd>
+			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={4}>4</span></dt>
+			<dd class="mt-2 mb-0 text-sm text-ink-soft">ways to take a fee</dd>
 		</div>
 		<div>
-			<dt class="font-mono text-3xl font-medium tabular-nums">1</dt>
-			<dd class="mt-1 mb-0 text-sm text-ink-soft">minute to open a school</dd>
+			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={1}>1</span></dt>
+			<dd class="mt-2 mb-0 text-sm text-ink-soft">minute to open a school</dd>
 		</div>
 		<div>
-			<dt class="font-mono text-3xl font-medium tabular-nums">0</dt>
-			<dd class="mt-1 mb-0 text-sm text-ink-soft">features behind a higher tier</dd>
+			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={0}>0</span></dt>
+			<dd class="mt-2 mb-0 text-sm text-ink-soft">features behind a higher tier</dd>
 		</div>
 	</dl>
 </section>
 
-<section class="mx-auto max-w-5xl px-6 py-16">
-	<h2 class="mb-2 text-2xl font-semibold">Why schools here choose it</h2>
-	<p class="mb-8 max-w-2xl text-ink-soft">
-		Most platforms are built for a card-paying learner on fiber. This one is not.
-	</p>
-	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+<section class="mx-auto max-w-6xl px-6 py-24">
+	<div class="mb-14 max-w-2xl" use:reveal>
+		<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+			Why schools here choose it
+		</h2>
+		<p class="mt-3 mb-0 text-lg text-ink-soft">
+			Most platforms are built for a card-paying learner on fiber. This one is not.
+		</p>
+	</div>
+	<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" use:reveal={{ stagger: 'article' }}>
 		{#each reasons as reason (reason.title)}
-			<article class="card">
-				<reason.icon class="mb-3 text-brand-text" size={22} aria-hidden="true" />
-				<h3 class="mb-1 font-medium">{reason.title}</h3>
+			<article class="card transition-colors hover:border-line-strong">
+				<reason.icon class="mb-4 text-brand-text" size={24} aria-hidden="true" />
+				<h3 class="mb-2 text-lg font-medium">{reason.title}</h3>
 				<p class="mb-0 text-sm text-ink-soft">{reason.body}</p>
 			</article>
 		{/each}
 	</div>
 </section>
 
-<section class="border-y border-line bg-raised px-6 py-16">
-	<div class="mx-auto max-w-5xl">
-		<h2 class="mb-2 text-2xl font-semibold">From nothing to teaching, in four steps</h2>
-		<p class="mb-8 max-w-2xl text-ink-soft">
-			Each one is a screen, not a project. Nobody has to call us to get through them.
-		</p>
-		<ol class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+<section class="border-y border-line bg-raised px-6 py-24">
+	<div class="mx-auto max-w-6xl">
+		<div class="mb-14 max-w-2xl" use:reveal>
+			<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+				From nothing to teaching, in four steps
+			</h2>
+			<p class="mt-3 mb-0 text-lg text-ink-soft">
+				Each one is a screen, not a project. Nobody has to call us to get through them.
+			</p>
+		</div>
+		<ol class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" use:reveal={{ stagger: 'li' }}>
 			{#each steps as step, index (step.title)}
 				<li class="card">
-					<span class="mb-3 block font-mono text-sm text-brand-text">
+					<span class="mb-4 block font-mono text-sm text-brand-text">
 						{String(index + 1).padStart(2, '0')}
 					</span>
-					<h3 class="mb-1 font-medium">{step.title}</h3>
+					<h3 class="mb-2 text-lg font-medium">{step.title}</h3>
 					<p class="mb-0 text-sm text-ink-soft">{step.body}</p>
 				</li>
 			{/each}
@@ -205,92 +229,132 @@
 	</div>
 </section>
 
-<section class="mx-auto max-w-5xl px-6 py-16">
-	<h2 class="mb-2 text-2xl font-semibold">Your website, without a web developer</h2>
-	<p class="mb-8 max-w-2xl text-ink-soft">
-		Every school gets a public site built from sections you fill in. Start from a template written
-		for your kind of institution, in the language it teaches in.
-	</p>
-	<div class="grid gap-4 sm:grid-cols-2">
-		<article class="card">
-			<Layout class="mb-3 text-brand-text" size={22} aria-hidden="true" />
-			<h3 class="mb-1 font-medium">Templates that fit</h3>
+<!-- Bento: tiles of different weight, drifting at different speeds. -->
+<section class="mx-auto max-w-6xl px-6 py-24">
+	<div class="mb-14 max-w-2xl" use:reveal>
+		<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+			Your website, without a web developer
+		</h2>
+		<p class="mt-3 mb-0 text-lg text-ink-soft">
+			Every school gets a public site built from sections you fill in, in the language it teaches
+			in.
+		</p>
+	</div>
+
+	<div class="grid gap-5 lg:grid-cols-3">
+		<article class="card lg:col-span-2 lg:row-span-2" use:parallax={26}>
+			<Layout class="mb-4 text-brand-text" size={26} aria-hidden="true" />
+			<h3 class="mb-2 font-display text-2xl font-bold">Eight templates, written for you</h3>
+			<p class="mb-6 max-w-lg text-ink-soft">
+				A school, a college, a madrasah or a university — each written twice, once for Bangladesh
+				and once for the Gulf. Notice boards, admission pages, the numbers that matter, and your
+				catalog pulled straight from the courses you teach.
+			</p>
+			<div class="mb-6 flex flex-wrap gap-2">
+				{#each ['School', 'College', 'Madrasah', 'University'] as kind (kind)}
+					<span class="chip">{kind}</span>
+				{/each}
+				<span class="chip chip-brand">Bangladesh</span>
+				<span class="chip chip-brand">The Gulf</span>
+			</div>
+
+			<ul class="flex flex-col gap-2 border-t border-line pt-5 font-mono text-xs text-ink-faint">
+				{#each ['a headline', 'the notice board', 'the numbers', 'your courses', 'questions parents ask', 'an invitation'] as section, i (section)}
+					<li class="flex items-center gap-3">
+						<span class="w-6">{String(i + 1).padStart(2, '0')}</span>
+						<span class="h-px flex-1 bg-line"></span>
+						<span>{section}</span>
+					</li>
+				{/each}
+			</ul>
+		</article>
+
+		<article class="card" use:parallax={52}>
+			<Globe class="mb-4 text-brand-text" size={24} aria-hidden="true" />
+			<h3 class="mb-2 text-lg font-medium">Dressed for where you teach</h3>
 			<p class="mb-0 text-sm text-ink-soft">
-				A school, a college, a madrasah or a university — for Bangladesh and for the Gulf. Notice
-				boards, admission pages, the numbers that matter, and your catalog pulled straight from the
-				courses you teach.
+				The Gulf setting reads right to left and sets Arabic a size larger. The Bengal setting sets
+				Bengali and runs a little tighter.
 			</p>
 		</article>
-		<article class="card">
-			<Globe class="mb-3 text-brand-text" size={22} aria-hidden="true" />
-			<h3 class="mb-1 font-medium">Dressed for where you teach</h3>
+
+		<article class="card" use:parallax={68}>
+			<ShieldCheck class="mb-4 text-brand-text" size={24} aria-hidden="true" />
+			<h3 class="mb-2 text-lg font-medium">Nothing can smuggle script in</h3>
 			<p class="mb-0 text-sm text-ink-soft">
-				The Gulf setting reads right to left and sets Arabic a size larger; the Bengal setting sets
-				Bengali and runs a little tighter. One choice, and the whole site follows.
+				Every section is plain text checked on the server. A page cannot carry markup, so a page
+				cannot carry an attack.
 			</p>
 		</article>
+
+		{#each audiences as audience (audience.title)}
+			<article class="card flex flex-col" use:parallax={34}>
+				<h3 class="mb-2 text-lg font-medium">{audience.title}</h3>
+				<p class="mb-5 flex-1 text-sm text-ink-soft">{audience.body}</p>
+				<p class="mb-0 font-mono text-xs text-ink-faint">{audience.line}</p>
+			</article>
+		{/each}
 	</div>
 </section>
 
-<section class="border-y border-line bg-raised px-6 py-16">
-	<div class="mx-auto max-w-5xl">
-		<h2 class="mb-8 text-2xl font-semibold">Built for who you are</h2>
-		<div class="grid gap-4 lg:grid-cols-3">
-			{#each audiences as audience (audience.title)}
-				<article class="card flex flex-col">
-					<h3 class="mb-2 font-medium">{audience.title}</h3>
-					<p class="mb-4 flex-1 text-sm text-ink-soft">{audience.body}</p>
-					<p class="mb-0 font-mono text-xs text-ink-faint">{audience.line}</p>
-				</article>
-			{/each}
+<section class="border-y border-line bg-raised px-6 py-24">
+	<div class="mx-auto max-w-4xl">
+		<div class="mb-12 max-w-2xl" use:reveal>
+			<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+				What the big platforms leave out
+			</h2>
+			<p class="mt-3 mb-0 text-lg text-ink-soft">
+				Not a knock on them — they were built for a different learner, in a different country.
+			</p>
+		</div>
+		<div class="card overflow-x-auto p-0" use:reveal>
+			<table class="w-full border-collapse text-sm">
+				<thead>
+					<tr class="border-b border-line">
+						<th class="px-6 py-4 text-start font-medium">&nbsp;</th>
+						<th class="w-40 px-4 py-4 font-display font-bold text-brand-text">Fajr LMS</th>
+						<th class="w-40 px-4 py-4 font-medium text-ink-soft">The usual</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each comparison as row (row.line)}
+						<tr class="border-b border-line last:border-0">
+							<td class="px-6 py-4">{row.line}</td>
+							<td class="px-4 py-4 text-center">
+								<span class="inline-flex items-center gap-1.5 font-medium">
+									<Check class="text-brand-text" size={16} aria-hidden="true" />
+									{row.us}
+								</span>
+							</td>
+							<td class="px-4 py-4 text-center text-ink-soft">
+								<span class="inline-flex items-center gap-1.5">
+									<Minus class="text-ink-faint" size={16} aria-hidden="true" />
+									{row.them}
+								</span>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
 		</div>
 	</div>
 </section>
 
-<section class="mx-auto max-w-3xl px-6 py-16">
-	<h2 class="mb-2 text-2xl font-semibold">What the big platforms leave out</h2>
-	<p class="mb-6 text-ink-soft">
-		Not a knock on them — they were built for a different learner, in a different country.
-	</p>
-	<div class="overflow-x-auto">
-		<table class="w-full border-collapse text-sm">
-			<thead>
-				<tr class="border-b border-line text-start">
-					<th class="py-3 text-start font-medium">&nbsp;</th>
-					<th class="w-24 py-3 font-medium">Fajr LMS</th>
-					<th class="w-24 py-3 font-medium text-ink-soft">The usual</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each comparison as row (row.line)}
-					<tr class="border-b border-line">
-						<td class="py-3 pe-4">{row.line}</td>
-						<td class="py-3 text-center">
-							<Check class="mx-auto text-brand-text" size={18} aria-label="yes" />
-						</td>
-						<td class="py-3 text-center">
-							<X class="mx-auto text-ink-faint" size={18} aria-label="no" />
-						</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
-</section>
-
-<section class="border-y border-line bg-raised px-6 py-16">
-	<div class="mx-auto grid max-w-5xl gap-10 lg:grid-cols-2">
-		<div>
-			<h2 class="mb-2 text-2xl font-semibold">Everything is included</h2>
-			<p class="mb-4 text-ink-soft">
+<section class="mx-auto max-w-6xl px-6 py-24">
+	<div class="grid gap-12 lg:grid-cols-2">
+		<div use:reveal>
+			<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+				Everything is included
+			</h2>
+			<p class="mt-3 mb-6 text-lg text-ink-soft">
 				There is no teaching feature behind a higher tier. What changes with the plan is how many
 				learners you teach.
 			</p>
 			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
 		</div>
-		<ul class="grid gap-3 sm:grid-cols-2">
+		<ul class="grid gap-4 sm:grid-cols-2" use:reveal={{ stagger: 'li' }}>
 			{#each included as item (item)}
-				<li class="flex items-start gap-2 text-sm">
+				<li class="flex items-start gap-2.5 text-sm">
 					<Check class="mt-0.5 shrink-0 text-brand-text" size={16} aria-hidden="true" />
 					{item}
 				</li>
@@ -299,41 +363,37 @@
 	</div>
 </section>
 
-<section class="mx-auto max-w-5xl px-6 py-16">
-	<div class="card flex flex-col gap-4 sm:flex-row sm:items-start">
-		<ShieldCheck class="shrink-0 text-brand-text" size={26} aria-hidden="true" />
-		<div>
-			<h2 class="mb-2 text-lg font-medium">Your school's data is your school's</h2>
-			<p class="mb-0 text-sm text-ink-soft">
-				Every school is isolated in the database itself, not by application code that could forget.
-				Nothing is sold on, nothing is trained on, and you can take everything out in full, at any
-				time. On the Institution plan it stays in your country.
-			</p>
-		</div>
-	</div>
-</section>
-
-<section class="border-t border-line px-6 py-16">
+<section class="border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
-		<h2 class="mb-6 text-2xl font-semibold">Questions we are asked</h2>
-		<div class="flex flex-col gap-3">
+		<h2 class="mb-10 font-display text-3xl font-bold tracking-tight sm:text-4xl" use:reveal>
+			Questions we are asked
+		</h2>
+		<div class="flex flex-col gap-4" use:reveal={{ stagger: 'div.card' }}>
 			{#each faq as item (item.q)}
 				<div class="card">
-					<h3 class="mb-1 font-medium">{item.q}</h3>
-					<p class="mb-0 text-sm text-ink-soft">{item.a}</p>
+					<h3 class="mb-2 text-lg font-medium">{item.q}</h3>
+					<p class="mb-0 text-ink-soft">{item.a}</p>
 				</div>
 			{/each}
 		</div>
 	</div>
 </section>
 
-<section class="mx-auto max-w-3xl px-6 py-20 text-center">
-	<h2 class="mb-2 text-2xl font-semibold">Your school could be teaching by this evening</h2>
-	<p class="mb-6 text-ink-soft">
-		Opening a school takes a name and a phone number. You can invite a teacher straight after.
-	</p>
-	<div class="flex flex-wrap justify-center gap-3">
-		<a class="btn" href="/start">Open a school</a>
-		<a class="btn btn-quiet" href="/pricing">See the pricing</a>
+<section class="relative isolate overflow-hidden px-6 py-32">
+	<ShaderGradient />
+	<div class="relative mx-auto max-w-3xl text-center" use:reveal>
+		<h2 class="font-display text-4xl font-extrabold tracking-tight text-balance text-ink sm:text-5xl">
+			Your school could be teaching by this evening
+		</h2>
+		<p class="mx-auto mt-5 max-w-xl text-lg text-ink-soft">
+			Opening a school takes a name and a phone number. You can invite a teacher straight after.
+		</p>
+		<div class="mt-9 flex flex-wrap justify-center gap-3">
+			<a class="btn" href="/start">
+				Open a school
+				<ArrowRight size={17} aria-hidden="true" />
+			</a>
+			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
+		</div>
 	</div>
 </section>
