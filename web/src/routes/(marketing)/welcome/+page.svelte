@@ -288,6 +288,9 @@
 					aria-expanded={front === index}
 					onclick={() => (front = index)}
 				>
+					<span class="ghost font-display" aria-hidden="true">
+						{String(index + 1).padStart(2, '0')}
+					</span>
 					<span class="num font-display">{String(index + 1).padStart(2, '0')}</span>
 					<span class="spine font-display">{step.title}</span>
 					<span class="detail">
@@ -573,10 +576,30 @@
 	}
 
 	.num {
+		position: relative;
 		font-size: 1.5rem;
 		font-weight: 700;
 		color: var(--color-brand-text);
 		line-height: 1;
+	}
+
+	/* The number again, oversized and barely there, so an open card is not a
+	   field of empty surface. */
+	.ghost {
+		position: absolute;
+		inset-block-start: -1rem;
+		inset-inline-end: -0.5rem;
+		font-size: 9rem;
+		font-weight: 700;
+		line-height: 1;
+		color: var(--color-brand-soft);
+		opacity: 0;
+		transition: opacity 460ms ease;
+		pointer-events: none;
+	}
+
+	.open .ghost {
+		opacity: 1;
 	}
 
 	.spine {
@@ -584,7 +607,8 @@
 	}
 
 	.detail {
-		margin-block-start: 1rem;
+		position: relative;
+		margin-block-start: 1.25rem;
 		display: none;
 	}
 
@@ -595,7 +619,7 @@
 	@media (min-width: 48rem) {
 		.panels {
 			flex-direction: row;
-			block-size: 24rem;
+			block-size: 16rem;
 		}
 
 		.panel {
@@ -622,8 +646,13 @@
 			display: none;
 		}
 
+		/* Number, name and detail read as one block rather than one at each end. */
 		.open .detail {
-			margin-block-start: auto;
+			margin-block-start: 1.25rem;
+		}
+
+		.panel {
+			block-size: 100%;
 		}
 	}
 

@@ -81,7 +81,9 @@
 			col = mix(col, light, smoothstep(0.28, 0.52, shade));
 			col = mix(col, dark, smoothstep(0.58, 0.88, shade));
 
-			float edge = smoothstep(0.5, 0.49, distance(uv, vec2(0.5)));
+			vec2 c = (uv - 0.5) * 2.0;
+			float squircle = pow(abs(c.x), 4.0) + pow(abs(c.y), 4.0);
+			float edge = smoothstep(1.0, 0.94, squircle);
 
 			gl_FragColor = vec4(col * edge, edge);
 		}
@@ -181,7 +183,7 @@
 	.orb {
 		position: relative;
 		overflow: hidden;
-		border-radius: 999px;
+		border-radius: 30%;
 		max-inline-size: 100%;
 	}
 
