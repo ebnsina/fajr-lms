@@ -74,12 +74,21 @@ func run() error {
 		slog.Info("sslcommerz enabled", "sandbox", cfg.SSLCommerz.Sandbox)
 	}
 
+	if cfg.BKash.Enabled() {
+		methods = append(methods, &payment.BKash{
+			Username: cfg.BKash.Username, Password: cfg.BKash.Password,
+			AppKey: cfg.BKash.AppKey, AppSecret: cfg.BKash.AppSecret, Sandbox: cfg.BKash.Sandbox,
+			CallbackURL: cfg.PublicURL + "/v1/payment/{tenant}/bkash/callback",
+		})
+		slog.Info("bkash enabled", "sandbox", cfg.BKash.Sandbox)
+	}
+
 	payments, err := payment.NewRegistry("bank_transfer", methods...)
 	if err != nil {
 		return err
 	}
 
-	server := api.NewServer(store, identity.New(store, notify.LogChannel{}), registry, payments)
+	server := api.NewServer(store, identity.New(store, notify.LogChannel{}), registry, payments, cfg.PublicURL)
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,

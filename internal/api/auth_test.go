@@ -42,7 +42,7 @@ func newHarness(t *testing.T) (http.Handler, *captureChannel, *database.Store) {
 	t.Cleanup(store.Close)
 
 	ch := &captureChannel{}
-	return api.NewServer(store, identity.New(store, ch), testRegistry(t), testPayments(t)).Routes(), ch, store
+	return api.NewServer(store, identity.New(store, ch), testRegistry(t), testPayments(t), "https://fajr.test").Routes(), ch, store
 }
 
 func do(t *testing.T, h http.Handler, method, path, token, tenant string, body any) *httptest.ResponseRecorder {

@@ -5,6 +5,9 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Pay with bKash directly, without going through a card gateway.
+- Returning from a payment now lands the payer on a readable page instead of
+  raw JSON.
 - Pay by card, bKash, Nagad or bank through SSLCommerz: the learner is sent to
   the gateway and enrolled automatically once the payment clears.
 - Payments are confirmed with SSLCommerz directly rather than trusting what the

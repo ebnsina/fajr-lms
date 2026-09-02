@@ -12,14 +12,16 @@ import (
 
 // Server holds the dependencies every endpoint shares.
 type Server struct {
-	store    *database.Store
-	identity *identity.Service
-	media    *media.Registry
-	payments *payment.Registry
+	store     *database.Store
+	identity  *identity.Service
+	media     *media.Registry
+	payments  *payment.Registry
+	publicURL string
 }
 
-func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry, payments *payment.Registry) *Server {
-	return &Server{store: store, identity: ident, media: registry, payments: payments}
+func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry,
+	payments *payment.Registry, publicURL string) *Server {
+	return &Server{store: store, identity: ident, media: registry, payments: payments, publicURL: publicURL}
 }
 
 // Routes returns the full API surface, health probes included.
@@ -74,6 +76,7 @@ func (s *Server) Routes() http.Handler {
 
 	// Unauthenticated: gateways call this, not users. Everything is re-verified.
 	mux.Handle("POST /v1/payment/{tenant}/{provider}/callback", httpx.Handler(s.paymentCallback))
+	mux.Handle("GET /v1/payment/{tenant}/{provider}/callback", httpx.Handler(s.paymentCallback))
 
 	mux.Handle("GET /v1/payment/providers", inTenant(httpx.Handler(s.paymentProviders)))
 	mux.Handle("POST /v1/courses/{id}/orders", inTenant(httpx.Handler(s.createOrder)))

@@ -19,6 +19,7 @@ type Config struct {
 	S3              S3Config
 	Bank            BankConfig
 	SSLCommerz      SSLCommerzConfig
+	BKash           BKashConfig
 	PublicURL       string
 	ShutdownTimeout time.Duration
 }
@@ -77,6 +78,17 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("config: FAJR_SSLCOMMERZ_STORE_ID needs FAJR_SSLCOMMERZ_STORE_PASSWORD")
 	}
 
+	c.BKash = BKashConfig{
+		Username:  env("FAJR_BKASH_USERNAME", ""),
+		Password:  env("FAJR_BKASH_PASSWORD", ""),
+		AppKey:    env("FAJR_BKASH_APP_KEY", ""),
+		AppSecret: env("FAJR_BKASH_APP_SECRET", ""),
+		Sandbox:   env("FAJR_BKASH_SANDBOX", "true") == "true",
+	}
+	if c.BKash.Enabled() && (c.BKash.Username == "" || c.BKash.Password == "" || c.BKash.AppSecret == "") {
+		return Config{}, fmt.Errorf("config: FAJR_BKASH_APP_KEY needs a username, password and app secret")
+	}
+
 	c.Bank = BankConfig{
 		AccountName:   env("FAJR_BANK_ACCOUNT_NAME", ""),
 		AccountNumber: env("FAJR_BANK_ACCOUNT_NUMBER", ""),
@@ -119,6 +131,17 @@ type SSLCommerzConfig struct {
 }
 
 func (s SSLCommerzConfig) Enabled() bool { return s.StoreID != "" }
+
+// BKashConfig is optional; without an app key bKash is not offered.
+type BKashConfig struct {
+	Username  string
+	Password  string
+	AppKey    string
+	AppSecret string
+	Sandbox   bool
+}
+
+func (b BKashConfig) Enabled() bool { return b.AppKey != "" }
 
 // BankConfig is the account a manual transfer is paid into.
 type BankConfig struct {

@@ -51,7 +51,7 @@ func gatewayHarness(t *testing.T, g *gatewayStub) (http.Handler, *captureChannel
 	if err != nil {
 		t.Fatalf("build payment registry: %v", err)
 	}
-	return api.NewServer(store, identity.New(store, ch), mediaRegistry(t), payments).Routes(), ch, store
+	return api.NewServer(store, identity.New(store, ch), mediaRegistry(t), payments, "https://fajr.test").Routes(), ch, store
 }
 
 func mediaRegistry(t *testing.T) *media.Registry {
@@ -232,4 +232,44 @@ func assertOrderStatus(t *testing.T, h http.Handler, a actor, slug, want string)
 	if len(got.Orders) == 0 || got.Orders[0].Order.Status != want {
 		t.Fatalf("order status = %+v, want %q", got.Orders, want)
 	}
+}
+
+func TestBrowserReturnRedirects(t *testing.T) {
+	g := &gatewayStub{}
+	h, ch, store := gatewayHarness(t, g)
+	owner := enrol(t, h, ch, store, "owner")
+	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	courseID := paidCourse(t, h, owner, 150000)
+
+	rec := do(t, h, "POST", "/v1/courses/"+courseID+"/orders", student.token, owner.slug, nil)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create order: got %d: %s", rec.Code, rec.Body)
+	}
+	var order orderBody
+	if err := json.Unmarshal(rec.Body.Bytes(), &order); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+
+	g.validation = map[string]any{
+		"status": "VALID", "tran_id": order.Reference, "amount": "1500.00", "currency": "BDT",
+	}
+
+	// The payer's browser comes back by GET, not a server-to-server POST.
+	path := "/v1/payment/" + owner.slug + "/sslcommerz/callback?tran_id=" +
+		url.QueryEscape(order.Reference) + "&val_id=GET-" + url.QueryEscape(order.Reference) + "&status=VALID"
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	got := httptest.NewRecorder()
+	h.ServeHTTP(got, req)
+
+	if got.Code != http.StatusSeeOther {
+		t.Fatalf("got %d, want 303: %s", got.Code, got.Body)
+	}
+	location := got.Header().Get("Location")
+	if !strings.HasPrefix(location, "https://fajr.test/pay/paid") {
+		t.Errorf("Location = %q, want a paid landing page", location)
+	}
+	if !strings.Contains(location, url.QueryEscape(order.Reference)) {
+		t.Errorf("Location = %q, want it to carry the reference", location)
+	}
+	assertOrderStatus(t, h, student, owner.slug, "paid")
 }
