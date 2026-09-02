@@ -71,8 +71,8 @@ func postForm(t *testing.T, h http.Handler, path string, form url.Values) *httpt
 func TestGatewayCallback(t *testing.T) {
 	g := &gatewayStub{}
 	h, ch, store := gatewayHarness(t, g)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	courseID := paidCourse(t, h, owner, 150000)
 
 	rec := do(t, h, "POST", "/v1/courses/"+courseID+"/orders", student.token, owner.slug, nil)
@@ -130,7 +130,7 @@ func TestGatewayCallback(t *testing.T) {
 		assertOrderStatus(t, h, student, owner.slug, "pending")
 	})
 
-	t.Run("a genuine payment settles and enrols", func(t *testing.T) {
+	t.Run("a genuine payment settles and enrolls", func(t *testing.T) {
 		g.validation = map[string]any{
 			"status": "VALID", "tran_id": order.Reference, "amount": "1500.00",
 			"currency": "BDT", "bank_tran_id": "BANK-9",
@@ -165,7 +165,7 @@ func TestGatewayCallback(t *testing.T) {
 	})
 
 	t.Run("a manual method cannot be settled by callback", func(t *testing.T) {
-		buyer := enrolIn(t, h, ch, store, owner.slug, "student")
+		buyer := enrollIn(t, h, ch, store, owner.slug, "student")
 		rec := do(t, h, "POST", "/v1/courses/"+courseID+"/orders", buyer.token, owner.slug,
 			map[string]any{"provider": "bank_transfer"})
 		if rec.Code != http.StatusCreated {
@@ -183,7 +183,7 @@ func TestGatewayCallback(t *testing.T) {
 	})
 
 	t.Run("a cancelled redirect cancels the order", func(t *testing.T) {
-		buyer := enrolIn(t, h, ch, store, owner.slug, "student")
+		buyer := enrollIn(t, h, ch, store, owner.slug, "student")
 		rec := do(t, h, "POST", "/v1/courses/"+courseID+"/orders", buyer.token, owner.slug, nil)
 		if rec.Code != http.StatusCreated {
 			t.Fatalf("create order: got %d: %s", rec.Code, rec.Body)
@@ -237,8 +237,8 @@ func assertOrderStatus(t *testing.T, h http.Handler, a actor, slug, want string)
 func TestBrowserReturnRedirects(t *testing.T) {
 	g := &gatewayStub{}
 	h, ch, store := gatewayHarness(t, g)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	courseID := paidCourse(t, h, owner, 150000)
 
 	rec := do(t, h, "POST", "/v1/courses/"+courseID+"/orders", student.token, owner.slug, nil)

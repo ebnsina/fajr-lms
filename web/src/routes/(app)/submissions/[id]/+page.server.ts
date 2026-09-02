@@ -23,7 +23,13 @@ type Sheet = {
 		late_penalty: number;
 	};
 	full_name: string;
-	attachments: { media_id: string; kind: string; title: string; state: string; playback?: Playback }[];
+	attachments: {
+		media_id: string;
+		kind: string;
+		title: string;
+		state: string;
+		playback?: Playback;
+	}[];
 };
 
 export const load: PageServerLoad = async ({ params, locals, parent, fetch }) => {
@@ -72,7 +78,8 @@ export const actions: Actions = {
 				fetch
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		redirect(303, '/submissions');

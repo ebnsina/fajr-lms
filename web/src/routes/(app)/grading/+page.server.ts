@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 	const { session } = await parent();
 	if (!session?.tenant) redirect(303, '/tenant');
 
-	const { attempts } = await api<{ attempts: Attempt[] }>('/v1/marking?limit=50', {
+	const { attempts } = await api<{ attempts: Attempt[] }>('/v1/grading?limit=50', {
 		token: locals.token,
 		tenant: session.tenant.slug,
 		fetch

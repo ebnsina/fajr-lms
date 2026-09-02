@@ -32,13 +32,13 @@ func publishedCourse(t *testing.T, h http.Handler, a actor, lessons int) (course
 
 func TestEnrollmentAndProgress(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
-	other := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+	other := enrollIn(t, h, ch, store, owner.slug, "student")
 
 	courseID, lessons := publishedCourse(t, h, owner, 2)
 
-	t.Run("a learner enrols themselves in a free public course", func(t *testing.T) {
+	t.Run("a learner enrolls themselves in a free public course", func(t *testing.T) {
 		rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil)
 		if rec.Code != http.StatusCreated {
 			t.Fatalf("got %d, want 201: %s", rec.Code, rec.Body)
@@ -61,7 +61,7 @@ func TestEnrollmentAndProgress(t *testing.T) {
 		}
 	})
 
-	t.Run("a learner cannot enrol somebody else", func(t *testing.T) {
+	t.Run("a learner cannot enroll somebody else", func(t *testing.T) {
 		rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug,
 			map[string]any{"user_id": other.userID.String()})
 		if rec.Code != http.StatusForbidden {
@@ -69,7 +69,7 @@ func TestEnrollmentAndProgress(t *testing.T) {
 		}
 	})
 
-	t.Run("staff enrol on someone's behalf", func(t *testing.T) {
+	t.Run("staff enroll on someone's behalf", func(t *testing.T) {
 		rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", owner.token, owner.slug,
 			map[string]any{"user_id": other.userID.String()})
 		if rec.Code != http.StatusCreated {
@@ -77,7 +77,7 @@ func TestEnrollmentAndProgress(t *testing.T) {
 		}
 	})
 
-	t.Run("self-enrolment into a private course is refused", func(t *testing.T) {
+	t.Run("self-enrollment into a private course is refused", func(t *testing.T) {
 		privateID := createdID(t, do(t, h, "POST", "/v1/courses", owner.token, owner.slug,
 			map[string]any{"title": "Staff Only"}))
 		rec := do(t, h, "POST", "/v1/courses/"+privateID+"/enrollments", student.token, owner.slug, nil)
@@ -86,8 +86,8 @@ func TestEnrollmentAndProgress(t *testing.T) {
 		}
 	})
 
-	t.Run("progress without an enrolment is not found", func(t *testing.T) {
-		outsider := enrolIn(t, h, ch, store, owner.slug, "student")
+	t.Run("progress without an enrollment is not found", func(t *testing.T) {
+		outsider := enrollIn(t, h, ch, store, owner.slug, "student")
 		rec := do(t, h, "PUT", "/v1/lessons/"+lessons[0]+"/progress", outsider.token, owner.slug,
 			map[string]any{"position_s": 10})
 		if rec.Code != http.StatusNotFound {
@@ -130,7 +130,7 @@ func TestEnrollmentAndProgress(t *testing.T) {
 		}
 	})
 
-	t.Run("finishing every lesson completes the enrolment", func(t *testing.T) {
+	t.Run("finishing every lesson completes the enrollment", func(t *testing.T) {
 		rec := do(t, h, "PUT", "/v1/lessons/"+lessons[1]+"/progress", student.token, owner.slug,
 			map[string]any{"position_s": 600, "completed": true})
 		if rec.Code != http.StatusOK {

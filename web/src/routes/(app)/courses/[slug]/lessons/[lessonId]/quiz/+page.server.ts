@@ -48,8 +48,12 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 	// An attempt already open is resumed rather than started again, so a dropped
 	// connection never costs somebody one of their tries.
 	const open = paper.attempts.find((a) => a.state === 'in_progress');
-	let live: { attempt: Attempt; questions: LearnerQuestion[]; expires_in_s: number; answers: { question_id: string; option_ids: string[]; text: string }[] } | null =
-		null;
+	let live: {
+		attempt: Attempt;
+		questions: LearnerQuestion[];
+		expires_in_s: number;
+		answers: { question_id: string; option_ids: string[]; text: string }[];
+	} | null = null;
 	if (open) {
 		try {
 			live = await api(`/v1/attempts/${open.id}`, scoped);
@@ -68,7 +72,11 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 	};
 };
 
-const scopedFrom = (locals: App.Locals, cookies: { get: (n: string) => string | undefined }, fetch: typeof globalThis.fetch) => {
+const scopedFrom = (
+	locals: App.Locals,
+	cookies: { get: (n: string) => string | undefined },
+	fetch: typeof globalThis.fetch
+) => {
 	const tenant = cookies.get('fajr_tenant');
 	if (!locals.token || !tenant) redirect(303, '/login');
 	return { token: locals.token, tenant, fetch };
@@ -83,7 +91,8 @@ export const actions: Actions = {
 				...scopedFrom(locals, cookies, fetch)
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { started: true };
@@ -104,7 +113,8 @@ export const actions: Actions = {
 				...scopedFrom(locals, cookies, fetch)
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { saved: body.question_id };
@@ -119,7 +129,8 @@ export const actions: Actions = {
 			});
 			return { result };
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 	}

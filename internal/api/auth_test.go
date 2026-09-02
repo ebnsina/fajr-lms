@@ -71,7 +71,7 @@ func do(t *testing.T, h http.Handler, method, path, token, tenant string, body a
 func codeFrom(t *testing.T, body string) string {
 	t.Helper()
 	var code string
-	if _, err := fmt.Sscanf(body, "Your Fajr code is %6s.", &code); err != nil {
+	if _, err := fmt.Sscanf(body, "Your Fajr LMS code is %6s.", &code); err != nil {
 		t.Fatalf("no code in %q: %v", body, err)
 	}
 	return code
@@ -169,7 +169,7 @@ func TestLoginFlow(t *testing.T) {
 		}
 	})
 
-	// Enrol the user, then the same token works inside the tenant.
+	// Enroll the user, then the same token works inside the tenant.
 	userID := uuid.MustParse(session.User.ID)
 	tenant, err := store.Unscoped().ProvisionTenant(ctx, database.ProvisionTenantParams{
 		Slug: slug, Name: "Darul Uloom", Kind: database.TenantKindInstitution,
@@ -227,7 +227,7 @@ func TestLoginFlow(t *testing.T) {
 
 func TestListMyTenants(t *testing.T) {
 	h, ch, store := newHarness(t)
-	first := enrol(t, h, ch, store, "owner")
+	first := enroll(t, h, ch, store, "owner")
 
 	// The slug is what every other request is scoped by, so it must come back
 	// before any tenant has been chosen.

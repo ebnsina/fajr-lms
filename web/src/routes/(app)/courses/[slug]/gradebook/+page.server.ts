@@ -54,7 +54,11 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 	}
 };
 
-const scoped = (locals: App.Locals, cookies: { get: (n: string) => string | undefined }, fetch: typeof globalThis.fetch) => {
+const scoped = (
+	locals: App.Locals,
+	cookies: { get: (n: string) => string | undefined },
+	fetch: typeof globalThis.fetch
+) => {
 	const tenant = cookies.get('fajr_tenant');
 	if (!locals.token || !tenant) redirect(303, '/login');
 	return { token: locals.token, tenant, fetch };
@@ -71,13 +75,14 @@ export const actions: Actions = {
 
 		try {
 			if (raw === '') {
-				await api(path, { method: 'DELETE', ...scoped(locals, cookies, fetch) }).catch(
-					(failure) => {
-						// Nothing to clear is the same outcome as clearing it.
-						if (failure instanceof ApiFailure && failure.status === 404) return;
-						throw failure;
-					}
-				);
+				await api(path, {
+					method: 'DELETE',
+					...scoped(locals, cookies, fetch)
+				}).catch((failure) => {
+					// Nothing to clear is the same outcome as clearing it.
+					if (failure instanceof ApiFailure && failure.status === 404) return;
+					throw failure;
+				});
 				return { cleared: true };
 			}
 
@@ -87,11 +92,15 @@ export const actions: Actions = {
 			}
 			await api(path, {
 				method: 'PUT',
-				body: { points: Math.trunc(points), note: String(form.get('note') ?? '') },
+				body: {
+					points: Math.trunc(points),
+					note: String(form.get('note') ?? '')
+				},
 				...scoped(locals, cookies, fetch)
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { saved: true };
@@ -120,7 +129,8 @@ export const actions: Actions = {
 				...scoped(locals, cookies, fetch)
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { added: true, slug: params.slug };

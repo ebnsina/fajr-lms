@@ -31,12 +31,12 @@ func getPublic(t *testing.T, h http.Handler, path, accept string) *httptest.Resp
 
 func TestCertificates(t *testing.T) {
 	h, _, ch, store := notifyHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 
 	courseID, lessons := publishedCourse(t, h, owner, 1)
 	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
-		t.Fatalf("enrol: got %d: %s", rec.Code, rec.Body)
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
 	}
 
 	t.Run("a learner cannot claim before finishing", func(t *testing.T) {
@@ -47,7 +47,7 @@ func TestCertificates(t *testing.T) {
 	})
 
 	t.Run("a learner cannot award somebody else", func(t *testing.T) {
-		other := enrolIn(t, h, ch, store, owner.slug, "student")
+		other := enrollIn(t, h, ch, store, owner.slug, "student")
 		rec := do(t, h, "POST", "/v1/courses/"+courseID+"/certificates", student.token, owner.slug,
 			map[string]any{"user_id": other.userID.String()})
 		if rec.Code != http.StatusForbidden {

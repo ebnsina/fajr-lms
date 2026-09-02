@@ -1,7 +1,13 @@
 import type { LayoutServerLoad } from './$types';
 import { api } from '$lib/server/api';
 
-type TenantSummary = { id: string; slug: string; name: string; role: string; kind: string };
+type TenantSummary = {
+	id: string;
+	slug: string;
+	name: string;
+	role: string;
+	kind: string;
+};
 
 type NotificationSummary = {
 	id: string;
@@ -16,7 +22,11 @@ type NotificationSummary = {
 export const load: LayoutServerLoad = async ({ locals, parent, fetch }) => {
 	const { session } = await parent();
 	if (!locals.token || !session?.tenant) {
-		return { recentNotifications: [] as NotificationSummary[], unread: 0, schools: [] as TenantSummary[] };
+		return {
+			recentNotifications: [] as NotificationSummary[],
+			unread: 0,
+			schools: [] as TenantSummary[]
+		};
 	}
 
 	// The switcher lists every school this person belongs to, so it needs names
@@ -41,8 +51,12 @@ export const load: LayoutServerLoad = async ({ locals, parent, fetch }) => {
 			tenant: session.tenant.slug,
 			fetch
 		});
-		return { recentNotifications: notifications, unread , schools };
+		return { recentNotifications: notifications, unread, schools };
 	} catch {
-		return { recentNotifications: [] as NotificationSummary[], unread: 0, schools: [] as TenantSummary[] };
+		return {
+			recentNotifications: [] as NotificationSummary[],
+			unread: 0,
+			schools: [] as TenantSummary[]
+		};
 	}
 };

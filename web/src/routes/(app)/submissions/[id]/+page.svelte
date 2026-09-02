@@ -29,7 +29,7 @@
 	}
 </script>
 
-<svelte:head><title>{data.assignment.title} · Fajr</title></svelte:head>
+<svelte:head><title>{data.assignment.title} · Fajr LMS</title></svelte:head>
 
 <nav class="mb-4 text-sm">
 	<a
@@ -130,7 +130,7 @@
 	</div>
 {:else}
 	<form method="POST" action="?/grade" use:enhance class="card space-y-4">
-		<h2 class="text-sm font-medium text-ink-soft" dir="auto">Your mark</h2>
+		<h2 class="text-sm font-medium text-ink-soft" dir="auto">Your grade</h2>
 
 		<div class="flex flex-wrap items-end gap-3">
 			<div class="w-32">
@@ -170,7 +170,7 @@
 		</div>
 
 		<div class="flex flex-col items-end">
-			<button class="btn" type="submit">Return the mark</button>
+			<button class="btn" type="submit">Return the grade</button>
 			<p class="mt-2 mb-0 text-end text-sm text-ink-soft" dir="auto">
 				The learner is told, and this cannot be changed afterwards.
 			</p>

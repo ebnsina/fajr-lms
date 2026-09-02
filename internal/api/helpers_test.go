@@ -48,8 +48,8 @@ func login(t *testing.T, h http.Handler, ch *captureChannel) (string, uuid.UUID)
 	return session.Token, uuid.MustParse(session.User.ID)
 }
 
-// enrol creates a fresh tenant and a user holding the given role in it.
-func enrol(t *testing.T, h http.Handler, ch *captureChannel, store *database.Store, role string) actor {
+// enroll creates a fresh tenant and a user holding the given role in it.
+func enroll(t *testing.T, h http.Handler, ch *captureChannel, store *database.Store, role string) actor {
 	t.Helper()
 	ctx := context.Background()
 	slug := fmt.Sprintf("t-%09d", rand.IntN(1_000_000_000))
@@ -67,8 +67,8 @@ func enrol(t *testing.T, h http.Handler, ch *captureChannel, store *database.Sto
 	return actor{token: token, userID: userID, slug: slug}
 }
 
-// enrolIn adds a new user to an existing tenant.
-func enrolIn(t *testing.T, h http.Handler, ch *captureChannel, store *database.Store, slug, role string) actor {
+// enrollIn adds a new user to an existing tenant.
+func enrollIn(t *testing.T, h http.Handler, ch *captureChannel, store *database.Store, slug, role string) actor {
 	t.Helper()
 	tenant, err := store.Unscoped().ResolveTenant(context.Background(), slug)
 	if err != nil {

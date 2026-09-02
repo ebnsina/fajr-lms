@@ -41,7 +41,7 @@
 	}
 </script>
 
-<svelte:head><title>Attendance · {data.course.title} · Fajr</title></svelte:head>
+<svelte:head><title>Attendance · {data.course.title} · Fajr LMS</title></svelte:head>
 
 <nav class="mb-4 text-sm">
 	<a
@@ -58,7 +58,7 @@
 	<div>
 		<h1 class="text-2xl font-semibold tracking-tight" dir="auto">Attendance</h1>
 		<p class="mt-1 text-sm text-ink-soft" dir="auto">
-			Marking somebody absent tells them and anyone listed as their guardian.
+			Grading somebody absent tells them and anyone listed as their guardian.
 		</p>
 	</div>
 	<button class="btn btn-sm btn-quiet ms-auto" type="button" onclick={() => (adding = !adding)}>

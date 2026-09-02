@@ -51,8 +51,8 @@ type orderBody struct {
 
 func TestManualPaymentFlow(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	courseID := paidCourse(t, h, owner, 150000)
 
 	var order orderBody
@@ -137,7 +137,7 @@ func TestManualPaymentFlow(t *testing.T) {
 	})
 
 	t.Run("another learner cannot submit proof on this order", func(t *testing.T) {
-		outsider := enrolIn(t, h, ch, store, owner.slug, "student")
+		outsider := enrollIn(t, h, ch, store, owner.slug, "student")
 		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/proof", outsider.token, owner.slug,
 			map[string]any{"provider_ref": "TXN00000"})
 		if rec.Code != http.StatusNotFound {
@@ -183,7 +183,7 @@ func TestManualPaymentFlow(t *testing.T) {
 		}
 	})
 
-	t.Run("approval pays the order and enrols the learner", func(t *testing.T) {
+	t.Run("approval pays the order and enrolls the learner", func(t *testing.T) {
 		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/review", owner.token, owner.slug,
 			map[string]any{"decision": "approve", "note": "slip verified"})
 		if rec.Code != http.StatusOK {
@@ -213,7 +213,7 @@ func TestManualPaymentFlow(t *testing.T) {
 			t.Fatalf("decode: %v", err)
 		}
 		if progress.Enrollment.Source != "purchase" {
-			t.Errorf("enrolment source = %q, want purchase", progress.Enrollment.Source)
+			t.Errorf("enrollment source = %q, want purchase", progress.Enrollment.Source)
 		}
 	})
 
@@ -237,7 +237,7 @@ func TestManualPaymentFlow(t *testing.T) {
 	})
 
 	t.Run("a rejected order lets the learner try again", func(t *testing.T) {
-		buyer := enrolIn(t, h, ch, store, owner.slug, "student")
+		buyer := enrollIn(t, h, ch, store, owner.slug, "student")
 		first := createdID(t, do(t, h, "POST", "/v1/courses/"+courseID+"/orders", buyer.token, owner.slug, nil))
 		if rec := do(t, h, "POST", "/v1/orders/"+first+"/proof", buyer.token, owner.slug,
 			map[string]any{"provider_ref": "WRONG"}); rec.Code != http.StatusOK {
@@ -272,7 +272,7 @@ func TestManualPaymentFlow(t *testing.T) {
 	})
 
 	t.Run("an order in another tenant is not found", func(t *testing.T) {
-		other := enrol(t, h, ch, store, "owner")
+		other := enroll(t, h, ch, store, "owner")
 		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/review", other.token, other.slug,
 			map[string]any{"decision": "approve"})
 		if rec.Code != http.StatusNotFound {

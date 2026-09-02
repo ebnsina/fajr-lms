@@ -16,12 +16,12 @@
 	}
 </script>
 
-<svelte:head><title>Payments · Fajr</title></svelte:head>
+<svelte:head><title>Payments · Fajr LMS</title></svelte:head>
 
 <header class="mb-6">
 	<h1 class="text-2xl font-semibold tracking-tight" dir="auto">Payments to review</h1>
 	<p class="mt-1 text-sm text-ink-soft" dir="auto">
-		Bank transfers and wallet payments waiting for someone to confirm them. Approving enrols the
+		Bank transfers and wallet payments waiting for someone to confirm them. Approving enrolls the
 		learner straight away.
 	</p>
 </header>

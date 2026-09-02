@@ -18,7 +18,7 @@
 	}
 </script>
 
-<svelte:head><title>Notifications · Fajr</title></svelte:head>
+<svelte:head><title>Notifications · Fajr LMS</title></svelte:head>
 
 <header class="mb-6 flex flex-wrap items-center gap-3">
 	<div>

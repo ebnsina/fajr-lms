@@ -68,12 +68,12 @@ func readSheet(t *testing.T, h http.Handler, a actor, attemptID string) sheetRes
 
 func TestMarking(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	attemptID, _ := essayAttempt(t, h, owner, student)
 
 	t.Run("the queue lists what needs a teacher", func(t *testing.T) {
-		rec := do(t, h, "GET", "/v1/marking", owner.token, owner.slug, nil)
+		rec := do(t, h, "GET", "/v1/grading", owner.token, owner.slug, nil)
 		if rec.Code != http.StatusOK {
 			t.Fatalf("got %d: %s", rec.Code, rec.Body)
 		}
@@ -96,7 +96,7 @@ func TestMarking(t *testing.T) {
 	})
 
 	t.Run("a learner cannot see the queue or the answer key", func(t *testing.T) {
-		if rec := do(t, h, "GET", "/v1/marking", student.token, owner.slug, nil); rec.Code != http.StatusForbidden {
+		if rec := do(t, h, "GET", "/v1/grading", student.token, owner.slug, nil); rec.Code != http.StatusForbidden {
 			t.Errorf("queue: got %d, want 403", rec.Code)
 		}
 		if rec := do(t, h, "GET", "/v1/attempts/"+attemptID+"/sheet", student.token, owner.slug, nil); rec.Code != http.StatusForbidden {
@@ -148,17 +148,17 @@ func TestMarking(t *testing.T) {
 	})
 
 	t.Run("a mark cannot exceed what the question is worth", func(t *testing.T) {
-		rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/mark", owner.token, owner.slug,
+		rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/grade", owner.token, owner.slug,
 			map[string]any{"points_awarded": 99})
 		if rec.Code != http.StatusUnprocessableEntity {
 			t.Fatalf("got %d, want 422: %s", rec.Code, rec.Body)
 		}
-		rec = do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/mark", owner.token, owner.slug,
+		rec = do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/grade", owner.token, owner.slug,
 			map[string]any{"points_awarded": -1})
 		if rec.Code != http.StatusUnprocessableEntity {
 			t.Errorf("negative: got %d, want 422", rec.Code)
 		}
-		rec = do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/mark", owner.token, owner.slug,
+		rec = do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/grade", owner.token, owner.slug,
 			map[string]any{"feedback": "no score"})
 		if rec.Code != http.StatusUnprocessableEntity {
 			t.Errorf("missing points: got %d, want 422", rec.Code)
@@ -166,7 +166,7 @@ func TestMarking(t *testing.T) {
 	})
 
 	t.Run("marking then releasing gives the learner a result", func(t *testing.T) {
-		rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/mark", owner.token, owner.slug,
+		rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/grade", owner.token, owner.slug,
 			map[string]any{"points_awarded": 3, "feedback": "جيد، لكن وضّح المثال"})
 		if rec.Code != http.StatusOK {
 			t.Fatalf("mark: got %d: %s", rec.Code, rec.Body)
@@ -201,7 +201,7 @@ func TestMarking(t *testing.T) {
 	})
 
 	t.Run("a graded attempt cannot be marked or released again", func(t *testing.T) {
-		rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/mark", owner.token, owner.slug,
+		rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/grade", owner.token, owner.slug,
 			map[string]any{"points_awarded": 4})
 		if rec.Code != http.StatusConflict {
 			t.Errorf("mark: got %d, want 409", rec.Code)
@@ -212,7 +212,7 @@ func TestMarking(t *testing.T) {
 	})
 
 	t.Run("the queue empties once released", func(t *testing.T) {
-		rec := do(t, h, "GET", "/v1/marking", owner.token, owner.slug, nil)
+		rec := do(t, h, "GET", "/v1/grading", owner.token, owner.slug, nil)
 		if rec.Code != http.StatusOK {
 			t.Fatalf("got %d: %s", rec.Code, rec.Body)
 		}
@@ -228,7 +228,7 @@ func TestMarking(t *testing.T) {
 	})
 
 	t.Run("an attempt in another tenant is not found", func(t *testing.T) {
-		other := enrol(t, h, ch, store, "owner")
+		other := enroll(t, h, ch, store, "owner")
 		if rec := do(t, h, "GET", "/v1/attempts/"+attemptID+"/sheet", other.token, other.slug, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("got %d, want 404", rec.Code)
 		}

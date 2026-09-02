@@ -15,7 +15,12 @@ export const POST: RequestHandler = async ({ request, locals, cookies, fetch }) 
 	try {
 		// step: "sign" reserves an upload target, "complete" confirms the bytes landed.
 		if (payload.step === 'complete') {
-			return json(await api(`/v1/media/${payload.media_id}/complete`, { method: 'POST', ...scoped }));
+			return json(
+				await api(`/v1/media/${payload.media_id}/complete`, {
+					method: 'POST',
+					...scoped
+				})
+			);
 		}
 		return json(
 			await api('/v1/media', {

@@ -7,7 +7,7 @@
 	let none = $derived(data.tenants.length === 0);
 </script>
 
-<svelte:head><title>Choose a place · Fajr</title></svelte:head>
+<svelte:head><title>Choose a place · Fajr LMS</title></svelte:head>
 
 <AuthLayout
 	theme={data.theme}

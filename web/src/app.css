@@ -14,7 +14,10 @@
 	font-weight: 400 700;
 	font-style: normal;
 	font-display: swap;
-	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+	unicode-range:
+		U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+		U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+		U+A720-A7FF;
 }
 
 @font-face {
@@ -23,7 +26,9 @@
 	font-weight: 400 700;
 	font-style: normal;
 	font-display: swap;
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+		U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -32,7 +37,9 @@
 	font-weight: 300 600;
 	font-style: normal;
 	font-display: swap;
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+		U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @theme {
@@ -86,28 +93,28 @@
    the media query; an explicit choice stamps the root and wins either way. */
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
-	--color-ground: #16181b;
-	--color-surface: #1c1f23;
-	--color-raised: #21252a;
-	--color-sunken: #131518;
-	--color-line: #272b31;
-	--color-line-strong: #333941;
-	--color-ink: #e8eaed;
-	--color-ink-soft: #9aa2ad;
-	--color-ink-faint: #6d7681;
-	--color-brand: #4340b0;
-	--color-brand-ink: #ffffff;
-	--color-brand-text: #8e8be8;
-	--color-brand-soft: #1b1b2e;
-	--color-brand-line: #2f2f4d;
+		--color-ground: #16181b;
+		--color-surface: #1c1f23;
+		--color-raised: #21252a;
+		--color-sunken: #131518;
+		--color-line: #272b31;
+		--color-line-strong: #333941;
+		--color-ink: #e8eaed;
+		--color-ink-soft: #9aa2ad;
+		--color-ink-faint: #6d7681;
+		--color-brand: #4340b0;
+		--color-brand-ink: #ffffff;
+		--color-brand-text: #8e8be8;
+		--color-brand-soft: #1b1b2e;
+		--color-brand-line: #2f2f4d;
 
-	--color-accent: #e8a33d;
-	--color-accent-soft: #251c11;
-	--color-accent-line: #40311c;
-	--color-danger: #e0857a;
-	--color-danger-soft: #2a1b18;
-	--color-danger-line: #472c27;
-	--color-focus-line: #3a424d;
+		--color-accent: #e8a33d;
+		--color-accent-soft: #251c11;
+		--color-accent-line: #40311c;
+		--color-danger: #e0857a;
+		--color-danger-soft: #2a1b18;
+		--color-danger-line: #472c27;
+		--color-focus-line: #3a424d;
 	}
 }
 
@@ -180,7 +187,7 @@
 	}
 
 	/* One focus treatment everywhere: the border settles to a neutral and the
-	   ring does the signalling, so it reads the same on any coloured control. */
+	   ring does the signaling, so it reads the same on any colored control. */
 	:focus-visible {
 		border-color: var(--color-focus-line);
 		outline: 2px solid var(--color-brand);
@@ -341,4 +348,35 @@
 	.choice::after {
 		transition: none;
 	}
+}
+
+/* A school's public site is dressed for where it teaches. These override the
+   product palette inside the site subtree only, never in the app. */
+[data-site-theme='gulf'] {
+	--color-brand: #0f5132;
+	--color-brand-text: #0f5132;
+	--color-brand-soft: #eef4f0;
+	--color-brand-line: #cfe0d6;
+	--color-accent: #b08d3f;
+	--radius-card: 2rem;
+	--font-sans: 'Noto Naskh Arabic', 'Cabin', system-ui, sans-serif;
+	/* Arabic glyphs read smaller than Latin at the same size. */
+	font-size: 1.125rem;
+	line-height: 1.9;
+}
+
+[data-site-theme='bengal'] {
+	--color-brand: #006a4e;
+	--color-brand-text: #005c43;
+	--color-brand-soft: #eaf4f0;
+	--color-brand-line: #c8e2d8;
+	--color-accent: #c8102e;
+	--radius-card: 1rem;
+	--font-sans: 'Noto Sans Bengali', 'Cabin', system-ui, sans-serif;
+}
+
+[data-site-theme='gulf'] .btn:not(.btn-quiet),
+[data-site-theme='bengal'] .btn:not(.btn-quiet) {
+	background: var(--color-brand);
+	color: #ffffff;
 }

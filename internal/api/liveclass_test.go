@@ -9,12 +9,12 @@ import (
 
 func TestLiveClassLinks(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 
 	courseID, _ := publishedCourse(t, h, owner, 1)
 	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
-		t.Fatalf("enrol: got %d: %s", rec.Code, rec.Body)
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
 	}
 	now := createdID(t, do(t, h, "POST", "/v1/courses/"+courseID+"/sessions", owner.token, owner.slug,
 		map[string]any{"title": "Live tafsir", "starts_at": time.Now()}))
@@ -47,7 +47,7 @@ func TestLiveClassLinks(t *testing.T) {
 		}
 	})
 
-	t.Run("Meet and Zoom links are recognised", func(t *testing.T) {
+	t.Run("Meet and Zoom links are recognized", func(t *testing.T) {
 		// A slice, not a map: the last link set decides what the next subtest sees.
 		cases := []struct{ link, provider string }{
 			{"https://meet.google.com/abc-defg-hij", "google_meet"},
@@ -67,7 +67,7 @@ func TestLiveClassLinks(t *testing.T) {
 				t.Fatalf("decode: %v", err)
 			}
 			if got.Provider != provider {
-				t.Errorf("%s recognised as %q, want %q", link, got.Provider, provider)
+				t.Errorf("%s recognized as %q, want %q", link, got.Provider, provider)
 			}
 		}
 	})
@@ -87,7 +87,7 @@ func TestLiveClassLinks(t *testing.T) {
 	})
 
 	t.Run("a learner who is not enrolled gets nothing", func(t *testing.T) {
-		outsider := enrolIn(t, h, ch, store, owner.slug, "student")
+		outsider := enrollIn(t, h, ch, store, owner.slug, "student")
 		if rec := do(t, h, "GET", "/v1/sessions/"+now+"/join", outsider.token, owner.slug, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("got %d, want 404", rec.Code)
 		}

@@ -6,7 +6,7 @@
 	let session = $derived(data.session);
 </script>
 
-<svelte:head><title>Settings · Fajr</title></svelte:head>
+<svelte:head><title>Settings · Fajr LMS</title></svelte:head>
 
 <header class="mb-6">
 	<h1 class="text-2xl font-semibold tracking-tight" dir="auto">Settings</h1>

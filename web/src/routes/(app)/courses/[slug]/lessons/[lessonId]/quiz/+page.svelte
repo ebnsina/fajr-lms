@@ -47,7 +47,7 @@
 	}
 </script>
 
-<svelte:head><title>{quiz.title} · Fajr</title></svelte:head>
+<svelte:head><title>{quiz.title} · Fajr LMS</title></svelte:head>
 
 <nav class="mb-4 text-sm">
 	<a
@@ -101,7 +101,7 @@
 				Your written answers are with a teacher. The rest is already marked, so your final
 				score may go up.
 			{:else}
-				You scored {result.percent}%. The pass mark is {quiz.pass_percent}%.
+				You scored {result.percent}%. The passing score is {quiz.pass_percent}%.
 			{/if}
 		</p>
 	</div>
@@ -246,7 +246,7 @@
 				</dd>
 			</div>
 			<div>
-				<dt class="text-sm text-ink-soft" dir="auto">Pass mark</dt>
+				<dt class="text-sm text-ink-soft" dir="auto">Passing score</dt>
 				<dd class="mt-0.5 font-medium tabular-nums" dir="auto">{quiz.pass_percent}%</dd>
 			</div>
 		</dl>

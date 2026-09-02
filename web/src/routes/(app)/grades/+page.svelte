@@ -7,7 +7,7 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>My grades · Fajr</title></svelte:head>
+<svelte:head><title>My grades · Fajr LMS</title></svelte:head>
 
 <header class="mb-6">
 	<h1 class="text-2xl font-semibold tracking-tight" dir="auto">My grades</h1>

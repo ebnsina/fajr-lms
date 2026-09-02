@@ -51,7 +51,10 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
 		const error = (parsed as { error?: ApiError } | null)?.error;
 		throw new ApiFailure(
 			response.status,
-			error ?? { code: 'unexpected', message: 'Something went wrong. Please try again.' }
+			error ?? {
+				code: 'unexpected',
+				message: 'Something went wrong. Please try again.'
+			}
 		);
 	}
 	return parsed as T;

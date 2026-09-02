@@ -62,7 +62,8 @@ export const actions: Actions = {
 				fetch
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { decided: decision };

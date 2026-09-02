@@ -10,7 +10,7 @@
 	const dirOf = (value: string) => (value === 'ltr' || value === 'rtl' ? value : 'auto');
 </script>
 
-<svelte:head><title>Home · Fajr</title></svelte:head>
+<svelte:head><title>Home · Fajr LMS</title></svelte:head>
 
 <h1 class="mb-1 text-2xl font-bold tracking-tight" dir="auto">
 	Assalamu alaikum, <span dir="auto">{name}</span>

@@ -18,14 +18,24 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const destination = String(form.get('destination') ?? '').trim();
 		if (!destination) {
-			return fail(422, { destination, message: 'Enter your phone number or email address.' });
+			return fail(422, {
+				destination,
+				message: 'Enter your phone number or email address.'
+			});
 		}
 
 		try {
-			await api('/v1/auth/otp', { method: 'POST', body: { destination }, fetch });
+			await api('/v1/auth/otp', {
+				method: 'POST',
+				body: { destination },
+				fetch
+			});
 		} catch (error) {
 			if (error instanceof ApiFailure) {
-				return fail(error.status, { destination, message: error.error.message });
+				return fail(error.status, {
+					destination,
+					message: error.error.message
+				});
 			}
 			throw error;
 		}
@@ -39,7 +49,11 @@ export const actions: Actions = {
 		const fullName = String(form.get('full_name') ?? '').trim();
 
 		if (code.length !== 6) {
-			return fail(422, { sent: true, destination, message: 'The code is six digits.' });
+			return fail(422, {
+				sent: true,
+				destination,
+				message: 'The code is six digits.'
+			});
 		}
 
 		let session: VerifyResponse;
@@ -51,7 +65,11 @@ export const actions: Actions = {
 			});
 		} catch (error) {
 			if (error instanceof ApiFailure) {
-				return fail(error.status, { sent: true, destination, message: error.error.message });
+				return fail(error.status, {
+					sent: true,
+					destination,
+					message: error.error.message
+				});
 			}
 			throw error;
 		}
@@ -68,7 +86,11 @@ export const actions: Actions = {
 	logout: async ({ cookies, locals, fetch }) => {
 		if (locals.token) {
 			try {
-				await api('/v1/auth/logout', { method: 'POST', token: locals.token, fetch });
+				await api('/v1/auth/logout', {
+					method: 'POST',
+					token: locals.token,
+					fetch
+				});
 			} catch {
 				// The cookie is cleared regardless, so a failed call cannot strand a session.
 			}

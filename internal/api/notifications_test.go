@@ -41,8 +41,8 @@ func envOrSkip(t *testing.T) string {
 
 func TestNotifications(t *testing.T) {
 	h, server, ch, store := notifyHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	courseID := paidCourse(t, h, owner, 150000)
 
 	// Buy, submit proof, approve: approval is the announcement worth sending.
@@ -153,7 +153,7 @@ func TestNotifications(t *testing.T) {
 	})
 
 	t.Run("marking a quiz announces the result", func(t *testing.T) {
-		learner := enrolIn(t, h, ch, store, owner.slug, "student")
+		learner := enrollIn(t, h, ch, store, owner.slug, "student")
 		attemptID, _ := essayAttempt(t, h, owner, learner)
 		sheet := readSheet(t, h, owner, attemptID)
 		var essayID string
@@ -162,7 +162,7 @@ func TestNotifications(t *testing.T) {
 				essayID = q.ID
 			}
 		}
-		if rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/mark", owner.token, owner.slug,
+		if rec := do(t, h, "PUT", "/v1/attempts/"+attemptID+"/questions/"+essayID+"/grade", owner.token, owner.slug,
 			map[string]any{"points_awarded": 4}); rec.Code != http.StatusOK {
 			t.Fatalf("mark: got %d: %s", rec.Code, rec.Body)
 		}

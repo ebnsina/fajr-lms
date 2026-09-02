@@ -37,7 +37,7 @@ func assignmentCourse(t *testing.T, h http.Handler, owner, student actor, body m
 
 	assignmentID = createdID(t, do(t, h, "POST", "/v1/lessons/"+lessonID+"/assignment", owner.token, owner.slug, body))
 	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
-		t.Fatalf("enrol: got %d: %s", rec.Code, rec.Body)
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
 	}
 	return courseID, assignmentID, lessonID
 }
@@ -64,8 +64,8 @@ func (r *httpRec) decode(t *testing.T) submissionBody {
 
 func TestAssignmentFlow(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	due := time.Now().Add(time.Hour)
 	courseID, assignmentID, lessonID := assignmentCourse(t, h, owner, student, map[string]any{
 		"title": "واجب الأسبوع", "dir": "rtl", "points": 50, "due_at": due, "late_penalty": 20,
@@ -197,8 +197,8 @@ func TestAssignmentFlow(t *testing.T) {
 
 func TestLateSubmissions(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	past := time.Now().Add(-time.Hour)
 
 	t.Run("late work is accepted and penalised once", func(t *testing.T) {
@@ -229,7 +229,7 @@ func TestLateSubmissions(t *testing.T) {
 	})
 
 	t.Run("a closed deadline refuses late work", func(t *testing.T) {
-		other := enrolIn(t, h, ch, store, owner.slug, "student")
+		other := enrollIn(t, h, ch, store, owner.slug, "student")
 		_, assignmentID, _ := assignmentCourse(t, h, owner, other, map[string]any{
 			"title": "No late", "due_at": past, "allow_late": false,
 		})
@@ -246,8 +246,8 @@ func TestLateSubmissions(t *testing.T) {
 
 func TestSubmissionSheet(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	_, assignmentID, _ := assignmentCourse(t, h, owner, student, map[string]any{
 		"title": "Reflection", "points": 30,
 	})
@@ -303,7 +303,7 @@ func TestSubmissionSheet(t *testing.T) {
 	})
 
 	t.Run("a submission in another tenant is not found", func(t *testing.T) {
-		other := enrol(t, h, ch, store, "owner")
+		other := enroll(t, h, ch, store, "owner")
 		if rec := do(t, h, "GET", "/v1/submissions/"+submissionID, other.token, other.slug, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("got %d, want 404", rec.Code)
 		}

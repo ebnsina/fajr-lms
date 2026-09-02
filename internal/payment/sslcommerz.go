@@ -78,7 +78,7 @@ func (s SSLCommerz) Start(ctx context.Context, o Order) (Instruction, error) {
 		"cus_name": {orDefault(o.PayerName, "Learner")}, "cus_email": {"noreply@fajr.invalid"},
 		"cus_phone": {"01700000000"}, "cus_add1": {"N/A"}, "cus_city": {"N/A"}, "cus_country": {"Bangladesh"},
 		"shipping_method": {"NO"}, "num_of_item": {"1"},
-		"product_name":     {orDefault(o.Description, "Course enrolment")},
+		"product_name":     {orDefault(o.Description, "Course enrollment")},
 		"product_category": {"education"}, "product_profile": {"non-physical-goods"},
 		"value_a": {o.ID},
 	}

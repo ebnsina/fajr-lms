@@ -6,6 +6,7 @@ import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
 import Inbox from '@lucide/svelte/icons/inbox';
 import Users from '@lucide/svelte/icons/users';
 import Receipt from '@lucide/svelte/icons/receipt';
+import Globe from '@lucide/svelte/icons/globe';
 import type { Component } from 'svelte';
 
 export type NavItem = {
@@ -35,7 +36,12 @@ const groups: NavGroup[] = [
 	{
 		title: 'Teaching',
 		items: [
-			{ label: 'Marking', href: '/marking', icon: ClipboardCheck, roles: staff },
+			{
+				label: 'Grading',
+				href: '/grading',
+				icon: ClipboardCheck,
+				roles: staff
+			},
 			{ label: 'Submissions', href: '/submissions', icon: Inbox, roles: staff }
 		]
 	},
@@ -43,7 +49,8 @@ const groups: NavGroup[] = [
 		title: 'Administration',
 		items: [
 			{ label: 'Members', href: '/members', icon: Users, roles: admin },
-			{ label: 'Payments', href: '/payments', icon: Receipt, roles: admin }
+			{ label: 'Payments', href: '/payments', icon: Receipt, roles: admin },
+			{ label: 'Website', href: '/website', icon: Globe, roles: admin }
 		]
 	}
 ];

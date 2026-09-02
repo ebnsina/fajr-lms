@@ -16,11 +16,11 @@
 	};
 </script>
 
-<svelte:head><title>Sign in · Fajr</title></svelte:head>
+<svelte:head><title>Sign in · Fajr LMS</title></svelte:head>
 
 <AuthLayout
 	theme={data.theme}
-	heading={form?.sent ? 'Check your messages' : 'Sign in to Fajr'}
+	heading={form?.sent ? 'Check your messages' : 'Sign in to Fajr LMS'}
 	subheading={form?.sent
 		? 'We sent a six digit code. It is good for ten minutes.'
 		: 'One code by SMS. No password to remember, and none to lose.'}

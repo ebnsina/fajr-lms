@@ -41,7 +41,7 @@ func TestFileUploadFlow(t *testing.T) {
 		t.Skip("FAJR_S3_ENDPOINT not set")
 	}
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
+	owner := enroll(t, h, ch, store, "owner")
 
 	var created struct {
 		ID     string        `json:"id"`
@@ -156,8 +156,8 @@ func TestFileUploadFlow(t *testing.T) {
 
 func TestMedia(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 
 	t.Run("lists provider capabilities", func(t *testing.T) {
 		rec := do(t, h, "GET", "/v1/media/providers", owner.token, owner.slug, nil)
@@ -268,7 +268,7 @@ func TestMedia(t *testing.T) {
 	})
 
 	t.Run("media from another tenant is not found", func(t *testing.T) {
-		other := enrol(t, h, ch, store, "owner")
+		other := enroll(t, h, ch, store, "owner")
 		rec := do(t, h, "GET", "/v1/media/"+asset.ID+"/playback", other.token, other.slug, nil)
 		if rec.Code != http.StatusNotFound {
 			t.Fatalf("got %d, want 404: %s", rec.Code, rec.Body)

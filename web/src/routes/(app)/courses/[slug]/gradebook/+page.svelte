@@ -15,7 +15,7 @@
 	);
 </script>
 
-<svelte:head><title>Gradebook · {data.course.title} · Fajr</title></svelte:head>
+<svelte:head><title>Gradebook · {data.course.title} · Fajr LMS</title></svelte:head>
 
 <nav class="mb-4 text-sm">
 	<a

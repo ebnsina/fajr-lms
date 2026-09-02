@@ -31,8 +31,8 @@ func TestSlugify(t *testing.T) {
 
 func TestCatalog(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 
 	var course struct {
 		ID    string `json:"id"`
@@ -196,7 +196,7 @@ func TestCatalog(t *testing.T) {
 	})
 
 	t.Run("a course in another tenant is not found", func(t *testing.T) {
-		other := enrol(t, h, ch, store, "owner")
+		other := enroll(t, h, ch, store, "owner")
 		rec := do(t, h, "GET", "/v1/courses/"+course.Slug, other.token, other.slug, nil)
 		if rec.Code != http.StatusNotFound {
 			t.Fatalf("got %d, want 404: %s", rec.Code, rec.Body)

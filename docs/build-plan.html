@@ -521,6 +521,30 @@ type Provider interface {
       <div class="done"><b>Done when</b>An institution runs a full term end-to-end without a spreadsheet. <strong>This is what you sell.</strong></div>
     </div>
 
+    <div class="phase ship">
+      <div class="phase-head"><span class="id">Phase 3.5</span><h3>The school's own website — built</h3><span class="dur">shipped</span></div>
+      <ul>
+        <li>Page builder: a page is an ordered list of sections (headline, words, cards, questions, courses, invitation), each one plain text validated server-side, so nothing a page holds can ever render as markup</li>
+        <li>Pages carry their own address, menu label and order; the site menu is derived from the published pages rather than kept as a second thing to maintain</li>
+        <li>Draft and publish per page, with a live preview in the builder</li>
+        <li>Public site at <code>/site/{school}</code>, served from an owner-run view so a published page needs no tenant scope and a draft is never reachable</li>
+        <li>A courses section pulls the published, publicly visible catalog straight from the LMS — the website and the school are never out of step</li>
+        <li>Region looks: <em>Gulf</em> reads right to left, sets Arabic a size larger with a deeper line, and uses green and gold; <em>Bengal</em> sets Bengali, runs tighter and uses the national green with a vermilion accent; <em>Plain</em> keeps the product palette</li>
+      </ul>
+      <div class="done"><b>Done when</b>A school with no web developer publishes a front page, an about page and its catalog in an afternoon, in its own script.</div>
+    </div>
+
+    <div class="phase ship">
+      <div class="phase-head"><span class="id">Phase 3.6</span><h3>Our own front door — built</h3><span class="dur">shipped</span></div>
+      <ul>
+        <li>Marketing site: landing that argues the local case (the payments families use, Arabic and Bengali as first-class text, a phone on a weak connection), and pricing</li>
+        <li>Pricing by active learner, not by feature — every plan teaches, grades and collects fees</li>
+        <li>Self service: anyone signed in opens a school, names its address, picks its script and currency, and owns it immediately</li>
+        <li>A visitor landing on the root sees the marketing site; a member sees their work</li>
+      </ul>
+      <div class="done"><b>Done when</b>A teacher who has never spoken to us is teaching on it the same day.</div>
+    </div>
+
     <div class="phase">
       <div class="phase-head"><span class="id">Phase 4</span><h3>The moat</h3><span class="dur">4–6 weeks</span></div>
       <ul>

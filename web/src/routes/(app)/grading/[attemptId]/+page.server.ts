@@ -49,13 +49,17 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 			error(404, 'That attempt does not exist here.');
 		}
 		if (failure instanceof ApiFailure && failure.status === 403) {
-			error(403, 'Only staff can mark work.');
+			error(403, 'Only staff can grade work.');
 		}
 		throw failure;
 	}
 };
 
-const scoped = (locals: App.Locals, cookies: { get: (n: string) => string | undefined }, fetch: typeof globalThis.fetch) => {
+const scoped = (
+	locals: App.Locals,
+	cookies: { get: (n: string) => string | undefined },
+	fetch: typeof globalThis.fetch
+) => {
 	const tenant = cookies.get('fajr_tenant');
 	if (!locals.token || !tenant) redirect(303, '/login');
 	return { token: locals.token, tenant, fetch };
@@ -70,16 +74,17 @@ export const actions: Actions = {
 		}
 
 		try {
-			await api(
-				`/v1/attempts/${params.attemptId}/questions/${form.get('question_id')}/mark`,
-				{
-					method: 'PUT',
-					body: { points_awarded: Math.trunc(points), feedback: String(form.get('feedback') ?? '') },
-					...scoped(locals, cookies, fetch)
-				}
-			);
+			await api(`/v1/attempts/${params.attemptId}/questions/${form.get('question_id')}/grade`, {
+				method: 'PUT',
+				body: {
+					points_awarded: Math.trunc(points),
+					feedback: String(form.get('feedback') ?? '')
+				},
+				...scoped(locals, cookies, fetch)
+			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { marked: String(form.get('question_id')) };
@@ -92,9 +97,10 @@ export const actions: Actions = {
 				...scoped(locals, cookies, fetch)
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
-		redirect(303, '/marking');
+		redirect(303, '/grading');
 	}
 };

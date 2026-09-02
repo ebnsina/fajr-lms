@@ -39,7 +39,7 @@
 	>
 		<span class="min-w-0 flex-1">
 			<span class="block truncate text-sm font-semibold tracking-tight" dir="auto">
-				{current?.name ?? 'Fajr'}
+				{current?.name ?? 'Fajr LMS'}
 			</span>
 			<span class="block truncate text-xs text-ink-soft" dir="auto">
 				{schools.length > 1 ? 'Switch school' : (current?.role ?? '')}

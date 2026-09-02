@@ -20,7 +20,7 @@
 	const points = [
 		{ title: 'Runs on the phone people already have', body: 'Nothing loads until it is asked for, and a lesson opens on a slow connection without eating the day’s data.' },
 		{ title: 'Arabic, Bangla and English side by side', body: 'Names, titles and lessons render correctly in any script, in the same list, without a separate build.' },
-		{ title: 'Fees the way they are actually paid', body: 'bKash, card, or a bank slip a member of staff approves. No card required to enrol.' }
+		{ title: 'Fees the way they are actually paid', body: 'bKash, card, or a bank slip a member of staff approves. No card required to enroll.' }
 	];
 </script>
 
@@ -29,7 +29,7 @@
 	     screen both reach it without wading through the pitch. -->
 	<main class="flex flex-col px-6 py-8 sm:px-10 lg:px-16">
 		<div class="flex items-center gap-3">
-			<span class="text-lg font-semibold tracking-tight">Fajr</span>
+			<span class="text-lg font-semibold tracking-tight">Fajr LMS</span>
 			<span class="ms-auto"><ThemeToggle {theme} /></span>
 		</div>
 
@@ -51,7 +51,7 @@
 	<aside class="hidden border-s border-line bg-sunken p-16 lg:flex lg:flex-col lg:justify-center">
 		<div class="max-w-md">
 			<p class="mb-10 text-2xl leading-snug font-medium tracking-tight" dir="auto">
-				One place for the whole term: lessons, marking, attendance, fees and the
+				One place for the whole term: lessons, grading, attendance, fees and the
 				message home.
 			</p>
 

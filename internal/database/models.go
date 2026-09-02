@@ -1185,6 +1185,34 @@ type PaymentEvent struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type PublishedCourse struct {
+	ID          uuid.UUID          `json:"id"`
+	Slug        string             `json:"slug"`
+	Title       string             `json:"title"`
+	Summary     string             `json:"summary"`
+	Dir         TextDir            `json:"dir"`
+	PriceMinor  int64              `json:"price_minor"`
+	Currency    string             `json:"currency"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	TenantSlug  string             `json:"tenant_slug"`
+}
+
+type PublishedPage struct {
+	ID          uuid.UUID          `json:"id"`
+	Slug        string             `json:"slug"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Dir         TextDir            `json:"dir"`
+	Blocks      []byte             `json:"blocks"`
+	NavLabel    string             `json:"nav_label"`
+	NavOrder    int32              `json:"nav_order"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	TenantSlug  string             `json:"tenant_slug"`
+	TenantName  string             `json:"tenant_name"`
+	TenantDir   TextDir            `json:"tenant_dir"`
+	SiteTheme   string             `json:"site_theme"`
+}
+
 type Question struct {
 	ID          uuid.UUID          `json:"id"`
 	TenantID    uuid.UUID          `json:"tenant_id"`
@@ -1252,6 +1280,22 @@ type Session struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type SitePage struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	Slug        string             `json:"slug"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Dir         TextDir            `json:"dir"`
+	Blocks      []byte             `json:"blocks"`
+	Status      PublishStatus      `json:"status"`
+	NavLabel    string             `json:"nav_label"`
+	NavOrder    int32              `json:"nav_order"`
+	UpdatedBy   uuid.NullUUID      `json:"updated_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Submission struct {
 	ID            uuid.UUID          `json:"id"`
 	TenantID      uuid.UUID          `json:"tenant_id"`
@@ -1282,6 +1326,7 @@ type Tenant struct {
 	Currency   string             `json:"currency"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	SiteTheme  string             `json:"site_theme"`
 }
 
 type User struct {

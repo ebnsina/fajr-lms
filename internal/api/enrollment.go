@@ -14,8 +14,8 @@ type enrollRequest struct {
 	UserID string `json:"user_id"`
 }
 
-// enroll adds a learner to a course. Staff may enrol anyone; a learner may
-// enrol themselves only in a published course that is not private.
+// enroll adds a learner to a course. Staff may enroll anyone; a learner may
+// enroll themselves only in a published course that is not private.
 func (s *Server) enroll(w http.ResponseWriter, r *http.Request) error {
 	courseID, err := pathUUID(r, "id")
 	if err != nil {
@@ -31,7 +31,7 @@ func (s *Server) enroll(w http.ResponseWriter, r *http.Request) error {
 	source := database.EnrollmentSourceSelf
 	if raw := strings.TrimSpace(body.UserID); raw != "" {
 		if target, err = uuid.Parse(raw); err != nil {
-			return invalid("user_id", "Provide the id of the learner to enrol.")
+			return invalid("user_id", "Provide the id of the learner to enroll.")
 		}
 		source = database.EnrollmentSourceStaff
 	}
@@ -66,7 +66,7 @@ func (s *Server) enroll(w http.ResponseWriter, r *http.Request) error {
 	return httpx.JSON(w, http.StatusCreated, enrollment)
 }
 
-// selfEnrollable allows self-enrolment only into a free, published, listed course.
+// selfEnrollable allows self-enrollment only into a free, published, listed course.
 func selfEnrollable(c database.Course) bool {
 	return c.Status == database.PublishStatusPublished &&
 		c.Visibility != database.CourseVisibilityPrivate &&

@@ -55,7 +55,11 @@ export const load: PageServerLoad = async ({ params, url, locals, parent, fetch 
 	return { course, sessions, roll, chosen, slug: params.slug };
 };
 
-const scoped = (locals: App.Locals, cookies: { get: (n: string) => string | undefined }, fetch: typeof globalThis.fetch) => {
+const scoped = (
+	locals: App.Locals,
+	cookies: { get: (n: string) => string | undefined },
+	fetch: typeof globalThis.fetch
+) => {
 	const tenant = cookies.get('fajr_tenant');
 	if (!locals.token || !tenant) redirect(303, '/login');
 	return { token: locals.token, tenant, fetch };
@@ -80,7 +84,8 @@ export const actions: Actions = {
 				...scoped(locals, cookies, fetch)
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { created: true };
@@ -108,7 +113,8 @@ export const actions: Actions = {
 				...scoped(locals, cookies, fetch)
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { marked: entries.length };

@@ -15,7 +15,7 @@
 	let saving = $state(false);
 </script>
 
-<svelte:head><title>{data.lesson.title} · Fajr</title></svelte:head>
+<svelte:head><title>{data.lesson.title} · Fajr LMS</title></svelte:head>
 
 <nav class="mb-4 text-sm">
 	<a

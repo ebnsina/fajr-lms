@@ -12,7 +12,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// gets a correct first paint rather than a flip after hydration.
 	return resolve(event, {
 		transformPageChunk: ({ html }) =>
-			html.replace('%fajr.dir%', event.locals.dir ?? 'ltr').replace('%fajr.lang%', event.locals.lang ?? 'en')
+			html
+				.replace('%fajr.dir%', event.locals.dir ?? 'ltr')
+				.replace('%fajr.lang%', event.locals.lang ?? 'en')
 				.replace(
 					'%fajr.theme%',
 					event.locals.theme && event.locals.theme !== 'system'

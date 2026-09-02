@@ -13,7 +13,12 @@ export type Lesson = {
 	media_id: string | null;
 };
 
-export type Module = { id: string; title: string; position: number; lessons: Lesson[] };
+export type Module = {
+	id: string;
+	title: string;
+	position: number;
+	lessons: Lesson[];
+};
 
 export type Course = {
 	id: string;

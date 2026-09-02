@@ -67,11 +67,15 @@ export const actions: Actions = {
 				method: 'PUT',
 				token: locals.token,
 				tenant,
-				body: { position_s: Number.isFinite(position) ? Math.max(0, Math.trunc(position)) : 0, completed },
+				body: {
+					position_s: Number.isFinite(position) ? Math.max(0, Math.trunc(position)) : 0,
+					completed
+				},
 				fetch
 			});
 		} catch (failure) {
-			if (failure instanceof ApiFailure) return fail(failure.status, { message: failure.error.message });
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
 			throw failure;
 		}
 		return { saved: true, completed };

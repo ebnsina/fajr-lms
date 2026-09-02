@@ -5,6 +5,19 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Every school gets a public website with a page builder: pages are built from
+  sections (a headline, words, cards, questions, your courses, an invitation),
+  published one at a time, with the menu built from the pages themselves.
+- Three looks for that website — Gulf reads right to left with Arabic set
+  larger, Bengal sets Bengali, and Plain keeps the product palette.
+- A marketing site of our own: what Fajr LMS is, what it costs, and a form that
+  opens a school in about a minute. Whoever opens it owns it straight away.
+
+### Changed
+- The product is written as Fajr LMS throughout, and the wording is US English:
+  Marking is now Grading, a mark is now a grade.
+
+### Added
 - Take a roll call: pick a class, mark everyone present, late, absent or excused,
   and marking somebody absent tells them and anyone listed as their guardian.
 - Review a bank transfer or wallet payment: the learner's transaction id, their
@@ -71,7 +84,7 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   time runs down.
 - The page frame stays put while the content inside it scrolls.
 
-- New brand colour: a deep indigo, with a warm amber used only for progress.
+- New brand color: a deep indigo, with a warm amber used only for progress.
 
 - Every button and input is the same height, so a stack of them lines up.
 
@@ -175,7 +188,7 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 - Sell a course: a learner starts an order and gets a payment reference plus
   the bank or wallet details to send money to.
 - Pay by bank transfer or mobile wallet, upload the deposit slip, and have a
-  member of staff approve it. Approval enrols the learner immediately.
+  member of staff approve it. Approval enrolls the learner immediately.
 - Staff review queue showing who paid, for what, with the slip attached.
 - Tapping buy twice returns the order already in progress instead of creating a
   second one.
@@ -192,7 +205,7 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 - Playback links expire and are issued per viewer.
 - Storage is any S3-compatible bucket, self-hosted MinIO by default; without one
   configured the API still runs on embeds alone.
-- Enrolment: learners join a free public course themselves, staff enrol anyone,
+- Enrollment: learners join a free public course themselves, staff enroll anyone,
   and enrolling twice is harmless.
 - Progress tracking with a resume point per lesson, a completion percentage per
   course, and automatic course completion on the last lesson.

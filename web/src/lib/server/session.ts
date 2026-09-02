@@ -28,7 +28,12 @@ export function saveTenant(cookies: Cookies, slug: string, secure: boolean) {
 }
 
 export function saveTheme(cookies: Cookies, theme: string, secure: boolean) {
-	cookies.set(THEME_COOKIE, theme, { path: '/', sameSite: 'lax', secure, maxAge: year });
+	cookies.set(THEME_COOKIE, theme, {
+		path: '/',
+		sameSite: 'lax',
+		secure,
+		maxAge: year
+	});
 }
 
 export function clearSession(cookies: Cookies) {

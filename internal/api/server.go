@@ -46,6 +46,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/me", authed(httpx.Handler(s.me)))
 	mux.Handle("POST /v1/auth/logout", authed(httpx.Handler(s.logout)))
 	mux.Handle("GET /v1/tenants", authed(httpx.Handler(s.listMyTenants)))
+	mux.Handle("POST /v1/tenants", authed(httpx.Handler(s.createSchool)))
 
 	inTenant := func(h http.Handler) http.Handler { return s.RequireAuth(s.RequireTenant(h)) }
 	mux.Handle("GET /v1/tenant", inTenant(httpx.Handler(s.currentTenant)))
@@ -124,9 +125,9 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/notifications", inTenant(httpx.Handler(s.inbox)))
 	mux.Handle("POST /v1/notifications/read", inTenant(httpx.Handler(s.markAllRead)))
 	mux.Handle("POST /v1/notifications/{id}/read", inTenant(httpx.Handler(s.markNotificationRead)))
-	mux.Handle("GET /v1/marking", teaches(s.markingQueue))
+	mux.Handle("GET /v1/grading", teaches(s.markingQueue))
 	mux.Handle("GET /v1/attempts/{id}/sheet", teaches(s.attemptSheet))
-	mux.Handle("PUT /v1/attempts/{id}/questions/{questionId}/mark", teaches(s.markAnswer))
+	mux.Handle("PUT /v1/attempts/{id}/questions/{questionId}/grade", teaches(s.markAnswer))
 	mux.Handle("POST /v1/attempts/{id}/release", teaches(s.releaseAttempt))
 
 	mux.Handle("GET /v1/payment/providers", inTenant(httpx.Handler(s.paymentProviders)))
@@ -136,6 +137,20 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("DELETE /v1/orders/{id}", inTenant(httpx.Handler(s.cancelOrder)))
 	mux.Handle("GET /v1/orders/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.listReviewQueue))))
 	mux.Handle("POST /v1/orders/{id}/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.reviewOrder))))
+
+	// The institution's own website: staff build it, anyone reads it.
+	site := func(h httpx.Handler) http.Handler {
+		return inTenant(RequireRole("owner", "admin")(h))
+	}
+	mux.Handle("GET /v1/site/pages", site(s.listSitePages))
+	mux.Handle("POST /v1/site/pages", site(s.createSitePage))
+	mux.Handle("GET /v1/site/pages/{id}", site(s.getSitePage))
+	mux.Handle("PATCH /v1/site/pages/{id}", site(s.updateSitePage))
+	mux.Handle("PUT /v1/site/pages/{id}/status", site(s.setSitePageStatus))
+	mux.Handle("DELETE /v1/site/pages/{id}", site(s.deleteSitePage))
+	mux.Handle("PUT /v1/site/theme", site(s.setSiteTheme))
+	mux.Handle("GET /site/{tenant}", httpx.Handler(s.publicPage))
+	mux.Handle("GET /site/{tenant}/{slug}", httpx.Handler(s.publicPage))
 
 	return mux
 }

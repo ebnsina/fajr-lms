@@ -104,7 +104,7 @@ func (s *Service) RequestOTP(ctx context.Context, dest Destination) error {
 	return s.channel.Send(ctx, notify.Message{
 		To:      dest.key(),
 		Purpose: "login_code",
-		Body:    fmt.Sprintf("Your Fajr code is %s. It expires in %d minutes.", code, int(otpTTL.Minutes())),
+		Body:    fmt.Sprintf("Your Fajr LMS code is %s. It expires in %d minutes.", code, int(otpTTL.Minutes())),
 	})
 }
 

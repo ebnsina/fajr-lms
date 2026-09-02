@@ -35,13 +35,13 @@ func readRoll(t *testing.T, h http.Handler, a actor, sessionID string) rollRespo
 
 func TestAttendance(t *testing.T) {
 	h, _, ch, store := notifyHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
-	guardian := enrolIn(t, h, ch, store, owner.slug, "parent")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+	guardian := enrollIn(t, h, ch, store, owner.slug, "parent")
 
 	courseID, _ := publishedCourse(t, h, owner, 1)
 	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
-		t.Fatalf("enrol: got %d: %s", rec.Code, rec.Body)
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
 	}
 
 	start := time.Now().Add(-time.Hour)
@@ -231,7 +231,7 @@ func TestAttendance(t *testing.T) {
 	})
 
 	t.Run("a session in another tenant is not found", func(t *testing.T) {
-		other := enrol(t, h, ch, store, "owner")
+		other := enroll(t, h, ch, store, "owner")
 		if rec := do(t, h, "GET", "/v1/sessions/"+sessionID+"/roll", other.token, other.slug, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("got %d, want 404", rec.Code)
 		}

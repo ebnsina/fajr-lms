@@ -69,12 +69,12 @@ func labelled(t *testing.T, q attemptStart, question int, labels ...string) []st
 
 func TestAttemptLifecycle(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	_, quizID := seedQuiz(t, h, owner, student, 2)
 
 	t.Run("a learner who is not enrolled cannot attempt", func(t *testing.T) {
-		outsider := enrolIn(t, h, ch, store, owner.slug, "student")
+		outsider := enrollIn(t, h, ch, store, owner.slug, "student")
 		rec := do(t, h, "POST", "/v1/quizzes/"+quizID+"/attempts", outsider.token, owner.slug, nil)
 		if rec.Code != http.StatusNotFound {
 			t.Fatalf("got %d, want 404: %s", rec.Code, rec.Body)
@@ -94,7 +94,7 @@ func TestAttemptLifecycle(t *testing.T) {
 	})
 
 	t.Run("answering another learner's attempt is not found", func(t *testing.T) {
-		other := enrolIn(t, h, ch, store, owner.slug, "student")
+		other := enrollIn(t, h, ch, store, owner.slug, "student")
 		rec := do(t, h, "PUT", "/v1/attempts/"+first.Attempt.ID+"/answers", other.token, owner.slug,
 			map[string]any{"question_id": first.Questions[0].ID, "option_ids": []string{}})
 		if rec.Code != http.StatusNotFound {
@@ -103,8 +103,8 @@ func TestAttemptLifecycle(t *testing.T) {
 	})
 
 	t.Run("a question from another quiz is refused", func(t *testing.T) {
-		otherOwner := enrol(t, h, ch, store, "owner")
-		otherStudent := enrolIn(t, h, ch, store, otherOwner.slug, "student")
+		otherOwner := enroll(t, h, ch, store, "owner")
+		otherStudent := enrollIn(t, h, ch, store, otherOwner.slug, "student")
 		_, otherQuiz := seedQuiz(t, h, otherOwner, otherStudent, 1)
 		foreign := startAttempt(t, h, otherStudent, otherQuiz)
 
@@ -213,8 +213,8 @@ func TestAttemptLifecycle(t *testing.T) {
 
 func TestWrittenAnswersWaitForMarking(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	_, quizID := seedQuiz(t, h, owner, student, 3)
 
 	if rec := do(t, h, "POST", "/v1/quizzes/"+quizID+"/questions", owner.token, owner.slug, map[string]any{
@@ -257,8 +257,8 @@ func TestWrittenAnswersWaitForMarking(t *testing.T) {
 
 func TestResumeReadsBackOwnAnswers(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	_, quizID := seedQuiz(t, h, owner, student, 2)
 
 	attempt := startAttempt(t, h, student, quizID)
@@ -297,7 +297,7 @@ func TestResumeReadsBackOwnAnswers(t *testing.T) {
 	}
 
 	t.Run("another learner cannot read it", func(t *testing.T) {
-		other := enrolIn(t, h, ch, store, owner.slug, "student")
+		other := enrollIn(t, h, ch, store, owner.slug, "student")
 		if rec := do(t, h, "GET", "/v1/attempts/"+attempt.Attempt.ID, other.token, owner.slug, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("got %d, want 404", rec.Code)
 		}

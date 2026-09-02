@@ -23,7 +23,7 @@ type paperResponse struct {
 	} `json:"questions"`
 }
 
-// seedQuiz builds a two-question quiz on a published lesson and enrols student.
+// seedQuiz builds a two-question quiz on a published lesson and enrolls student.
 func seedQuiz(t *testing.T, h http.Handler, owner, student actor, maxAttempts int) (lessonID, quizID string) {
 	t.Helper()
 	courseID := createdID(t, do(t, h, "POST", "/v1/courses", owner.token, owner.slug,
@@ -63,7 +63,7 @@ func seedQuiz(t *testing.T, h http.Handler, owner, student actor, maxAttempts in
 	}
 
 	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
-		t.Fatalf("enrol: got %d: %s", rec.Code, rec.Body)
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
 	}
 	return lessonID, quizID
 }
@@ -83,8 +83,8 @@ func readPaper(t *testing.T, h http.Handler, a actor, lessonID string) paperResp
 
 func TestQuizAuthoringValidation(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	lessonID, quizID := seedQuiz(t, h, owner, student, 2)
 
 	t.Run("a lesson has at most one quiz", func(t *testing.T) {
@@ -129,8 +129,8 @@ func TestQuizAuthoringValidation(t *testing.T) {
 
 func TestQuizNeverLeaksAnswers(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	lessonID, _ := seedQuiz(t, h, owner, student, 2)
 
 	rec := do(t, h, "GET", "/v1/lessons/"+lessonID+"/quiz", student.token, owner.slug, nil)

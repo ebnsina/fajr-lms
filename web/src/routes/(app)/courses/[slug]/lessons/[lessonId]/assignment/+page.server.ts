@@ -31,10 +31,14 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 	if (!session?.tenant) redirect(303, '/tenant');
 
 	try {
-		const data = await api<{ assignment: Assignment; submission: Submission | null }>(
-			`/v1/lessons/${params.lessonId}/assignment`,
-			{ token: locals.token, tenant: session.tenant.slug, fetch }
-		);
+		const data = await api<{
+			assignment: Assignment;
+			submission: Submission | null;
+		}>(`/v1/lessons/${params.lessonId}/assignment`, {
+			token: locals.token,
+			tenant: session.tenant.slug,
+			fetch
+		});
 		return { ...data, slug: params.slug, lessonId: params.lessonId };
 	} catch (failure) {
 		if (failure instanceof ApiFailure && failure.status === 404) {

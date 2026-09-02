@@ -22,10 +22,14 @@ export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 	const courses = await Promise.all(
 		(enrollments ?? []).map(async (row) => {
 			try {
-				const grades = await api<{ items: unknown[]; grades: { percent: number; items_graded: number; items_total: number } }>(
-					`/v1/courses/${row.enrollment.course_id}/grades`,
-					scoped
-				);
+				const grades = await api<{
+					items: unknown[];
+					grades: {
+						percent: number;
+						items_graded: number;
+						items_total: number;
+					};
+				}>(`/v1/courses/${row.enrollment.course_id}/grades`, scoped);
 				return { ...row, grades: grades.grades };
 			} catch {
 				return { ...row, grades: null };

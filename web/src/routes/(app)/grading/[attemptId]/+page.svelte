@@ -21,16 +21,16 @@
 	}
 </script>
 
-<svelte:head><title>Marking · Fajr</title></svelte:head>
+<svelte:head><title>Grading · Fajr LMS</title></svelte:head>
 
 <nav class="mb-4 text-sm">
 	<a
 		class="inline-flex items-center gap-1.5 text-brand-text underline-offset-4 hover:underline"
-		href="/marking"
+		href="/grading"
 	>
 		<ArrowLeft class="rtl:hidden" size={16} aria-hidden="true" />
 		<ArrowRight class="hidden rtl:block" size={16} aria-hidden="true" />
-		Back to marking
+		Back to grading
 	</a>
 </nav>
 
@@ -154,7 +154,7 @@
 									placeholder="what would make this better"
 								/>
 							</div>
-							<button class="btn" type="submit">Save mark</button>
+							<button class="btn" type="submit">Save the grade</button>
 						</div>
 					</form>
 				{:else if question.feedback}

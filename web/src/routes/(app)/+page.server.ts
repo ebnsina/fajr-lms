@@ -12,7 +12,8 @@ type Enrollment = {
 };
 
 export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
-	if (!locals.token) redirect(303, '/login');
+	// A visitor lands on the marketing site; a member lands on their work.
+	if (!locals.token) redirect(303, '/welcome');
 	const { session } = await parent();
 	if (!session?.tenant) redirect(303, '/tenant');
 
@@ -22,5 +23,8 @@ export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 		api<{ unread: number }>('/v1/notifications?limit=1', scoped)
 	]);
 
-	return { enrollments: enrollments.enrollments ?? [], unread: notifications.unread };
+	return {
+		enrollments: enrollments.enrollments ?? [],
+		unread: notifications.unread
+	};
 };

@@ -91,7 +91,7 @@
 	}
 </script>
 
-<svelte:head><title>{assignment.title} · Fajr</title></svelte:head>
+<svelte:head><title>{assignment.title} · Fajr LMS</title></svelte:head>
 
 <nav class="mb-4 text-sm">
 	<a
@@ -162,7 +162,7 @@
 		<TriangleAlert class="mt-0.5 shrink-0" size={16} aria-hidden="true" />
 		<span>
 			This is past its deadline. You can still hand it in, with {assignment.late_penalty}% taken
-			off the mark.
+			off the grade.
 		</span>
 	</p>
 {/if}

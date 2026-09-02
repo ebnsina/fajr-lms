@@ -6,11 +6,11 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>Submissions · Fajr</title></svelte:head>
+<svelte:head><title>Submissions · Fajr LMS</title></svelte:head>
 
 <header class="mb-6">
 	<h1 class="text-2xl font-semibold tracking-tight" dir="auto">Submissions</h1>
-	<p class="mt-1 text-sm text-ink-soft" dir="auto">Work handed in and waiting for a mark.</p>
+	<p class="mt-1 text-sm text-ink-soft" dir="auto">Work handed in and waiting for a grade.</p>
 </header>
 
 {#if data.submissions.length === 0}

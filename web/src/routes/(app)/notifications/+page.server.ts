@@ -16,10 +16,14 @@ export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 	const { session } = await parent();
 	if (!session?.tenant) redirect(303, '/tenant');
 
-	const { notifications, unread } = await api<{ notifications: Notification[]; unread: number }>(
-		'/v1/notifications?limit=50',
-		{ token: locals.token, tenant: session.tenant.slug, fetch }
-	);
+	const { notifications, unread } = await api<{
+		notifications: Notification[];
+		unread: number;
+	}>('/v1/notifications?limit=50', {
+		token: locals.token,
+		tenant: session.tenant.slug,
+		fetch
+	});
 	return { notifications, unread };
 };
 
@@ -28,7 +32,12 @@ export const actions: Actions = {
 		const tenant = cookies.get('fajr_tenant');
 		if (!locals.token || !tenant) redirect(303, '/login');
 		try {
-			await api('/v1/notifications/read', { method: 'POST', token: locals.token, tenant, fetch });
+			await api('/v1/notifications/read', {
+				method: 'POST',
+				token: locals.token,
+				tenant,
+				fetch
+			});
 		} catch (error) {
 			if (error instanceof ApiFailure) return fail(error.status, { message: error.error.message });
 			throw error;

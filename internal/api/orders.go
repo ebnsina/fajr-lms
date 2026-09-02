@@ -59,7 +59,7 @@ func (s *Server) createOrder(w http.ResponseWriter, r *http.Request) error {
 			return httpx.Errorf(http.StatusConflict, "course_not_published", "This course is not on sale.")
 		}
 		if course.PriceMinor <= 0 {
-			return httpx.Errorf(http.StatusConflict, "course_is_free", "This course is free; enrol directly.")
+			return httpx.Errorf(http.StatusConflict, "course_is_free", "This course is free; enroll directly.")
 		}
 
 		existing, err := q.OpenOrderForCourse(r.Context(), database.OpenOrderForCourseParams{
@@ -170,7 +170,7 @@ type reviewRequest struct {
 	Note     string `json:"note"`
 }
 
-// reviewOrder is the approval queue: approving enrols the learner in the same
+// reviewOrder is the approval queue: approving enrolls the learner in the same
 // transaction, so payment and access can never disagree.
 func (s *Server) reviewOrder(w http.ResponseWriter, r *http.Request) error {
 	id, err := pathUUID(r, "id")

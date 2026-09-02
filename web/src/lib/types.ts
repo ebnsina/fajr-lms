@@ -8,11 +8,16 @@ export type Tenant = {
 	default_dir: 'auto' | 'ltr' | 'rtl';
 	locale: string;
 	currency: string;
+	site_theme?: 'plain' | 'gulf' | 'bengal';
 	role: string;
 };
 
 export type User = { id: string; full_name: string };
 
-export type Session = { user: User; memberships: Membership[]; tenant: Tenant | null };
+export type Session = {
+	user: User;
+	memberships: Membership[];
+	tenant: Tenant | null;
+};
 
 export type ApiError = { code: string; message: string; field?: string };

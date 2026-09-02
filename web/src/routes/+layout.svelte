@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>Fajr</title>
+	<title>Fajr LMS</title>
 </svelte:head>
 
 {@render children()}

@@ -68,15 +68,15 @@ func gradedCourse(t *testing.T, h http.Handler, owner, student actor) (courseID,
 		t.Fatalf("add question: got %d: %s", rec.Code, rec.Body)
 	}
 	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
-		t.Fatalf("enrol: got %d: %s", rec.Code, rec.Body)
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
 	}
 	return courseID, quizID
 }
 
 func TestGradebook(t *testing.T) {
 	h, ch, store := newHarness(t)
-	owner := enrol(t, h, ch, store, "owner")
-	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
 	courseID, quizID := gradedCourse(t, h, owner, student)
 
 	t.Run("a quiz appears as a column worth what its questions are worth", func(t *testing.T) {
@@ -213,14 +213,14 @@ func TestGradebook(t *testing.T) {
 	})
 
 	t.Run("a learner not enrolled has no grades", func(t *testing.T) {
-		outsider := enrolIn(t, h, ch, store, owner.slug, "student")
+		outsider := enrollIn(t, h, ch, store, owner.slug, "student")
 		if rec := do(t, h, "GET", "/v1/courses/"+courseID+"/grades", outsider.token, owner.slug, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("got %d, want 404", rec.Code)
 		}
 	})
 
 	t.Run("a gradebook in another tenant is not found", func(t *testing.T) {
-		other := enrol(t, h, ch, store, "owner")
+		other := enroll(t, h, ch, store, "owner")
 		if rec := do(t, h, "GET", "/v1/courses/"+courseID+"/gradebook", other.token, other.slug, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("got %d, want 404", rec.Code)
 		}
