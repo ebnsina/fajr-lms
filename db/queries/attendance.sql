@@ -61,3 +61,11 @@ FROM guardianships g
 JOIN users gu ON gu.id = g.guardian_id
 JOIN users st ON st.id = g.student_id
 ORDER BY st.full_name;
+
+-- name: SetSessionLink :one
+UPDATE class_sessions SET provider = @provider, join_url = @join_url, host_url = @host_url
+WHERE id = @id
+RETURNING *;
+
+-- name: SetSessionRecording :one
+UPDATE class_sessions SET recording_media_id = @recording_media_id WHERE id = @id RETURNING *;

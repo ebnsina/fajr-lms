@@ -957,16 +957,20 @@ type CertificateVerification struct {
 }
 
 type ClassSession struct {
-	ID        uuid.UUID          `json:"id"`
-	TenantID  uuid.UUID          `json:"tenant_id"`
-	CourseID  uuid.UUID          `json:"course_id"`
-	Title     string             `json:"title"`
-	Location  string             `json:"location"`
-	StartsAt  pgtype.Timestamptz `json:"starts_at"`
-	EndsAt    pgtype.Timestamptz `json:"ends_at"`
-	CreatedBy uuid.NullUUID      `json:"created_by"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ID               uuid.UUID          `json:"id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	CourseID         uuid.UUID          `json:"course_id"`
+	Title            string             `json:"title"`
+	Location         string             `json:"location"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
+	CreatedBy        uuid.NullUUID      `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	Provider         string             `json:"provider"`
+	JoinUrl          string             `json:"join_url"`
+	HostUrl          string             `json:"host_url"`
+	RecordingMediaID uuid.NullUUID      `json:"recording_media_id"`
 }
 
 type Course struct {

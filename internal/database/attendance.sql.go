@@ -81,7 +81,7 @@ func (q *Queries) AttendanceSummary(ctx context.Context, arg AttendanceSummaryPa
 const createClassSession = `-- name: CreateClassSession :one
 INSERT INTO class_sessions (tenant_id, course_id, title, location, starts_at, ends_at, created_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at
+RETURNING id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at, provider, join_url, host_url, recording_media_id
 `
 
 type CreateClassSessionParams struct {
@@ -116,12 +116,16 @@ func (q *Queries) CreateClassSession(ctx context.Context, arg CreateClassSession
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Provider,
+		&i.JoinUrl,
+		&i.HostUrl,
+		&i.RecordingMediaID,
 	)
 	return i, err
 }
 
 const getClassSession = `-- name: GetClassSession :one
-SELECT id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at FROM class_sessions WHERE id = $1
+SELECT id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at, provider, join_url, host_url, recording_media_id FROM class_sessions WHERE id = $1
 `
 
 func (q *Queries) GetClassSession(ctx context.Context, id uuid.UUID) (ClassSession, error) {
@@ -138,6 +142,10 @@ func (q *Queries) GetClassSession(ctx context.Context, id uuid.UUID) (ClassSessi
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Provider,
+		&i.JoinUrl,
+		&i.HostUrl,
+		&i.RecordingMediaID,
 	)
 	return i, err
 }
@@ -172,7 +180,7 @@ func (q *Queries) GuardiansOf(ctx context.Context, studentID uuid.UUID) ([]Guard
 }
 
 const listClassSessions = `-- name: ListClassSessions :many
-SELECT id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at FROM class_sessions WHERE course_id = $1
+SELECT id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at, provider, join_url, host_url, recording_media_id FROM class_sessions WHERE course_id = $1
 ORDER BY starts_at DESC
 LIMIT $3 OFFSET $2
 `
@@ -203,6 +211,10 @@ func (q *Queries) ListClassSessions(ctx context.Context, arg ListClassSessionsPa
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Provider,
+			&i.JoinUrl,
+			&i.HostUrl,
+			&i.RecordingMediaID,
 		); err != nil {
 			return nil, err
 		}
@@ -415,4 +427,75 @@ func (q *Queries) SessionRoll(ctx context.Context, arg SessionRollParams) ([]Ses
 		return nil, err
 	}
 	return items, nil
+}
+
+const setSessionLink = `-- name: SetSessionLink :one
+UPDATE class_sessions SET provider = $1, join_url = $2, host_url = $3
+WHERE id = $4
+RETURNING id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at, provider, join_url, host_url, recording_media_id
+`
+
+type SetSessionLinkParams struct {
+	Provider string    `json:"provider"`
+	JoinUrl  string    `json:"join_url"`
+	HostUrl  string    `json:"host_url"`
+	ID       uuid.UUID `json:"id"`
+}
+
+func (q *Queries) SetSessionLink(ctx context.Context, arg SetSessionLinkParams) (ClassSession, error) {
+	row := q.db.QueryRow(ctx, setSessionLink,
+		arg.Provider,
+		arg.JoinUrl,
+		arg.HostUrl,
+		arg.ID,
+	)
+	var i ClassSession
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.CourseID,
+		&i.Title,
+		&i.Location,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Provider,
+		&i.JoinUrl,
+		&i.HostUrl,
+		&i.RecordingMediaID,
+	)
+	return i, err
+}
+
+const setSessionRecording = `-- name: SetSessionRecording :one
+UPDATE class_sessions SET recording_media_id = $1 WHERE id = $2 RETURNING id, tenant_id, course_id, title, location, starts_at, ends_at, created_by, created_at, updated_at, provider, join_url, host_url, recording_media_id
+`
+
+type SetSessionRecordingParams struct {
+	RecordingMediaID uuid.NullUUID `json:"recording_media_id"`
+	ID               uuid.UUID     `json:"id"`
+}
+
+func (q *Queries) SetSessionRecording(ctx context.Context, arg SetSessionRecordingParams) (ClassSession, error) {
+	row := q.db.QueryRow(ctx, setSessionRecording, arg.RecordingMediaID, arg.ID)
+	var i ClassSession
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.CourseID,
+		&i.Title,
+		&i.Location,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Provider,
+		&i.JoinUrl,
+		&i.HostUrl,
+		&i.RecordingMediaID,
+	)
+	return i, err
 }

@@ -5,6 +5,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Live classes: paste a Google Meet, Zoom, Teams, Jitsi or Whereby link onto a
+  class and enrolled learners can join it.
+- The link opens fifteen minutes before the class and is not handed out days in
+  advance; teachers can open the room whenever they need to.
+- Teachers can keep a separate host link, and attach the recording to the class
+  afterwards.
 - Certificates for finished courses, each with a number anyone can check at a
   public address without signing in.
 - The verification page prints cleanly and shows Arabic and Bengali names
