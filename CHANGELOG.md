@@ -4,6 +4,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 
 ## [Unreleased]
 
+### Fixed
+- Switching school now shows the new school straight away. It used to set the
+  choice and leave the old school's courses, grades and notifications on screen
+  until the page was reloaded by hand.
+
 ### Changed
 - The front door is a proper landing page now: a shader gradient behind the
   hero, the kind of institution rolling through the headline one at a time, a

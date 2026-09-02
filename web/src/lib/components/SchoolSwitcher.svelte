@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { dismissible } from '$lib/actions/dismiss';
 	import Check from '@lucide/svelte/icons/check';
 	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
@@ -61,7 +62,20 @@
 		>
 			{#each schools as school (school.id)}
 				{@const isCurrent = school.slug === current?.slug}
-				<form method="POST" action="/tenant" use:enhance={() => () => close(false)}>
+				<!-- The switch sets a cookie every loader reads, so the whole page has
+				     to be refetched rather than just closing the menu. -->
+				<form
+					method="POST"
+					action="/tenant"
+					use:enhance={() => async ({ result }) => {
+						close(false);
+						if (result.type === 'redirect') {
+							await goto(result.location, { invalidateAll: true });
+							return;
+						}
+						await invalidateAll();
+					}}
+				>
 					<input type="hidden" name="slug" value={school.slug} />
 					<button
 						class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-start text-sm transition-colors hover:bg-sunken"
