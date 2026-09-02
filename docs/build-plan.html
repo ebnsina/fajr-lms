@@ -537,16 +537,19 @@ type Provider interface {
     <div class="phase ship">
       <div class="phase-head"><span class="id">Phase 3.6</span><h3>Our own front door — built</h3><span class="dur">shipped</span></div>
       <ul>
-        <li>Marketing site: landing that argues the local case (the payments families use, Arabic and Bengali as first-class text, a phone on a weak connection), and pricing</li>
+        <li>Marketing site: a landing page that argues the local case (the payments families use, Arabic and Bengali as first-class text, a phone on a weak connection, records the school owns), how it works, what every feature does, the website builder, a comparison, and the questions we are asked</li>
         <li>Pricing by active learner, not by feature — every plan teaches, grades and collects fees</li>
         <li>Self service: anyone signed in opens a school, names its address, picks its script and currency, and owns it immediately</li>
         <li>A visitor landing on the root sees the marketing site; a member sees their work</li>
+        <li>Its own voice: Clash Display and Excon from Fontshare, self-hosted; a WebGL gradient behind the hero and the closing panel; GSAP for scroll work, all of it skipped under <code>prefers-reduced-motion</code> or in a hidden tab, so the page is never parked invisible</li>
+        <li>One section names the AI work honestly as <em>being built</em> — a draft quiz, subtitles, a first pass at grading — because none of it ships yet and the page must not imply otherwise</li>
       </ul>
       <div class="done"><b>Done when</b>A teacher who has never spoken to us is teaching on it the same day.</div>
     </div>
 
     <div class="phase">
       <div class="phase-head"><span class="id">Phase 4</span><h3>The moat</h3><span class="dur">4–6 weeks</span></div>
+      <p style="font-size:14.5px;margin-bottom:8px">The landing page already promises the AI work as <em>being built</em>. That is a debt: ship it or take the claim down.</p>
       <ul>
         <li>Offline PWA with sync queue and conflict resolution</li>
         <li>Low-bandwidth mode: audio track, transcript view, downloadable packs, data counter</li>

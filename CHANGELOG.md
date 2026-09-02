@@ -5,90 +5,55 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
-- A quiet section on the landing page about the AI work being built — a draft
-  quiz, subtitles, a first pass at grading — lit by a slowly drifting orb.
-- A features section on the landing page saying what each part of the product
-  actually does, from lessons and quizzes through to the website builder.
+- Fajr LMS has a front door of its own: a landing page, pricing, and a form
+  that opens a school in about a minute without anybody talking to us.
+- A features section saying what each part of the product actually does, from
+  lessons and quizzes through to the website builder.
+- A section about the AI work being built — a draft quiz, subtitles, a first
+  pass at grading — lit by a slowly drifting orb. It says plainly that none of
+  it is on yet, and that it drafts rather than decides.
+- Every school gets a public website with a page builder: pages are built from
+  validated plain-text sections, published one at a time, with the menu built
+  from the pages themselves.
+- Eight website templates — a school, a college, a madrasah and a university,
+  each written twice, once for Bangladesh and once for the Gulf, in the
+  language it teaches in. Picking one writes its pages as drafts and dresses
+  the site to match.
+- Three looks for that website: Gulf reads right to left with Arabic set
+  larger, Bengal sets Bengali, and Plain keeps the product palette.
+- Two more page sections: numbers, and a notice board.
+- Build a course from the app rather than the API: create it, add sections and
+  lessons, paste a video or audio link to attach it, reorder lessons, and
+  publish a lesson or the whole course when it is ready.
+- Set a quiz from the app: write questions of any kind, tick the right choices,
+  and see the answer key laid out. Set an assignment the same way, and change
+  its due date or late penalty afterwards.
+- Live classes have a page: staff paste the Google Meet or Zoom link and attach
+  the recording afterwards, and anyone enrolled joins from there when it opens.
+- Certificates have a page: what you have been awarded, the serial anyone can
+  check, and a claim on a course you have finished.
+- Take a roll call: pick a class, mark everyone present, late, absent or
+  excused, and marking somebody absent tells them and anyone listed as their
+  guardian.
+- Review a bank transfer or wallet payment: the learner's transaction id, their
+  note and the deposit slip on one card, with approving enrolling them straight
+  away.
 
 ### Changed
-- The website section is two plain columns — what the templates are on one
-  side, the page they make on the other — rather than tiles of three sizes.
-- The four steps scroll normally again: the heading and its rail stay put, and
-  nothing holds the page still.
-
-### Changed
-- Why Fajr argues the case — the money, the script, the connection, who owns
-  the records — rather than repeating the feature list underneath it.
-- The four steps hold the screen and come one at a time as you scroll.
-- The questions are an accordion now, centred, with the first one open.
-- The four steps sit beside a heading that stays put while they come past.
-- The middle of the landing page carries colour: brand-tinted sections, icon
-  tiles and section labels, rather than one flat sheet.
-- The landing menu carries the whole page — why, how it works, the website,
-  the comparison, pricing, questions — and one button: Get started. The calls to
-  action no longer say "open a school", since a teacher on their own is welcome
-  too.
-- The footer is a raised panel with four columns of links, what the product
-  actually does, and a bottom line carrying the year, the theme switch, and
-  Fajr Labs.
+- The product is written as Fajr LMS throughout, and the wording is US English:
+  Marking is now Grading, a mark is now a grade.
 - The brand color is emerald green, on every screen and in both themes.
-- The landing pages are set in Clash Display and Excon.
+- The landing pages are set in Clash Display and Excon, with motion that is
+  skipped whenever the reader has asked for less of it.
+- Dropdowns are our own design rather than the browser's, and turn into a
+  searchable list once there is enough to scroll through.
+- The button that finishes a form now sits at the end of it rather than the
+  start.
 
 ### Fixed
 - Switching school now shows the new school straight away. It used to set the
   choice and leave the old school's courses, grades and notifications on screen
   until the page was reloaded by hand.
-
-### Changed
-- The front door is a proper landing page now: a shader gradient behind the
-  hero, the kind of institution rolling through the headline one at a time, a
-  bolder display face, more room to breathe, a bento of what the website does,
-  a comparison that says what each side actually offers, and motion as you
-  scroll. The menu sits in the middle and the theme switch moved to the footer.
-- The sign-in and school-picker pages keep their theme switch in the bottom
-  corner rather than beside the wordmark.
-
-### Added
-- Eight website templates — a school, a college, a madrasah and a university,
-  each written twice: once for Bangladesh and once for the Gulf, in the language
-  it teaches in. Picking one writes its pages as drafts and dresses the site.
-- Two new page sections: numbers (learners, teachers, the year you opened) and
-  a notice board.
-- A fuller front door: how it works in four steps, who it is built for, what the
-  big platforms leave out, what your data is worth to us, and the questions we
-  are asked.
-- Live classes have a page: staff paste the Google Meet or Zoom link and attach
-  the recording afterwards, and anyone enrolled joins from there when it opens.
-- Certificates have a page: what you have been awarded, the serial anyone can
-  check, and a claim button on a course you have finished.
-- Set a quiz from the app: write questions of any kind, tick the right choices,
-  and see the answer key laid out. Set an assignment the same way, and change
-  its due date or late penalty afterwards.
-- Build a course from the app rather than the API: create it, add sections and
-  lessons, paste a video or audio link to attach it, reorder lessons, and
-  publish a lesson or the whole course when it is ready.
-- Every school gets a public website with a page builder: pages are built from
-  sections (a headline, words, cards, questions, your courses, an invitation),
-  published one at a time, with the menu built from the pages themselves.
-- Three looks for that website — Gulf reads right to left with Arabic set
-  larger, Bengal sets Bengali, and Plain keeps the product palette.
-- A marketing site of our own: what Fajr LMS is, what it costs, and a form that
-  opens a school in about a minute. Whoever opens it owns it straight away.
-
-### Changed
-- The product is written as Fajr LMS throughout, and the wording is US English:
-  Marking is now Grading, a mark is now a grade.
-
-### Added
-- Take a roll call: pick a class, mark everyone present, late, absent or excused,
-  and marking somebody absent tells them and anyone listed as their guardian.
-- Review a bank transfer or wallet payment: the learner's transaction id, their
-  note and the deposit slip on one card, with approving enrolling them straight away.
-
-### Changed
-- Dropdowns are our own design rather than the browser's, and turn into a
-  searchable list once there is enough to scroll through.
-- The button that finishes a form now sits at the end of it rather than the start.
 
 ### Added
 - A proper application shell: the menu stays put while the page scrolls, your
