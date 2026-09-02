@@ -258,7 +258,7 @@
 </section>
 
 <section id="how" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
-	<div class="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,22rem)_1fr]">
+	<div class="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[2fr_3fr]">
 		<!-- The heading and the rail stay put while the steps come past them. -->
 		<div use:reveal>
 			<span class="eyebrow mb-3">How it works</span>
