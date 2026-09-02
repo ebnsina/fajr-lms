@@ -4,23 +4,45 @@
 	let { words, every = 2200 }: { words: string[]; every?: number } = $props();
 
 	let index = $state(0);
-	let paused = $state(false);
+	let widths = $state<number[]>([]);
+	let sizer = $state<HTMLElement | null>(null);
+
+	// The box follows the word it is showing, so a short word does not leave a
+	// hole before the next one. Widths are measured rather than guessed, and
+	// measured again once the display face has actually loaded.
+	function measure() {
+		if (!sizer) return;
+		widths = [...sizer.children].map((child) => child.getBoundingClientRect().width);
+	}
 
 	onMount(() => {
+		measure();
+		document.fonts?.ready.then(measure);
+		window.addEventListener('resize', measure);
+
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-			paused = true;
-			return;
+			return () => window.removeEventListener('resize', measure);
 		}
 		const timer = setInterval(() => (index = (index + 1) % words.length), every);
-		return () => clearInterval(timer);
+		return () => {
+			clearInterval(timer);
+			window.removeEventListener('resize', measure);
+		};
 	});
 
-	// The widest word holds the line, so the headline never reflows mid-roll.
-	const widest = $derived(words.reduce((a, b) => (b.length > a.length ? b : a), ''));
+	const width = $derived(widths[index]);
 </script>
 
-<span class="roll" aria-label={words[0]}>
-	<span class="ghost" aria-hidden="true">{widest}</span>
+<span class="roll" style:inline-size={width ? `${width}px` : undefined} aria-label={words[0]}>
+	<!-- Off-screen copies, only ever read for their width. -->
+	<span class="sizer" bind:this={sizer} aria-hidden="true">
+		{#each words as word (word)}<span>{word}</span>{/each}
+	</span>
+
+	{#if width === undefined}
+		<span class="lead">{words[index]}</span>
+	{/if}
+
 	{#each words as word, i (word)}
 		<span
 			class="word"
@@ -42,11 +64,25 @@
 		vertical-align: -0.24em;
 		overflow: hidden;
 		text-align: center;
+		transition: inline-size 420ms cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
-	.ghost {
+	.sizer {
+		position: absolute;
 		visibility: hidden;
+		pointer-events: none;
+		white-space: nowrap;
+	}
+
+	.sizer span {
 		display: block;
+		inline-size: max-content;
+	}
+
+	/* Before the measurements land, one word holds the line open. */
+	.lead {
+		visibility: hidden;
+		white-space: nowrap;
 	}
 
 	.word {
@@ -71,6 +107,7 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
+		.roll,
 		.word {
 			transition: none;
 		}
