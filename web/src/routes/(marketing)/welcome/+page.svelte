@@ -30,18 +30,6 @@
 	// The first question is open, so the section never reads as a wall of bars.
 	let open = $state(0);
 
-	// Four kinds of institution, each written for both regions.
-	const templateKinds = [
-		'A school, for Bangladesh',
-		'A school, for the Gulf',
-		'A college, for Bangladesh',
-		'A college, for the Gulf',
-		'A madrasah, for Bangladesh',
-		'A madrasah, for the Gulf',
-		'A university, for Bangladesh',
-		'A university, for the Gulf'
-	];
-
 	// Which of the four steps is on screen, for the rail beside them.
 	let active = $state(0);
 
@@ -348,16 +336,7 @@
 					and once for the Gulf, with the sections these institutions actually publish.
 				</p>
 
-				<ul class="mt-6 mb-8 grid gap-x-6 gap-y-3 sm:grid-cols-2">
-					{#each templateKinds as kind (kind)}
-						<li class="flex items-center gap-2.5 text-sm">
-							<BadgeCheck class="shrink-0 text-brand-text" size={18} aria-hidden="true" />
-							{kind}
-						</li>
-					{/each}
-				</ul>
-
-				<ul class="flex flex-col gap-6">
+				<ul class="mt-8 flex flex-col gap-6">
 					<li class="flex gap-3">
 						<BadgeCheck class="mt-0.5 shrink-0 text-brand-text" size={20} aria-hidden="true" />
 						<div>
