@@ -360,9 +360,10 @@
 				</ul>
 			</div>
 
-			<!-- A page as the builder makes it: the chrome and the sections, drawn
-			     rather than screenshotted, so it never goes stale. -->
-			<div class="mockup" aria-hidden="true" use:reveal={{ y: 32 }}>
+			<!-- A page as the builder makes it, drawn rather than screenshotted so it
+			     never goes stale, and cropped by the frame the way a preview is. -->
+			<div class="preview" aria-hidden="true" use:reveal={{ y: 32 }}>
+				<div class="mockup">
 				<div class="chrome">
 					<span class="dot"></span><span class="dot"></span><span class="dot"></span>
 					<span class="url font-mono">/site/greenfield</span>
@@ -383,6 +384,7 @@
 					</div>
 					<div class="notices">
 						<span class="row"></span><span class="row"></span><span class="row"></span>
+					</div>
 					</div>
 				</div>
 			</div>
@@ -547,7 +549,17 @@
 <style>
 	/* The drawn page preview: every part is a block, tinted from the same tokens
 	   as the real thing. */
+	/* The frame crops the page, so it reads as a preview rather than a diagram. */
+	.preview {
+		padding: 1.75rem 1.75rem 0;
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-card);
+		background: var(--color-raised);
+		overflow: hidden;
+	}
+
 	.mockup {
+		margin-block-end: -3rem;
 		border: 1px solid var(--color-line-strong);
 		border-radius: 1rem;
 		background: var(--color-surface);
