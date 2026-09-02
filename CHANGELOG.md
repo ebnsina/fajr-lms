@@ -5,6 +5,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Hand in an assignment: write an answer, attach photos of handwritten work or a
+  PDF, save a draft while you go, and hand in when you are ready.
+- The page says plainly what happens if you are late, and whether late work is
+  taken at all.
+- Once marked, the mark and the teacher's comment appear on the same page.
+
 - Sit a quiz: multiple choice, multiple answer, true or false and written
   answers, with a countdown when there is a time limit.
 - Answers save as you go, so a dropped connection loses nothing, and reopening
