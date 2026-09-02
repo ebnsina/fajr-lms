@@ -11,8 +11,19 @@
 	import Video from '@lucide/svelte/icons/video';
 	import Users from '@lucide/svelte/icons/users';
 	import Layout from '@lucide/svelte/icons/layout-template';
+	import Library from '@lucide/svelte/icons/library';
+	import ListChecks from '@lucide/svelte/icons/list-checks';
+	import FileText from '@lucide/svelte/icons/file-text';
+	import Table from '@lucide/svelte/icons/table';
+	import CalendarCheck from '@lucide/svelte/icons/calendar-check';
+	import Award from '@lucide/svelte/icons/award';
+	import Bell from '@lucide/svelte/icons/bell';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+
+	// The first question is open, so the section never reads as a wall of bars.
+	let open = $state(0);
 
 	const institutions = ['school', 'madrasah', 'college', 'academy', 'university'];
 
@@ -95,18 +106,69 @@
 		{ line: 'Host it yourself if you want to', us: 'Open parts', them: 'No' }
 	];
 
-	const included = [
-		'A public website with a page builder',
-		'Templates for schools, colleges, madrasahs and universities',
-		'Courses, modules and lessons',
-		'Quizzes graded automatically or by hand',
-		'Assignments with file hand-in',
-		'A weighted gradebook',
-		'Attendance with guardian alerts',
-		'Certificates with public verification',
-		'Live classes with recordings',
-		'Notifications by SMS, email or webhook'
+	const features = [
+		{
+			icon: Library,
+			title: 'Courses and lessons',
+			body: 'Sections and lessons of any kind — a reading, a video or audio link, a PDF, a live class — reordered as the term changes, published one at a time.'
+		},
+		{
+			icon: ListChecks,
+			title: 'Quizzes',
+			body: 'Single and multiple answers, true or false, a word, or a written answer. The machine grades what it can and hands you the rest.'
+		},
+		{
+			icon: FileText,
+			title: 'Assignments',
+			body: 'A brief, a due date, a late policy that does the arithmetic for you, and work handed in as text or as photographs of a page.'
+		},
+		{
+			icon: ClipboardCheck,
+			title: 'A grading queue',
+			body: 'Everything waiting on a person in one list: the answer beside the correct one, the points available, and a comment back to the learner.'
+		},
+		{
+			icon: Table,
+			title: 'A weighted gradebook',
+			body: 'Every learner against every graded item, weighed into a course percentage. Type in a box to override, empty it to go back to the marked score.'
+		},
+		{
+			icon: CalendarCheck,
+			title: 'Attendance',
+			body: 'Take the register for a class in one pass. Marking somebody absent tells them and anyone listed as their guardian, the same morning.'
+		},
+		{
+			icon: Video,
+			title: 'Live classes',
+			body: 'Paste the Meet or Zoom link and everyone enrolled joins from the course, in the window you set. Attach the recording afterwards.'
+		},
+		{
+			icon: Award,
+			title: 'Certificates',
+			body: 'Awarded on a finished course, carrying a serial anybody can check on a public page — no account, no login, no phone call to the office.'
+		},
+		{
+			icon: Wallet,
+			title: 'Fees and enrollment',
+			body: 'bKash, SSLCommerz, or a bank slip a member of staff approves. Approving enrolls the learner on the spot.'
+		},
+		{
+			icon: Layout,
+			title: 'A website and page builder',
+			body: 'Your public pages built from sections you fill in, with eight templates to start from and your catalog pulled straight from the courses you teach.'
+		},
+		{
+			icon: Bell,
+			title: 'Notifications',
+			body: 'Results, absences and approvals reach people by SMS, email or a webhook into whatever you already run.'
+		},
+		{
+			icon: Users,
+			title: 'Many schools, one sign-in',
+			body: 'A teacher who works at three institutions signs in once. Every school keeps its own data, enforced by the database itself.'
+		}
 	];
+
 
 	const faq = [
 		{
@@ -140,12 +202,14 @@
 	<ShaderGradient />
 	<div class="relative mx-auto max-w-4xl text-center">
 		<h1
-			class="font-display text-5xl leading-[1.08] font-bold text-balance text-ink sm:text-7xl"
+			class="font-display text-4xl leading-[1.08] font-bold text-ink sm:text-6xl lg:text-7xl"
 			use:reveal={{ y: 32 }}
 		>
-			Run the whole
-			<RollingWords words={institutions} />
-			year in one place
+			<!-- The lines are fixed so a longer word widens line two rather than
+			     rewrapping the headline. -->
+			<span class="block">Run the whole</span>
+			<span class="block"><RollingWords words={institutions} /> year</span>
+			<span class="block">in one place</span>
 		</h1>
 		<p class="mx-auto mt-7 max-w-2xl text-lg text-ink-soft sm:text-xl" use:reveal={{ delay: 0.1 }}>
 			Fajr LMS teaches, grades, collects the fees and keeps the guardians informed — in Arabic,
@@ -164,8 +228,10 @@
 	</div>
 </section>
 
-<section id="why" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">
+<section id="why" class="tinted scroll-mt-24 px-6 py-24">
+	<div class="mx-auto max-w-6xl">
 	<div class="mb-14 max-w-2xl" use:reveal>
+		<span class="eyebrow mb-3">Why Fajr</span>
 		<h2 class="font-display text-3xl font-bold sm:text-4xl">
 			Why schools here choose it
 		</h2>
@@ -175,33 +241,45 @@
 	</div>
 	<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" use:reveal={{ stagger: 'article' }}>
 		{#each reasons as reason (reason.title)}
-			<article class="card transition-colors hover:border-line-strong">
-				<reason.icon class="mb-4 text-brand-text" size={24} aria-hidden="true" />
+			<article class="card transition-colors hover:border-brand-line">
+				<span class="icon-tile mb-4">
+					<reason.icon size={22} aria-hidden="true" />
+				</span>
 				<h3 class="mb-2 text-lg font-medium">{reason.title}</h3>
 				<p class="mb-0 text-sm text-ink-soft">{reason.body}</p>
 			</article>
 		{/each}
 	</div>
+	</div>
 </section>
 
 <section id="how" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
-	<div class="mx-auto max-w-6xl">
-		<div class="mb-14 max-w-2xl" use:reveal>
+	<div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[minmax(0,20rem)_1fr]">
+		<!-- The heading stays put while the steps come past it. -->
+		<div class="lg:sticky lg:top-24 lg:self-start" use:reveal>
+			<span class="eyebrow mb-3">How it works</span>
 			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				From nothing to teaching, in four steps
 			</h2>
-			<p class="mt-3 mb-0 text-lg text-ink-soft">
+			<p class="mt-3 mb-6 text-ink-soft">
 				Each one is a screen, not a project. Nobody has to call us to get through them.
 			</p>
+			<a class="btn btn-quiet btn-sm" href="/start">
+				Get started free
+				<ArrowRight size={15} aria-hidden="true" />
+			</a>
 		</div>
-		<ol class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" use:reveal={{ stagger: 'li' }}>
+
+		<ol class="flex flex-col gap-4">
 			{#each steps as step, index (step.title)}
-				<li class="card">
-					<span class="mb-4 block font-mono text-sm text-brand-text">
+				<li class="card flex flex-wrap items-start gap-5 sm:flex-nowrap" use:reveal={{ y: 28 }}>
+					<span class="icon-tile font-mono text-sm">
 						{String(index + 1).padStart(2, '0')}
 					</span>
-					<h3 class="mb-2 text-lg font-medium">{step.title}</h3>
-					<p class="mb-0 text-sm text-ink-soft">{step.body}</p>
+					<div class="min-w-0 flex-1">
+						<h3 class="mb-2 text-lg font-medium">{step.title}</h3>
+						<p class="mb-0 text-ink-soft">{step.body}</p>
+					</div>
 				</li>
 			{/each}
 		</ol>
@@ -211,6 +289,7 @@
 <!-- Bento: tiles of different weight, drifting at different speeds. -->
 <section id="website" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">
 	<div class="mb-14 max-w-2xl" use:reveal>
+		<span class="eyebrow mb-3">Your website</span>
 		<h2 class="font-display text-3xl font-bold sm:text-4xl">
 			Your website, without a web developer
 		</h2>
@@ -221,8 +300,13 @@
 	</div>
 
 	<div class="grid gap-5 lg:grid-cols-3">
-		<article class="card lg:col-span-2 lg:row-span-2" use:parallax={26}>
-			<Layout class="mb-4 text-brand-text" size={26} aria-hidden="true" />
+		<article
+			class="card border-brand-line bg-brand-soft lg:col-span-2 lg:row-span-2"
+			use:parallax={26}
+		>
+			<span class="icon-tile mb-4 bg-surface">
+				<Layout size={24} aria-hidden="true" />
+			</span>
 			<h3 class="mb-2 font-display text-2xl font-bold">Eight templates, written for you</h3>
 			<p class="mb-6 max-w-lg text-ink-soft">
 				A school, a college, a madrasah or a university — each written twice, once for Bangladesh
@@ -249,7 +333,7 @@
 		</article>
 
 		<article class="card" use:parallax={52}>
-			<Globe class="mb-4 text-brand-text" size={24} aria-hidden="true" />
+			<span class="icon-tile mb-4"><Globe size={22} aria-hidden="true" /></span>
 			<h3 class="mb-2 text-lg font-medium">Dressed for where you teach</h3>
 			<p class="mb-0 text-sm text-ink-soft">
 				The Gulf setting reads right to left and sets Arabic a size larger. The Bengal setting sets
@@ -258,7 +342,7 @@
 		</article>
 
 		<article class="card" use:parallax={68}>
-			<ShieldCheck class="mb-4 text-brand-text" size={24} aria-hidden="true" />
+			<span class="icon-tile mb-4"><ShieldCheck size={22} aria-hidden="true" /></span>
 			<h3 class="mb-2 text-lg font-medium">Nothing can smuggle script in</h3>
 			<p class="mb-0 text-sm text-ink-soft">
 				Every section is plain text checked on the server. A page cannot carry markup, so a page
@@ -280,9 +364,10 @@
 	</div>
 </section>
 
-<section id="compare" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
-	<div class="mx-auto max-w-4xl">
+<section id="compare" class="tinted scroll-mt-24 border-y border-line px-6 py-24">
+	<div class="mx-auto max-w-6xl">
 		<div class="mb-12 max-w-2xl" use:reveal>
+			<span class="eyebrow mb-3">Compare</span>
 			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				What the big platforms leave out
 			</h2>
@@ -323,39 +408,69 @@
 	</div>
 </section>
 
-<section class="mx-auto max-w-6xl px-6 py-24">
-	<div class="grid gap-12 lg:grid-cols-2">
-		<div use:reveal>
-			<h2 class="font-display text-3xl font-bold sm:text-4xl">
-				Everything is included
-			</h2>
-			<p class="mt-3 mb-6 text-lg text-ink-soft">
-				There is no teaching feature behind a higher tier. What changes with the plan is how many
-				learners you teach.
-			</p>
-			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
-		</div>
-		<ul class="grid gap-4 sm:grid-cols-2" use:reveal={{ stagger: 'li' }}>
-			{#each included as item (item)}
-				<li class="flex items-start gap-2.5 text-sm">
-					<Check class="mt-0.5 shrink-0 text-brand-text" size={16} aria-hidden="true" />
-					{item}
-				</li>
-			{/each}
-		</ul>
+<section id="features" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">
+	<div class="mb-14 max-w-2xl" use:reveal>
+		<span class="eyebrow mb-3">What you get</span>
+		<h2 class="font-display text-3xl font-bold sm:text-4xl">Everything the teaching week needs</h2>
+		<p class="mt-3 mb-0 text-lg text-ink-soft">
+			All of it on every plan. What changes with the plan is how many learners you teach.
+		</p>
+	</div>
+
+	<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" use:reveal={{ stagger: 'article' }}>
+		{#each features as feature (feature.title)}
+			<article class="card transition-colors hover:border-brand-line">
+				<span class="icon-tile mb-4">
+					<feature.icon size={22} aria-hidden="true" />
+				</span>
+				<h3 class="mb-2 text-lg font-medium">{feature.title}</h3>
+				<p class="mb-0 text-sm text-ink-soft">{feature.body}</p>
+			</article>
+		{/each}
+	</div>
+
+	<div class="mt-10 flex flex-wrap items-center gap-4" use:reveal>
+		<a class="btn btn-quiet" href="/pricing">See the pricing</a>
+		<p class="mb-0 text-sm text-ink-soft">
+			No teaching feature is held back for a higher tier.
+		</p>
 	</div>
 </section>
 
 <section id="faq" class="scroll-mt-24 border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
-		<h2 class="mb-10 font-display text-3xl font-bold sm:text-4xl" use:reveal>
-			Questions we are asked
-		</h2>
-		<div class="flex flex-col gap-4" use:reveal={{ stagger: 'div.card' }}>
-			{#each faq as item (item.q)}
-				<div class="card">
-					<h3 class="mb-2 text-lg font-medium">{item.q}</h3>
-					<p class="mb-0 text-ink-soft">{item.a}</p>
+		<div class="mb-12 text-center" use:reveal>
+			<span class="eyebrow mb-3">Questions</span>
+			<h2 class="font-display text-3xl font-bold sm:text-4xl">Questions we are asked</h2>
+		</div>
+
+		<div class="flex flex-col gap-3" use:reveal={{ stagger: 'div.card' }}>
+			{#each faq as item, i (item.q)}
+				<div class="card p-0">
+					<h3 class="mb-0">
+						<button
+							class="flex w-full items-center gap-4 px-6 py-5 text-start text-lg font-medium"
+							type="button"
+							aria-expanded={open === i}
+							aria-controls="answer-{i}"
+							onclick={() => (open = open === i ? -1 : i)}
+						>
+							<span class="flex-1">{item.q}</span>
+							<ChevronDown
+								class="shrink-0 text-ink-soft transition-transform duration-300"
+								style={open === i ? 'transform: rotate(180deg)' : ''}
+								size={20}
+								aria-hidden="true"
+							/>
+						</button>
+					</h3>
+					<!-- Rows of zero to one fraction: the height animates without
+					     anybody having to measure it. -->
+					<div class="answer" class:shown={open === i} id="answer-{i}" role="region">
+						<div class="min-h-0 overflow-hidden">
+							<p class="mb-0 px-6 pb-5 text-ink-soft">{item.a}</p>
+						</div>
+					</div>
 				</div>
 			{/each}
 		</div>
@@ -380,3 +495,21 @@
 		</div>
 	</div>
 </section>
+
+<style>
+	.answer {
+		display: grid;
+		grid-template-rows: 0fr;
+		transition: grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.shown {
+		grid-template-rows: 1fr;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.answer {
+			transition: none;
+		}
+	}
+</style>

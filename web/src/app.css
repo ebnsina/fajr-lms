@@ -261,6 +261,45 @@
 	word-spacing: 0.08em;
 }
 
+/* A wash of brand light behind a section, so the long middle of the landing
+   page is not one flat sheet. */
+@utility tinted {
+	position: relative;
+	isolation: isolate;
+
+	&::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background:
+			radial-gradient(60% 55% at 15% 0%, var(--color-brand-soft) 0%, transparent 70%),
+			radial-gradient(50% 50% at 90% 100%, var(--color-accent-soft) 0%, transparent 70%);
+		opacity: 0.9;
+	}
+}
+
+@utility icon-tile {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 2.75rem;
+	block-size: 2.75rem;
+	border-radius: var(--radius-control);
+	background: var(--color-brand-soft);
+	border: 1px solid var(--color-brand-line);
+	color: var(--color-brand-text);
+}
+
+@utility eyebrow {
+	display: block;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--color-brand-text);
+}
+
 @utility card {
 	background: var(--color-surface);
 	border: 1px solid var(--color-line);

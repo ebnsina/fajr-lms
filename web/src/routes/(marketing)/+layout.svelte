@@ -11,6 +11,7 @@
 	const links = [
 		{ href: '/welcome#why', label: 'Why Fajr' },
 		{ href: '/welcome#how', label: 'How it works' },
+		{ href: '/welcome#features', label: 'Features' },
 		{ href: '/welcome#website', label: 'Website' },
 		{ href: '/welcome#compare', label: 'Compare' },
 		{ href: '/pricing', label: 'Pricing' },
@@ -72,6 +73,7 @@
 				<ul class="flex flex-col gap-2.5 text-sm text-ink-soft">
 					<li><a class="transition-colors hover:text-ink" href="/welcome#why">Why Fajr</a></li>
 					<li><a class="transition-colors hover:text-ink" href="/welcome#how">How it works</a></li>
+					<li><a class="transition-colors hover:text-ink" href="/welcome#features">Features</a></li>
 					<li><a class="transition-colors hover:text-ink" href="/welcome#website">Your website</a></li>
 					<li><a class="transition-colors hover:text-ink" href="/welcome#compare">Compare</a></li>
 					<li><a class="transition-colors hover:text-ink" href="/pricing">Pricing</a></li>

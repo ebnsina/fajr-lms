@@ -4,7 +4,15 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 
 ## [Unreleased]
 
+### Added
+- A features section on the landing page saying what each part of the product
+  actually does, from lessons and quizzes through to the website builder.
+
 ### Changed
+- The questions are an accordion now, centred, with the first one open.
+- The four steps sit beside a heading that stays put while they come past.
+- The middle of the landing page carries colour: brand-tinted sections, icon
+  tiles and section labels, rather than one flat sheet.
 - The landing menu carries the whole page — why, how it works, the website,
   the comparison, pricing, questions — and one button: Get started. The calls to
   action no longer say "open a school", since a teacher on their own is welcome

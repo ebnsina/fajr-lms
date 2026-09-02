@@ -30,16 +30,38 @@
 		};
 	});
 
-	const width = $derived(widths[index]);
+	// The box grows at once so a longer word is never clipped, and only shrinks
+	// after the word leaving has finished sliding out of it.
+	const swap = 540;
+	let box = $state<number | undefined>(undefined);
+	let jump = $state(false);
+
+	$effect(() => {
+		const next = widths[index];
+		if (next === undefined) return;
+		if (box === undefined || next > box) {
+			jump = box !== undefined;
+			box = next;
+			requestAnimationFrame(() => requestAnimationFrame(() => (jump = false)));
+			return;
+		}
+		const timer = setTimeout(() => (box = next), swap);
+		return () => clearTimeout(timer);
+	});
 </script>
 
-<span class="roll" style:inline-size={width ? `${width}px` : undefined} aria-label={words[0]}>
+<span
+	class="roll"
+	class:jump
+	style:inline-size={box ? `${box}px` : undefined}
+	aria-label={words[0]}
+>
 	<!-- Off-screen copies, only ever read for their width. -->
 	<span class="sizer" bind:this={sizer} aria-hidden="true">
 		{#each words as word (word)}<span>{word}</span>{/each}
 	</span>
 
-	{#if width === undefined}
+	{#if box === undefined}
 		<span class="lead">{words[index]}</span>
 	{/if}
 
@@ -65,6 +87,10 @@
 		overflow: hidden;
 		text-align: center;
 		transition: inline-size 420ms cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.jump {
+		transition: none;
 	}
 
 	.sizer {
