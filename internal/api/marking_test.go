@@ -17,9 +17,13 @@ type sheetResponse struct {
 		Kind             string   `json:"kind"`
 		Points           int32    `json:"points"`
 		CorrectOptionIDs []string `json:"correct_option_ids"`
-		TextAnswer       string   `json:"text_answer"`
-		PointsAwarded    *int32   `json:"points_awarded"`
-		NeedsGrading     bool     `json:"needs_grading"`
+		Options          []struct {
+			Label     string `json:"label"`
+			IsCorrect bool   `json:"is_correct"`
+		} `json:"options"`
+		TextAnswer    string `json:"text_answer"`
+		PointsAwarded *int32 `json:"points_awarded"`
+		NeedsGrading  bool   `json:"needs_grading"`
 	} `json:"questions"`
 	Pending int64 `json:"pending"`
 }
@@ -118,6 +122,17 @@ func TestMarking(t *testing.T) {
 		for _, q := range sheet.Questions {
 			if q.Kind == "mcq_single" && len(q.CorrectOptionIDs) != 1 {
 				t.Errorf("the marker should see the correct option: %+v", q)
+			}
+			// Ids alone are unreadable; the marker needs the words too.
+			if q.Kind == "mcq_single" {
+				if len(q.Options) != 3 {
+					t.Errorf("got %d options, want 3 with labels", len(q.Options))
+				}
+				for _, o := range q.Options {
+					if o.Label == "" {
+						t.Error("an option came back with no label")
+					}
+				}
 			}
 			if q.Kind == "essay" && q.TextAnswer != "إجابة مفصلة" {
 				t.Errorf("essay answer = %q", q.TextAnswer)

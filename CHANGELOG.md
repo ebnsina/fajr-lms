@@ -5,6 +5,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Open an attempt from the marking queue and mark it: the learner's answer, the
+  correct answer and the points available are on one row, and written answers
+  get a score and a comment.
+- A result can only be released once every written answer is marked, and the
+  learner is told the moment it is.
+
 - Hand in an assignment: write an answer, attach photos of handwritten work or a
   PDF, save a draft while you go, and hand in when you are ready.
 - The page says plainly what happens if you are late, and whether late work is

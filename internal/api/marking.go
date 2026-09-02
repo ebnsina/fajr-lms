@@ -40,12 +40,21 @@ type markerSheet struct {
 
 type markerQuestion struct {
 	database.Question
-	CorrectOptionIDs []uuid.UUID `json:"correct_option_ids"`
-	OptionIDs        []uuid.UUID `json:"answer_option_ids"`
-	TextAnswer       string      `json:"text_answer"`
-	PointsAwarded    *int32      `json:"points_awarded"`
-	NeedsGrading     bool        `json:"needs_grading"`
-	Feedback         string      `json:"feedback"`
+	// Labels travel with the ids, or a marker sees two lists of uuids and has
+	// no way to tell what the learner actually chose.
+	Options          []markerOption `json:"options"`
+	CorrectOptionIDs []uuid.UUID    `json:"correct_option_ids"`
+	OptionIDs        []uuid.UUID    `json:"answer_option_ids"`
+	TextAnswer       string         `json:"text_answer"`
+	PointsAwarded    *int32         `json:"points_awarded"`
+	NeedsGrading     bool           `json:"needs_grading"`
+	Feedback         string         `json:"feedback"`
+}
+
+type markerOption struct {
+	ID        uuid.UUID `json:"id"`
+	Label     string    `json:"label"`
+	IsCorrect bool      `json:"is_correct"`
 }
 
 func (s *Server) attemptSheet(w http.ResponseWriter, r *http.Request) error {
@@ -76,7 +85,10 @@ func (s *Server) attemptSheet(w http.ResponseWriter, r *http.Request) error {
 		}
 
 		correct := make(map[uuid.UUID][]uuid.UUID, len(rows))
+		byQuestion := make(map[uuid.UUID][]markerOption, len(rows))
 		for _, o := range options {
+			byQuestion[o.QuestionID] = append(byQuestion[o.QuestionID],
+				markerOption{ID: o.ID, Label: o.Label, IsCorrect: o.IsCorrect})
 			if o.IsCorrect {
 				correct[o.QuestionID] = append(correct[o.QuestionID], o.ID)
 			}
@@ -85,9 +97,14 @@ func (s *Server) attemptSheet(w http.ResponseWriter, r *http.Request) error {
 		sheet.Attempt, sheet.Pending = attempt, totals.Pending
 		sheet.Questions = make([]markerQuestion, 0, len(rows))
 		for _, row := range rows {
+			opts := byQuestion[row.Question.ID]
+			if opts == nil {
+				opts = []markerOption{}
+			}
 			sheet.Questions = append(sheet.Questions, markerQuestion{
-				Question: row.Question, CorrectOptionIDs: orEmpty(correct[row.Question.ID]),
-				OptionIDs: orEmpty(row.OptionIds), TextAnswer: deref(row.TextAnswer),
+				Question: row.Question, Options: opts,
+				CorrectOptionIDs: orEmpty(correct[row.Question.ID]),
+				OptionIDs:        orEmpty(row.OptionIds), TextAnswer: deref(row.TextAnswer),
 				PointsAwarded: row.PointsAwarded, NeedsGrading: deref(row.NeedsGrading),
 				Feedback: deref(row.Feedback),
 			})

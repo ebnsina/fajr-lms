@@ -22,16 +22,21 @@
 {:else}
 	<ul class="list-none space-y-2 p-0">
 		{#each data.attempts as row (row.quiz_attempt.id)}
-			<li class="card flex items-center gap-3 p-4">
-				<span class="min-w-0 flex-1">
-					<span class="block font-medium" dir="auto">{row.full_name}</span>
-					<span class="mt-0.5 block text-sm text-ink-soft" dir="auto">
-						{row.quiz_title} · {row.lesson_title}
+			<li>
+				<a
+					class="card flex items-center gap-3 p-4 transition hover:border-line-strong"
+					href="/marking/{row.quiz_attempt.id}"
+				>
+					<span class="min-w-0 flex-1">
+						<span class="block font-medium" dir="auto">{row.full_name}</span>
+						<span class="mt-0.5 block text-sm text-ink-soft" dir="auto">
+							{row.quiz_title} · {row.lesson_title}
+						</span>
 					</span>
-				</span>
-				<span class="chip chip-brand shrink-0" dir="auto">
-					{row.pending} to mark
-				</span>
+					<span class="chip chip-brand shrink-0" dir="auto">
+						{row.pending} to mark
+					</span>
+				</a>
 			</li>
 		{/each}
 	</ul>
