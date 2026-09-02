@@ -5,10 +5,16 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- The six digit code is entered in six boxes, one per digit, with the cursor
+  showing which one is next. Pasting a code and the phone's own autofill both
+  still work.
+
 - Sign in and choosing a school are now full pages, with the form on one side and
   a plain statement of what Fajr does on the other.
 
 ### Changed
+- Every button and input is the same height, so a stack of them lines up.
+
 - Primary buttons are forest green with white text, in both appearances.
 - Typeface is now Cabin, with Geist Mono for codes, numbers and placeholders.
 - A light and a dark appearance, and a control to choose between them or follow

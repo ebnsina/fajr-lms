@@ -21,7 +21,7 @@
 			{/if}
 			<ThemeToggle theme={data.theme} />
 			<form method="POST" action="/login?/logout" use:enhance>
-				<button class="btn btn-quiet px-3 py-1.5 text-sm" type="submit">Sign out</button>
+				<button class="btn btn-sm btn-quiet" type="submit">Sign out</button>
 			</form>
 		</div>
 	</header>

@@ -29,7 +29,7 @@
 </script>
 
 <button
-	class="btn btn-quiet px-3 py-1.5 text-sm"
+	class="btn btn-sm btn-quiet"
 	type="button"
 	onclick={cycle}
 	aria-label="Appearance: {labels[current]}. Change it."

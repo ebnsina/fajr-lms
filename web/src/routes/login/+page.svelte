@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import AuthLayout from '$lib/components/AuthLayout.svelte';
+	import OtpInput from '$lib/components/OtpInput.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -38,17 +39,7 @@
 
 			<div>
 				<label class="mb-1.5 block text-sm font-medium" for="code">Six digit code</label>
-				<input
-					class="field text-center font-mono text-xl tracking-[0.5em]"
-					id="code"
-					name="code"
-					inputmode="numeric"
-					autocomplete="one-time-code"
-					maxlength="6"
-					placeholder="000000"
-					required
-					dir="ltr"
-				/>
+				<OtpInput />
 			</div>
 
 			<div>
@@ -73,7 +64,7 @@
 
 		<form method="POST" action="?/request" use:enhance class="mt-3">
 			<input type="hidden" name="destination" value={form.destination} />
-			<button class="btn btn-quiet w-full text-sm" type="submit">Send another code</button>
+			<button class="btn btn-quiet w-full" type="submit">Send another code</button>
 		</form>
 	{:else}
 		<form method="POST" action="?/request" use:enhance={submitting} class="space-y-5">
