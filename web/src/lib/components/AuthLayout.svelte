@@ -50,7 +50,6 @@
 	     under a screenful of marketing. -->
 	<aside class="hidden border-s border-line bg-sunken p-16 lg:flex lg:flex-col lg:justify-center">
 		<div class="max-w-md">
-			<p class="chip chip-brand mb-6">Built for South Asia and the Gulf</p>
 			<p class="mb-10 text-2xl leading-snug font-medium tracking-tight" dir="auto">
 				One place for the whole term: lessons, marking, attendance, fees and the
 				message home.
