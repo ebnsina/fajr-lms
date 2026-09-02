@@ -45,6 +45,7 @@ func (s *Server) Routes() http.Handler {
 	authed := func(h http.Handler) http.Handler { return s.RequireAuth(h) }
 	mux.Handle("GET /v1/me", authed(httpx.Handler(s.me)))
 	mux.Handle("POST /v1/auth/logout", authed(httpx.Handler(s.logout)))
+	mux.Handle("GET /v1/tenants", authed(httpx.Handler(s.listMyTenants)))
 
 	inTenant := func(h http.Handler) http.Handler { return s.RequireAuth(s.RequireTenant(h)) }
 	mux.Handle("GET /v1/tenant", inTenant(httpx.Handler(s.currentTenant)))

@@ -224,3 +224,32 @@ func TestLoginFlow(t *testing.T) {
 		}
 	})
 }
+
+func TestListMyTenants(t *testing.T) {
+	h, ch, store := newHarness(t)
+	first := enrol(t, h, ch, store, "owner")
+
+	// The slug is what every other request is scoped by, so it must come back
+	// before any tenant has been chosen.
+	rec := do(t, h, "GET", "/v1/tenants", first.token, "", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d, want 200: %s", rec.Code, rec.Body)
+	}
+	var got struct {
+		Tenants []struct {
+			Slug string `json:"slug"`
+			Name string `json:"name"`
+			Role string `json:"role"`
+		} `json:"tenants"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(got.Tenants) != 1 || got.Tenants[0].Slug != first.slug || got.Tenants[0].Role != "owner" {
+		t.Fatalf("got %+v", got.Tenants)
+	}
+
+	if rec := do(t, h, "GET", "/v1/tenants", "", "", nil); rec.Code != http.StatusUnauthorized {
+		t.Errorf("unauthenticated: got %d, want 401", rec.Code)
+	}
+}

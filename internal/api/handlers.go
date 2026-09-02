@@ -98,6 +98,15 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
+// listMyTenants answers before a tenant is chosen, so it takes no tenant header.
+func (s *Server) listMyTenants(w http.ResponseWriter, r *http.Request) error {
+	rows, err := s.store.Unscoped().ListUserTenants(r.Context(), Authenticated(r.Context()).UserID)
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{"tenants": rows})
+}
+
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) error {
 	if err := s.identity.Logout(r.Context(), Authenticated(r.Context()).ID); err != nil {
 		return err

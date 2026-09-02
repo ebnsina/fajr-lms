@@ -5,6 +5,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Web app: sign in with a one-time code, choose which school you are working in,
+  and see your courses and unread messages.
+- The interface renders right to left for an Arabic school from the first paint,
+  with no flicker, and names in any script display correctly wherever they appear.
+- Signing in keeps you signed in on that device for thirty days, and signing out
+  works even if the server cannot be reached.
 - Live classes: paste a Google Meet, Zoom, Teams, Jitsi or Whereby link onto a
   class and enrolled learners can join it.
 - The link opens fifteen minutes before the class and is not handed out days in

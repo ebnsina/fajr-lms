@@ -1293,3 +1293,16 @@ type User struct {
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
+
+type UserTenant struct {
+	UserID     uuid.UUID    `json:"user_id"`
+	Role       MemberRole   `json:"role"`
+	ID         uuid.UUID    `json:"id"`
+	Slug       string       `json:"slug"`
+	Name       string       `json:"name"`
+	Kind       TenantKind   `json:"kind"`
+	Status     TenantStatus `json:"status"`
+	DefaultDir TextDir      `json:"default_dir"`
+	Locale     string       `json:"locale"`
+	Currency   string       `json:"currency"`
+}
