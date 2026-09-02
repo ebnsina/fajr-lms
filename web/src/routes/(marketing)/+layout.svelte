@@ -17,7 +17,7 @@
 		{ href: '/pricing', label: 'Pricing' },
 		{ href: '/welcome#faq', label: 'FAQ' }
 	];
-	const here = (href: string) => page.url.pathname === href.split('#')[0];
+	const here = (href: string) => !href.includes('#') && page.url.pathname === href;
 
 	const year = new Date().getFullYear();
 </script>
@@ -31,9 +31,11 @@
 			<div class="hidden flex-1 items-center justify-center gap-7 text-sm lg:flex">
 				{#each links as link (link.href)}
 					<a
-						class="transition-colors hover:text-ink"
-						class:text-ink-soft={!here(link.href)}
+						class="text-ink-soft transition-colors hover:text-ink"
+						class:text-ink={here(link.href)}
+						class:font-medium={here(link.href)}
 						href={link.href}
+						aria-current={here(link.href) ? 'page' : undefined}
 					>
 						{link.label}
 					</a>

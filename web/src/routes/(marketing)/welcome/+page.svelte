@@ -31,8 +31,8 @@
 	// The first question is open, so the section never reads as a wall of bars.
 	let open = $state(0);
 
-	// Which step the laptop is showing.
-	let active = $state(0);
+	// Which step is at the front of the deck.
+	let front = $state(0);
 
 	const institutions = ['school', 'madrasah', 'college', 'academy', 'university'];
 
@@ -277,50 +277,28 @@
 			</p>
 		</div>
 
-		<!-- The four steps sit on a screen, because that is where they happen. The
-		     screen keeps a laptop's proportions, so one step shows at a time. -->
-		<div class="laptop mx-auto" use:reveal={{ y: 32 }}>
-			<div class="lid">
-				<span class="notch" aria-hidden="true"></span>
-				<div class="screen">
-					{#each steps as step, index (step.title)}
-						<div
-							class="step"
-							class:showing={index === active}
-							id="step-panel-{index}"
-							role="tabpanel"
-							aria-labelledby="step-tab-{index}"
-							aria-hidden={index === active ? undefined : 'true'}
-						>
-							<span class="font-display text-5xl font-bold text-brand-line sm:text-6xl">
-								{String(index + 1).padStart(2, '0')}
-							</span>
-							<h3 class="mt-5 font-display text-2xl font-bold sm:text-3xl">{step.title}</h3>
-							<p class="mx-auto mt-3 mb-0 max-w-md text-ink-soft">{step.body}</p>
-						</div>
-					{/each}
-				</div>
-			</div>
-			<div class="base" aria-hidden="true"><span class="lip"></span></div>
-		</div>
-
-		<div class="mt-8 flex flex-wrap justify-center gap-2" role="tablist" aria-label="The four steps">
+		<!-- Four cards standing on edge: the open one carries its detail, the rest
+		     show their number and wait to be picked. -->
+		<div class="panels">
 			{#each steps as step, index (step.title)}
 				<button
-					class="btn btn-sm"
-					class:btn-quiet={index !== active}
+					class="panel"
+					class:open={front === index}
 					type="button"
-					role="tab"
-					id="step-tab-{index}"
-					aria-selected={index === active}
-					aria-controls="step-panel-{index}"
-					onclick={() => (active = index)}
+					aria-expanded={front === index}
+					onclick={() => (front = index)}
 				>
-					<span class="font-mono">{String(index + 1).padStart(2, '0')}</span>
-					{step.title}
+					<span class="num font-display">{String(index + 1).padStart(2, '0')}</span>
+					<span class="spine font-display">{step.title}</span>
+					<span class="detail">
+						<span class="block font-display text-2xl font-bold">{step.title}</span>
+						<span class="mt-3 block max-w-sm text-ink-soft">{step.body}</span>
+					</span>
 				</button>
 			{/each}
 		</div>
+
+		<p class="mt-6 text-center text-sm text-ink-faint">Pick a step to open it.</p>
 
 		<div class="mt-12 flex justify-center" use:reveal>
 			<a class="btn" href="/start">
@@ -333,65 +311,46 @@
 
 <section id="website" class="scroll-mt-24 px-6 py-24">
 	<div class="mx-auto max-w-6xl">
-		<div class="mb-14 max-w-2xl" use:reveal>
+		<div class="mx-auto max-w-3xl text-center" use:reveal>
 			<span class="eyebrow mb-3">Your website</span>
-			<h2 class="font-display text-3xl font-bold sm:text-4xl">
+			<h2 class="font-display text-3xl font-bold text-balance sm:text-4xl">
 				Your website, without a web developer
 			</h2>
-			<p class="mt-3 mb-0 text-lg text-ink-soft">
-				Every school gets a public site built from sections you fill in, in the language it teaches
-				in.
+			<p class="mx-auto mt-4 max-w-2xl text-lg text-ink-soft">
+				Every school gets a public site built from sections you fill in. Start from one of eight
+				templates — a school, a college, a madrasah or a university, each written twice, once for
+				Bangladesh and once for the Gulf — with the sections these institutions actually publish.
 			</p>
 		</div>
 
-		<div class="grid items-center gap-14 lg:grid-cols-2">
-			<div use:reveal>
-				<h3 class="font-display text-2xl font-bold">Eight templates, written for you</h3>
-				<p class="mt-3 text-ink-soft">
-					A school, a college, a madrasah or a university — each written twice, once for Bangladesh
-					and once for the Gulf, with the sections these institutions actually publish.
-				</p>
-
-				<ul class="mt-8 flex flex-col gap-6">
-					<li class="flex gap-3">
-						<BadgeCheck class="mt-0.5 shrink-0 text-brand-text" size={20} aria-hidden="true" />
-						<div>
-							<h4 class="mb-1 font-medium">Dressed for where you teach</h4>
-							<p class="mb-0 text-sm text-ink-soft">
-								The Gulf setting reads right to left and sets Arabic a size larger; the Bengal
-								setting sets Bengali and runs a little tighter.
-							</p>
-						</div>
-					</li>
-					<li class="flex gap-3">
-						<BadgeCheck class="mt-0.5 shrink-0 text-brand-text" size={20} aria-hidden="true" />
-						<div>
-							<h4 class="mb-1 font-medium">Nothing can smuggle script in</h4>
-							<p class="mb-0 text-sm text-ink-soft">
-								Every section is plain text checked on the server. A page cannot carry markup, so a
-								page cannot carry an attack.
-							</p>
-						</div>
-					</li>
-				</ul>
+		<div class="mx-auto mt-12 grid max-w-4xl gap-8 sm:grid-cols-2" use:reveal={{ stagger: 'div.point' }}>
+			<div class="point flex gap-3">
+				<BadgeCheck class="mt-0.5 shrink-0 text-brand-text" size={20} aria-hidden="true" />
+				<div>
+					<h3 class="mb-1 font-medium">Dressed for where you teach</h3>
+					<p class="mb-0 text-sm text-ink-soft">
+						The Gulf setting reads right to left and sets Arabic a size larger; the Bengal setting
+						sets Bengali and runs a little tighter.
+					</p>
+				</div>
 			</div>
-
-			<!-- Cropped and tilted by its frame, the way a template card shows a
-			     preview of something bigger. Photograph by Ivan Aleksic on Unsplash. -->
-			<div class="preview" use:reveal={{ y: 32 }}>
-				<img
-					class="shot"
-					src="/img/classroom.jpg"
-					alt="A classroom with desks in rows facing a chalkboard"
-					width="1200"
-					height="675"
-					loading="lazy"
-					decoding="async"
-				/>
+			<div class="point flex gap-3">
+				<BadgeCheck class="mt-0.5 shrink-0 text-brand-text" size={20} aria-hidden="true" />
+				<div>
+					<h3 class="mb-1 font-medium">Nothing can smuggle script in</h3>
+					<p class="mb-0 text-sm text-ink-soft">
+						Every section is plain text checked on the server. A page cannot carry markup, so a page
+						cannot carry an attack.
+					</p>
+				</div>
 			</div>
 		</div>
 
-		<div id="who" class="mt-20 grid scroll-mt-24 gap-5 lg:grid-cols-3" use:reveal={{ stagger: 'article' }}>
+		<div
+			id="who"
+			class="mt-20 grid scroll-mt-24 gap-5 lg:grid-cols-3"
+			use:reveal={{ stagger: 'article' }}
+		>
 			{#each audiences as audience (audience.title)}
 				<article class="card flex flex-col transition-colors hover:border-brand-line">
 					<span class="icon-tile mb-4">
@@ -495,7 +454,7 @@
 		<FluidOrb size={110} label="A slowly drifting orb of green light" />
 
 		<div use:reveal>
-			<span class="eyebrow mb-4">Being built</span>
+			<span class="eyebrow mb-4">Fajr AI</span>
 			<h2 class="font-display text-3xl font-bold text-balance sm:text-4xl">
 				The help a teacher would actually take
 			</h2>
@@ -577,111 +536,101 @@
 <style>
 	/* The drawn page preview: every part is a block, tinted from the same tokens
 	   as the real thing. */
-	/* A MacBook Pro, drawn: a lid with a notch, a screen, and a base that
-	   tapers under it. */
-	.laptop {
-		max-inline-size: 56rem;
-	}
-
-	.lid {
-		position: relative;
-		padding: 0.65rem;
-		border-radius: 1.25rem;
-		background: var(--color-line-strong);
-		box-shadow: inset 0 0 0 1px var(--color-line);
-	}
-
-	.notch {
-		position: absolute;
-		inset-block-start: 0.65rem;
-		inset-inline: 0;
-		margin-inline: auto;
-		inline-size: 6rem;
-		block-size: 0.7rem;
-		border-end-start-radius: 0.4rem;
-		border-end-end-radius: 0.4rem;
-		background: var(--color-line-strong);
-		z-index: 1;
-	}
-
-	/* A MacBook screen is 16:10; anything else and the drawing is a lie. */
-	.screen {
-		position: relative;
-		aspect-ratio: 16 / 10;
-		border-radius: 0.75rem;
-		background: var(--color-surface);
-		overflow: hidden;
-	}
-
-	.step {
-		position: absolute;
-		inset: 0;
+	/* Cards on edge: the open one takes the room it needs and the rest hold
+	   their place, showing a number and their name down the spine. */
+	.panels {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 2.5rem 2rem;
-		text-align: center;
-		opacity: 0;
-		transform: translateY(0.75rem);
+		gap: 0.75rem;
+	}
+
+	.panel {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 1.5rem;
+		text-align: start;
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-card);
+		background: var(--color-surface);
+		cursor: pointer;
+		overflow: hidden;
 		transition:
-			opacity 320ms ease,
-			transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
-		pointer-events: none;
+			flex-grow 460ms cubic-bezier(0.22, 1, 0.36, 1),
+			flex-basis 460ms cubic-bezier(0.22, 1, 0.36, 1),
+			border-color 200ms ease,
+			background-color 200ms ease;
 	}
 
-	.showing {
-		opacity: 1;
-		transform: translateY(0);
-		pointer-events: auto;
+	.panel:hover {
+		border-color: var(--color-brand-line);
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.step {
-			transition: none;
+	.open {
+		background: var(--color-raised);
+		border-color: var(--color-brand-line);
+	}
+
+	.num {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-brand-text);
+		line-height: 1;
+	}
+
+	.spine {
+		display: none;
+	}
+
+	.detail {
+		margin-block-start: 1rem;
+		display: none;
+	}
+
+	.open .detail {
+		display: block;
+	}
+
+	@media (min-width: 48rem) {
+		.panels {
+			flex-direction: row;
+			block-size: 24rem;
+		}
+
+		.panel {
+			flex: 0 0 6.5rem;
+		}
+
+		.open {
+			flex: 1 1 auto;
+		}
+
+		/* Closed, the name runs up the card like the spine of a book. */
+		.spine {
+			display: block;
+			margin-block-start: auto;
+			writing-mode: vertical-rl;
+			transform: rotate(180deg);
+			font-size: 1.125rem;
+			font-weight: 700;
+			white-space: nowrap;
+			color: var(--color-ink-soft);
+		}
+
+		.open .spine {
+			display: none;
+		}
+
+		.open .detail {
+			margin-block-start: auto;
 		}
 	}
 
-	.base {
-		position: relative;
-		block-size: 0.75rem;
-		margin-inline: -6%;
-		border-end-start-radius: 0.6rem;
-		border-end-end-radius: 0.6rem;
-		background: var(--color-line-strong);
-	}
-
-	.lip {
-		position: absolute;
-		inset-block-start: 0;
-		inset-inline: 0;
-		margin-inline: auto;
-		inline-size: 7rem;
-		block-size: 0.35rem;
-		border-end-start-radius: 0.35rem;
-		border-end-end-radius: 0.35rem;
-		background: var(--color-line);
-	}
-
-	/* The frame crops the photograph, so it reads as a preview of something
-	   bigger rather than a picture that has been placed. */
-	.preview {
-		padding: 1.75rem 1.75rem 0;
-		border: 1px solid var(--color-line);
-		border-radius: var(--radius-card);
-		background: var(--color-raised);
-		overflow: hidden;
-	}
-
-	.shot {
-		display: block;
-		inline-size: 100%;
-		block-size: auto;
-		margin-block-end: -2.5rem;
-		border-radius: 0.9rem;
-		border: 1px solid var(--color-line-strong);
-		transform: rotate(-2.2deg) scale(1.06);
-		transform-origin: 50% 0;
+	@media (prefers-reduced-motion: reduce) {
+		.panel {
+			transition: none;
+		}
 	}
 
 	.answer {
