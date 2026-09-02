@@ -12,7 +12,7 @@ import (
 )
 
 const findUserForAuth = `-- name: FindUserForAuth :one
-SELECT auth_find_user FROM auth_find_user($1, $2)
+SELECT id, phone, email, full_name, password_hash, created_at, updated_at FROM auth_find_user($1, $2)
 `
 
 type FindUserForAuthParams struct {
@@ -20,11 +20,19 @@ type FindUserForAuthParams struct {
 	Email string `json:"email"`
 }
 
-func (q *Queries) FindUserForAuth(ctx context.Context, arg FindUserForAuthParams) (interface{}, error) {
+func (q *Queries) FindUserForAuth(ctx context.Context, arg FindUserForAuthParams) (User, error) {
 	row := q.db.QueryRow(ctx, findUserForAuth, arg.Phone, arg.Email)
-	var auth_find_user interface{}
-	err := row.Scan(&auth_find_user)
-	return auth_find_user, err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Phone,
+		&i.Email,
+		&i.FullName,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getUser = `-- name: GetUser :one
@@ -47,22 +55,30 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const listUserMemberships = `-- name: ListUserMemberships :many
-SELECT auth_memberships FROM auth_memberships($1)
+SELECT id, tenant_id, user_id, role, status, created_at, updated_at FROM auth_memberships($1)
 `
 
-func (q *Queries) ListUserMemberships(ctx context.Context, userID uuid.UUID) ([]interface{}, error) {
+func (q *Queries) ListUserMemberships(ctx context.Context, userID uuid.UUID) ([]Membership, error) {
 	rows, err := q.db.Query(ctx, listUserMemberships, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []interface{}{}
+	items := []Membership{}
 	for rows.Next() {
-		var auth_memberships interface{}
-		if err := rows.Scan(&auth_memberships); err != nil {
+		var i Membership
+		if err := rows.Scan(
+			&i.ID,
+			&i.TenantID,
+			&i.UserID,
+			&i.Role,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, auth_memberships)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

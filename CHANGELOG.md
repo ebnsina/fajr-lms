@@ -5,6 +5,14 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Passwordless login by one-time code to a phone number or email address, with
+  a first-login signup, rate limiting and a replay-proof code.
+- Session tokens that can be revoked instantly, and `POST /v1/auth/logout`.
+- `GET /v1/me` returns the signed-in user and the tenants they belong to.
+- Tenant-scoped endpoints selected by the `X-Fajr-Tenant` header, with role
+  checks: `GET /v1/tenant` and `GET /v1/tenant/members`.
+- Notifications go through a pluggable channel; SMS and WhatsApp adapters drop
+  in behind it. Development logs the code instead of sending it.
 - Multi-tenant data model: tenants (institution, creator, corporate), global
   users, and per-tenant memberships with roles.
 - Tenant isolation enforced by Postgres row-level security, not application

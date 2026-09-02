@@ -7,6 +7,7 @@ package database
 import (
 	"database/sql/driver"
 	"fmt"
+	"net/netip"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -99,6 +100,48 @@ func (ns NullMemberStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.MemberStatus), nil
+}
+
+type OtpPurpose string
+
+const (
+	OtpPurposeLogin         OtpPurpose = "login"
+	OtpPurposeVerifyContact OtpPurpose = "verify_contact"
+)
+
+func (e *OtpPurpose) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OtpPurpose(s)
+	case string:
+		*e = OtpPurpose(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OtpPurpose: %T", src)
+	}
+	return nil
+}
+
+type NullOtpPurpose struct {
+	OtpPurpose OtpPurpose `json:"otp_purpose"`
+	Valid      bool       `json:"valid"` // Valid is true if OtpPurpose is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOtpPurpose) Scan(value interface{}) error {
+	if value == nil {
+		ns.OtpPurpose, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OtpPurpose.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOtpPurpose) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OtpPurpose), nil
 }
 
 type TenantKind string
@@ -229,6 +272,14 @@ func (ns NullTextDir) Value() (driver.Value, error) {
 	return string(ns.TextDir), nil
 }
 
+type LiveSession struct {
+	SessionID uuid.UUID          `json:"session_id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	TokenHash []byte             `json:"token_hash"`
+	FullName  string             `json:"full_name"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+}
+
 type Membership struct {
 	ID        uuid.UUID          `json:"id"`
 	TenantID  uuid.UUID          `json:"tenant_id"`
@@ -237,6 +288,29 @@ type Membership struct {
 	Status    MemberStatus       `json:"status"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type OtpChallenge struct {
+	ID          uuid.UUID          `json:"id"`
+	Destination string             `json:"destination"`
+	Purpose     OtpPurpose         `json:"purpose"`
+	CodeHash    []byte             `json:"code_hash"`
+	Attempts    int16              `json:"attempts"`
+	ConsumedAt  pgtype.Timestamptz `json:"consumed_at"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type Session struct {
+	ID         uuid.UUID          `json:"id"`
+	UserID     uuid.UUID          `json:"user_id"`
+	TokenHash  []byte             `json:"token_hash"`
+	UserAgent  string             `json:"user_agent"`
+	Ip         *netip.Addr        `json:"ip"`
+	LastUsedAt pgtype.Timestamptz `json:"last_used_at"`
+	RevokedAt  pgtype.Timestamptz `json:"revoked_at"`
+	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type Tenant struct {

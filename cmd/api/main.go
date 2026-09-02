@@ -10,9 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ebnsina/fajr-lms/internal/api"
 	"github.com/ebnsina/fajr-lms/internal/config"
 	"github.com/ebnsina/fajr-lms/internal/database"
 	"github.com/ebnsina/fajr-lms/internal/httpx"
+	"github.com/ebnsina/fajr-lms/internal/identity"
+	"github.com/ebnsina/fajr-lms/internal/notify"
 )
 
 func main() {
@@ -39,20 +42,11 @@ func run() error {
 	}
 	defer store.Close()
 
-	mux := http.NewServeMux()
-	mux.Handle("GET /healthz", httpx.Handler(func(w http.ResponseWriter, r *http.Request) error {
-		return httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
-	}))
-	mux.Handle("GET /readyz", httpx.Handler(func(w http.ResponseWriter, r *http.Request) error {
-		if err := store.Health(r.Context()); err != nil {
-			return httpx.Errorf(http.StatusServiceUnavailable, "database_unavailable", "Database is not reachable.")
-		}
-		return httpx.JSON(w, http.StatusOK, map[string]string{"status": "ready"})
-	}))
+	server := api.NewServer(store, identity.New(store, notify.LogChannel{}))
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,
-		Handler:           httpx.Chain(mux, httpx.RequestID, httpx.Recover, httpx.Log),
+		Handler:           httpx.Chain(server.Routes(), httpx.RequestID, httpx.Recover, httpx.Log),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      60 * time.Second,

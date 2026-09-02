@@ -72,12 +72,23 @@ func (q *Queries) ProvisionTenant(ctx context.Context, arg ProvisionTenantParams
 }
 
 const resolveTenant = `-- name: ResolveTenant :one
-SELECT resolve_tenant FROM resolve_tenant($1)
+SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at FROM resolve_tenant($1)
 `
 
-func (q *Queries) ResolveTenant(ctx context.Context, slug string) (interface{}, error) {
+func (q *Queries) ResolveTenant(ctx context.Context, slug string) (Tenant, error) {
 	row := q.db.QueryRow(ctx, resolveTenant, slug)
-	var resolve_tenant interface{}
-	err := row.Scan(&resolve_tenant)
-	return resolve_tenant, err
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.Kind,
+		&i.Status,
+		&i.DefaultDir,
+		&i.Locale,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

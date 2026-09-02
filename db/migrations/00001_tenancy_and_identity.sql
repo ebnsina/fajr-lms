@@ -102,28 +102,22 @@ LANGUAGE sql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 $$;
 
 -- Pre-auth lookups run before a tenant is known, so they are narrow and audited.
-CREATE FUNCTION resolve_tenant(p_slug text)
-RETURNS TABLE (id uuid, name text, kind tenant_kind, status tenant_status, default_dir text_dir, locale text)
+CREATE FUNCTION resolve_tenant(p_slug text) RETURNS SETOF tenants
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT t.id, t.name, t.kind, t.status, t.default_dir, t.locale
-  FROM tenants t WHERE t.slug = p_slug
+  SELECT * FROM tenants WHERE slug = p_slug
 $$;
 
-CREATE FUNCTION auth_find_user(p_phone text, p_email text)
-RETURNS TABLE (id uuid, full_name text, phone text, email text, password_hash text)
+CREATE FUNCTION auth_find_user(p_phone text, p_email text) RETURNS SETOF users
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT u.id, u.full_name, u.phone, u.email, u.password_hash
-  FROM users u
-  WHERE (nullif(p_phone, '') IS NOT NULL AND u.phone = p_phone)
-     OR (nullif(p_email, '') IS NOT NULL AND u.email = lower(p_email))
+  SELECT * FROM users
+  WHERE (nullif(p_phone, '') IS NOT NULL AND phone = p_phone)
+     OR (nullif(p_email, '') IS NOT NULL AND email = lower(p_email))
   LIMIT 1
 $$;
 
-CREATE FUNCTION auth_memberships(p_user_id uuid)
-RETURNS TABLE (tenant_id uuid, tenant_slug text, role member_role, status member_status)
+CREATE FUNCTION auth_memberships(p_user_id uuid) RETURNS SETOF memberships
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT m.tenant_id, t.slug, m.role, m.status
-  FROM memberships m JOIN tenants t ON t.id = m.tenant_id
+  SELECT m.* FROM memberships m JOIN tenants t ON t.id = m.tenant_id
   WHERE m.user_id = p_user_id AND m.status = 'active' AND t.status = 'active'
 $$;
 
