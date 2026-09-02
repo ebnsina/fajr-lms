@@ -125,7 +125,7 @@
 			</div>
 		</fieldset>
 
-		<div class="w-40">
+		<div>
 			<span class="mb-1.5 block text-sm font-medium">Fees in</span>
 			<input type="hidden" name="currency" value={currency} />
 			<Select id="currency" label="Fees in" bind:value={currency} options={currencies} />

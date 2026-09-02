@@ -238,7 +238,7 @@
 	</div>
 </section>
 
-<section id="why" class="tinted scroll-mt-24 px-6 py-24">
+<section id="why" class="patterned scroll-mt-24 px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 	<div class="mb-14 max-w-2xl" use:reveal>
 		<span class="eyebrow mb-3">Why Fajr</span>
@@ -264,9 +264,9 @@
 </section>
 
 <section id="how" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
-	<div class="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[2fr_3fr]">
+	<div class="mx-auto grid max-w-6xl items-start gap-14 lg:grid-cols-[2fr_3fr]">
 		<!-- The heading and the rail stay put while the steps come past them. -->
-		<div use:reveal>
+		<div class="lg:sticky lg:top-28" use:reveal>
 			<span class="eyebrow mb-3">How it works</span>
 			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				From nothing to teaching, in four steps
@@ -296,9 +296,9 @@
 			</a>
 		</div>
 
-		<ol class="steps flex flex-col gap-4" use:stepper={(index) => (active = index)}>
+		<ol class="flex flex-col gap-6" use:stepper={(index) => (active = index)}>
 			{#each steps as step, index (step.title)}
-				<li class="card flex min-h-80 flex-col justify-center p-8 sm:p-12" data-step>
+				<li class="card flex min-h-[22rem] flex-col justify-center p-8 sm:p-12" data-step>
 					<span
 						class="font-display text-6xl font-bold text-brand-line sm:text-7xl"
 						aria-hidden="true"
@@ -314,7 +314,8 @@
 </section>
 
 <!-- Bento: tiles of different weight, drifting at different speeds. -->
-<section id="website" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">
+<section id="website" class="patterned scroll-mt-24 px-6 py-24">
+	<div class="mx-auto max-w-6xl">
 	<div class="mb-14 max-w-2xl" use:reveal>
 		<span class="eyebrow mb-3">Your website</span>
 		<h2 class="font-display text-3xl font-bold sm:text-4xl">
@@ -412,9 +413,10 @@
 			</article>
 		{/each}
 	</div>
+	</div>
 </section>
 
-<section id="compare" class="tinted scroll-mt-24 border-y border-line px-6 py-24">
+<section id="compare" class="patterned scroll-mt-24 border-y border-line px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 		<div class="mb-12 max-w-2xl" use:reveal>
 			<span class="eyebrow mb-3">Compare</span>
@@ -458,7 +460,8 @@
 	</div>
 </section>
 
-<section id="features" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">
+<section id="features" class="patterned scroll-mt-24 px-6 py-24">
+	<div class="mx-auto max-w-6xl">
 	<div class="mb-14 max-w-2xl" use:reveal>
 		<span class="eyebrow mb-3">What you get</span>
 		<h2 class="font-display text-3xl font-bold sm:text-4xl">Everything the teaching week needs</h2>
@@ -485,9 +488,10 @@
 			No teaching feature is held back for a higher tier.
 		</p>
 	</div>
+	</div>
 </section>
 
-<section id="faq" class="scroll-mt-24 border-t border-line px-6 py-24">
+<section id="faq" class="patterned scroll-mt-24 border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
 		<div class="mb-12 text-center" use:reveal>
 			<span class="eyebrow mb-3">Questions</span>
@@ -680,23 +684,6 @@
 
 	.notices .row:nth-child(3) {
 		inline-size: 70%;
-	}
-
-	/* Once the stepper takes over, the cards share one place and only the
-	   current one is visible. */
-	.steps {
-		min-block-size: 20rem;
-	}
-
-	.steps:global(.stacked) {
-		position: relative;
-		display: block;
-	}
-
-	.steps:global(.stacked) > :global(li) {
-		position: absolute;
-		inset-inline: 0;
-		inset-block-start: 0;
 	}
 
 	.answer {

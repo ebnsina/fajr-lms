@@ -261,9 +261,9 @@
 	word-spacing: 0.08em;
 }
 
-/* A wash of brand light behind a section, so the long middle of the landing
-   page is not one flat sheet. */
-@utility tinted {
+/* Sections below the hero are marked by a fine grid rather than another wash
+   of colour: the gradient belongs to the hero and the closing panel alone. */
+@utility patterned {
 	position: relative;
 	isolation: isolate;
 
@@ -272,10 +272,12 @@
 		position: absolute;
 		inset: 0;
 		z-index: -1;
-		background:
-			radial-gradient(60% 55% at 15% 0%, var(--color-brand-soft) 0%, transparent 70%),
-			radial-gradient(50% 50% at 90% 100%, var(--color-accent-soft) 0%, transparent 70%);
-		opacity: 0.9;
+		background-image:
+			linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+			linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+		background-size: 4.5rem 4.5rem;
+		mask-image: radial-gradient(80% 60% at 50% 0%, #000 0%, transparent 75%);
+		opacity: 0.7;
 	}
 }
 

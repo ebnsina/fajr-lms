@@ -9,6 +9,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   actually does, from lessons and quizzes through to the website builder.
 
 ### Changed
+- The sections below the hero are marked by a fine grid rather than another
+  wash of colour, so the gradient stays the hero's own.
+- The four steps scroll normally again: the heading and its rail stay put, and
+  nothing holds the page still.
+
+### Changed
 - Why Fajr argues the case — the money, the script, the connection, who owns
   the records — rather than repeating the feature list underneath it.
 - The four steps hold the screen and come one at a time as you scroll.

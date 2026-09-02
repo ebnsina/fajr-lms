@@ -66,44 +66,41 @@ export function parallax(node: HTMLElement, distance = 40) {
 	};
 }
 
-/** Pins a section and shows its steps one at a time as the reader scrolls
-    through it, reporting which one is showing. Without motion the steps stay a
-    plain list, so nothing is hidden behind an animation that never runs. */
+/** Reports which step is on screen, so a rail can follow along. Nothing is
+    pinned: the page keeps scrolling normally, and each step is tall enough to
+    hold the screen on its own. */
 export function stepper(node: HTMLElement, onStep?: (index: number) => void) {
 	if (!ready()) return {};
 
 	const cards = Array.from(node.querySelectorAll<HTMLElement>('[data-step]'));
 	if (cards.length < 2) return {};
 
-	node.classList.add('stacked');
-	gsap.set(cards, { autoAlpha: 0, y: 28 });
-	gsap.set(cards[0], { autoAlpha: 1, y: 0 });
+	const triggers = cards.map((card, index) =>
+		ScrollTrigger.create({
+			trigger: card,
+			start: 'top 60%',
+			end: 'bottom 40%',
+			onToggle: ({ isActive }) => isActive && onStep?.(index)
+		})
+	);
 
-	const timeline = gsap.timeline({
-		scrollTrigger: {
-			trigger: node.closest('section') ?? node,
-			start: 'top top',
-			end: `+=${cards.length * 55}%`,
-			pin: true,
-			scrub: true,
-			onUpdate: ({ progress }) => {
-				const index = Math.min(cards.length - 1, Math.floor(progress * cards.length));
-				onStep?.(index);
-			}
-		}
-	});
-
-	cards.slice(1).forEach((card, i) => {
-		timeline
-			.to(cards[i], { autoAlpha: 0, y: -28, duration: 0.4 })
-			.fromTo(card, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: 0.4 }, '<0.15');
-	});
+	const tweens = cards.map((card) =>
+		gsap.from(card, {
+			autoAlpha: 0,
+			y: 28,
+			duration: 0.6,
+			ease: 'power3.out',
+			scrollTrigger: { trigger: card, start: 'top 85%', once: true }
+		})
+	);
 
 	return {
 		destroy() {
-			node.classList.remove('stacked');
-			timeline.scrollTrigger?.kill();
-			timeline.kill();
+			triggers.forEach((trigger) => trigger.kill());
+			tweens.forEach((tween) => {
+				tween.scrollTrigger?.kill();
+				tween.kill();
+			});
 		}
 	};
 }
