@@ -45,11 +45,17 @@
 	--color-ink-soft: #676f7b;
 	--color-ink-faint: #9aa1ac;
 
-	--color-brand: #166534;
+	--color-brand: #34348c;
 	--color-brand-ink: #ffffff;
-	--color-brand-text: #15603a;
-	--color-brand-soft: #eef6f0;
-	--color-brand-line: #cfe5d7;
+	--color-brand-text: #333382;
+	--color-brand-soft: #eeeef7;
+	--color-brand-line: #d2d2ea;
+
+	/* First light: used sparingly, for the one thing on a screen that is worth
+	   looking at before anything else. */
+	--color-accent: #b45309;
+	--color-accent-soft: #fdf3e7;
+	--color-accent-line: #f0dcc0;
 
 	--color-danger: #a03528;
 	--color-danger-soft: #fdf0ee;
@@ -84,11 +90,15 @@
 	--color-ink: #e8eaed;
 	--color-ink-soft: #9aa2ad;
 	--color-ink-faint: #6d7681;
-	--color-brand: #15803d;
+	--color-brand: #4340b0;
 	--color-brand-ink: #ffffff;
-	--color-brand-text: #5ec27f;
-	--color-brand-soft: #16241b;
-	--color-brand-line: #27412f;
+	--color-brand-text: #8e8be8;
+	--color-brand-soft: #1b1b2e;
+	--color-brand-line: #2f2f4d;
+
+	--color-accent: #e8a33d;
+	--color-accent-soft: #251c11;
+	--color-accent-line: #40311c;
 	--color-danger: #e0857a;
 	--color-danger-soft: #2a1b18;
 	--color-danger-line: #472c27;
@@ -106,11 +116,15 @@
 	--color-ink: #e8eaed;
 	--color-ink-soft: #9aa2ad;
 	--color-ink-faint: #6d7681;
-	--color-brand: #15803d;
+	--color-brand: #4340b0;
 	--color-brand-ink: #ffffff;
-	--color-brand-text: #5ec27f;
-	--color-brand-soft: #16241b;
-	--color-brand-line: #27412f;
+	--color-brand-text: #8e8be8;
+	--color-brand-soft: #1b1b2e;
+	--color-brand-line: #2f2f4d;
+
+	--color-accent: #e8a33d;
+	--color-accent-soft: #251c11;
+	--color-accent-line: #40311c;
 	--color-danger: #e0857a;
 	--color-danger-soft: #2a1b18;
 	--color-danger-line: #472c27;

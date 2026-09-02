@@ -13,6 +13,8 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   a plain statement of what Fajr does on the other.
 
 ### Changed
+- New brand colour: a deep indigo, with a warm amber used only for progress.
+
 - Every button and input is the same height, so a stack of them lines up.
 
 - Primary buttons are forest green with white text, in both appearances.

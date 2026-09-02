@@ -11,7 +11,7 @@
 		aria-valuemax="100"
 		aria-label={label ?? 'Progress'}
 	>
-		<div class="h-full rounded-full bg-brand transition-[width]" style="width: {percent}%"></div>
+		<div class="h-full rounded-full bg-accent transition-[width]" style="width: {percent}%"></div>
 	</div>
 	<span class="text-sm tabular-nums text-ink-soft">{percent}%</span>
 </div>
