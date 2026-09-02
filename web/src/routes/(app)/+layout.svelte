@@ -3,6 +3,7 @@
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import SchoolSwitcher from '$lib/components/SchoolSwitcher.svelte';
 	import { breadcrumbs } from '$lib/breadcrumbs';
 	import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right';
 	import Menu from '@lucide/svelte/icons/menu';
@@ -39,38 +40,11 @@
 		class:max-lg:-translate-x-full={!open}
 		class:max-lg:rtl:translate-x-full={!open}
 	>
-		<div class="flex h-16 shrink-0 items-center gap-2 px-4">
-			{#if session?.tenant}
-				<div class="min-w-0 flex-1">
-					<p class="truncate text-sm font-semibold tracking-tight" dir="auto">
-						{session.tenant.name}
-					</p>
-					{#if (session.memberships?.length ?? 0) > 1}
-						<a
-							class="inline-flex items-center gap-1 text-xs text-ink-soft transition-colors hover:text-ink"
-							href="/tenant"
-						>
-							<ArrowLeftRight size={12} aria-hidden="true" />
-							Switch school
-						</a>
-					{/if}
-				</div>
-			{:else}
-				<a class="text-lg font-semibold tracking-tight" href="/">Fajr</a>
-			{/if}
-			<button
-				class="btn btn-sm btn-quiet lg:hidden"
-				type="button"
-				aria-label="Close the menu"
-				onclick={() => (open = false)}
-			>
-				<X size={16} aria-hidden="true" />
-			</button>
+		<div class="flex h-16 shrink-0 items-center px-3">
+			<SchoolSwitcher schools={data.schools} current={session?.tenant ?? null} />
 		</div>
 
-		<div class="min-h-0 flex-1 overflow-y-auto">
-			<Sidebar role={session?.tenant?.role} onNavigate={() => (open = false)} />
-		</div>
+		<Sidebar role={session?.tenant?.role} onNavigate={() => (open = false)} />
 
 		{#if session?.user}
 			<div class="shrink-0 border-t border-line p-3">
@@ -79,9 +53,10 @@
 		{/if}
 	</aside>
 
-	<div class="flex min-w-0 flex-col lg:ms-64">
+	<div class="flex min-h-dvh min-w-0 flex-col p-3 lg:ms-64 lg:ps-0">
+		<div class="card flex min-w-0 flex-1 flex-col overflow-hidden p-0">
 		<header
-			class="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-ground/95 px-4 backdrop-blur sm:px-6"
+			class="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-surface px-4 sm:px-6"
 		>
 			<button
 				class="btn btn-sm btn-quiet lg:hidden"
@@ -128,7 +103,7 @@
 						/>
 						<input
 							id="content-search"
-							class="field h-9 w-56 ps-9"
+							class="field field-sm w-56 ps-9"
 							type="search"
 							placeholder="Search"
 							title="Search is not ready yet"
@@ -141,8 +116,9 @@
 			</div>
 		</header>
 
-		<main class="min-w-0 p-4 sm:p-6 lg:p-8">
+		<main class="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
 			{@render children()}
 		</main>
+		</div>
 	</div>
 </div>

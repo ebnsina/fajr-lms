@@ -186,7 +186,7 @@
 									class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-raised px-3.5 py-2.5 transition hover:border-line-strong"
 								>
 									<input
-										class="size-4 accent-brand"
+										class="choice {multi ? '' : 'choice-round'}"
 										type={multi ? 'checkbox' : 'radio'}
 										name="option_ids"
 										value={option.id}

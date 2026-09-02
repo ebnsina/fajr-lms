@@ -17,6 +17,8 @@ const labels: Record<string, string> = {
 	assignment: 'Assignment'
 };
 
+const isID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function humanize(segment: string): string {
 	return segment.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -40,7 +42,15 @@ export function breadcrumbs(pathname: string, data: Record<string, unknown>): Cr
 			label = outline?.course?.title ?? course?.title ?? label;
 		} else if (segments[i - 1] === 'lessons') {
 			const lesson = data.lesson as { title?: string } | undefined;
-			label = lesson?.title ?? label;
+			const quiz = data.quiz as { title?: string } | undefined;
+			const assignment = data.assignment as { title?: string } | undefined;
+			label = lesson?.title ?? quiz?.title ?? assignment?.title ?? label;
+		}
+
+		// An id we could not name is noise. Skip the crumb rather than print a
+		// mangled uuid, and let the next segment carry the trail.
+		if (isID.test(segment) && label === humanize(decodeURIComponent(segment))) {
+			continue;
 		}
 
 		crumbs.push({ label, href });

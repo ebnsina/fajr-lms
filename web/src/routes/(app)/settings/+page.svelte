@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import ThemeChoice from '$lib/components/ThemeChoice.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -19,7 +19,7 @@
 		<p class="mb-4 text-sm text-ink-soft" dir="auto">
 			Auto follows this device's system setting.
 		</p>
-		<ThemeToggle theme={data.theme} />
+		<ThemeChoice theme={data.theme} />
 	</section>
 
 	{#if session?.user}
