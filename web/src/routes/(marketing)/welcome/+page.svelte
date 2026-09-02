@@ -11,6 +11,9 @@
 	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
 	import Video from '@lucide/svelte/icons/video';
 	import Users from '@lucide/svelte/icons/users';
+	import Moon from '@lucide/svelte/icons/moon-star';
+	import School from '@lucide/svelte/icons/school';
+	import User from '@lucide/svelte/icons/user';
 	import Layout from '@lucide/svelte/icons/layout-template';
 	import Library from '@lucide/svelte/icons/library';
 	import ListChecks from '@lucide/svelte/icons/list-checks';
@@ -85,19 +88,22 @@
 
 	const audiences = [
 		{
+			icon: Moon,
 			title: 'For a madrasah',
 			body: 'Hifz cycles and the board syllabus side by side, guardians told the same morning a child is missing, fees collected without a card.',
-			line: 'Attendance · guardian alerts · Arabic-first pages'
+			tags: ['Attendance', 'Guardian alerts', 'Arabic-first']
 		},
 		{
+			icon: School,
 			title: 'For a school or college',
 			body: 'A notice board the office can update itself, a weighted gradebook that survives a full term, and results parents can actually find.',
-			line: 'Gradebook · notices · a public website'
+			tags: ['Gradebook', 'Notices', 'A public site']
 		},
 		{
+			icon: User,
 			title: 'For a teacher on their own',
 			body: 'One course, one price, one page that sells it. No institution behind you and no monthly fee until you have fifty learners.',
-			line: 'Free to start · your own site · your own media'
+			tags: ['Free to start', 'Your own site', 'Your own media']
 		}
 	];
 
@@ -322,38 +328,54 @@
 
 	<div class="grid gap-5 lg:grid-cols-3">
 		<article
-			class="card border-brand-line bg-brand-soft lg:col-span-2 lg:row-span-2"
+			class="card border-brand-line bg-brand-soft p-0 lg:col-span-2 lg:row-span-2"
 			use:parallax={26}
 		>
-			<span class="icon-tile mb-4 bg-surface">
-				<Layout size={24} aria-hidden="true" />
-			</span>
-			<h3 class="mb-2 font-display text-2xl font-bold">Eight templates, written for you</h3>
-			<p class="mb-6 max-w-lg text-ink-soft">
-				A school, a college, a madrasah or a university — each written twice, once for Bangladesh
-				and once for the Gulf. Notice boards, admission pages, the numbers that matter, and your
-				catalog pulled straight from the courses you teach.
-			</p>
-			<div class="mb-6 flex flex-wrap gap-2">
-				{#each ['School', 'College', 'Madrasah', 'University'] as kind (kind)}
-					<span class="chip">{kind}</span>
-				{/each}
-				<span class="chip chip-brand">Bangladesh</span>
-				<span class="chip chip-brand">The Gulf</span>
+			<div class="p-6 sm:p-8">
+				<span class="icon-tile mb-4 bg-surface">
+					<Layout size={24} aria-hidden="true" />
+				</span>
+				<h3 class="mb-2 font-display text-2xl font-bold">Eight templates, written for you</h3>
+				<p class="mb-5 max-w-lg text-ink-soft">
+					A school, a college, a madrasah or a university — each written twice, once for Bangladesh
+					and once for the Gulf, in the language it teaches in.
+				</p>
+				<div class="flex flex-wrap gap-2">
+					{#each ['School', 'College', 'Madrasah', 'University'] as kind (kind)}
+						<span class="chip bg-surface">{kind}</span>
+					{/each}
+				</div>
 			</div>
 
-			<ul class="flex flex-col gap-2 border-t border-line pt-5 font-mono text-xs text-ink-faint">
-				{#each ['a headline', 'the notice board', 'the numbers', 'your courses', 'questions parents ask', 'an invitation'] as section, i (section)}
-					<li class="flex items-center gap-3">
-						<span class="w-6">{String(i + 1).padStart(2, '0')}</span>
-						<span class="h-px flex-1 bg-line"></span>
-						<span>{section}</span>
-					</li>
-				{/each}
-			</ul>
+			<!-- A page as the builder makes it: the chrome and the sections, drawn
+			     rather than screenshotted, so it never goes stale. -->
+			<div class="mockup" aria-hidden="true">
+				<div class="chrome">
+					<span class="dot"></span><span class="dot"></span><span class="dot"></span>
+					<span class="url font-mono">/site/greenfield</span>
+				</div>
+				<div class="page">
+					<div class="topbar">
+						<span class="mark"></span>
+						<span class="link"></span><span class="link"></span><span class="link"></span>
+						<span class="pill"></span>
+					</div>
+					<div class="hero">
+						<span class="headline"></span>
+						<span class="sub"></span>
+						<span class="cta"></span>
+					</div>
+					<div class="tiles">
+						<span class="tile"></span><span class="tile"></span><span class="tile"></span>
+					</div>
+					<div class="notices">
+						<span class="row"></span><span class="row"></span><span class="row"></span>
+					</div>
+				</div>
+			</div>
 		</article>
 
-		<article class="card" use:parallax={52}>
+		<article class="card self-start" use:parallax={52}>
 			<span class="icon-tile mb-4"><Globe size={22} aria-hidden="true" /></span>
 			<h3 class="mb-2 text-lg font-medium">Dressed for where you teach</h3>
 			<p class="mb-0 text-sm text-ink-soft">
@@ -362,7 +384,7 @@
 			</p>
 		</article>
 
-		<article class="card" use:parallax={68}>
+		<article class="card self-start" use:parallax={68}>
 			<span class="icon-tile mb-4"><ShieldCheck size={22} aria-hidden="true" /></span>
 			<h3 class="mb-2 text-lg font-medium">Nothing can smuggle script in</h3>
 			<p class="mb-0 text-sm text-ink-soft">
@@ -373,13 +395,20 @@
 
 		{#each audiences as audience, index (audience.title)}
 			<article
-				class="card flex flex-col scroll-mt-24"
+				class="card flex scroll-mt-24 flex-col transition-colors hover:border-brand-line"
 				id={index === 0 ? 'who' : undefined}
 				use:parallax={34}
 			>
+				<span class="icon-tile mb-4">
+					<audience.icon size={22} aria-hidden="true" />
+				</span>
 				<h3 class="mb-2 text-lg font-medium">{audience.title}</h3>
 				<p class="mb-5 flex-1 text-sm text-ink-soft">{audience.body}</p>
-				<p class="mb-0 font-mono text-xs text-ink-faint">{audience.line}</p>
+				<div class="flex flex-wrap gap-1.5">
+					{#each audience.tags as tag (tag)}
+						<span class="chip">{tag}</span>
+					{/each}
+				</div>
 			</article>
 		{/each}
 	</div>
@@ -518,6 +547,141 @@
 </section>
 
 <style>
+	/* The drawn page preview: every part is a block, tinted from the same tokens
+	   as the real thing. */
+	.mockup {
+		margin: 0 1.5rem 1.5rem;
+		border: 1px solid var(--color-brand-line);
+		border-radius: 1rem;
+		background: var(--color-surface);
+		overflow: hidden;
+	}
+
+	.chrome {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.6rem 0.8rem;
+		border-block-end: 1px solid var(--color-line);
+		background: var(--color-sunken);
+	}
+
+	.dot {
+		inline-size: 0.5rem;
+		block-size: 0.5rem;
+		border-radius: 999px;
+		background: var(--color-line-strong);
+	}
+
+	.url {
+		margin-inline-start: 0.6rem;
+		padding: 0.15rem 0.6rem;
+		border-radius: 999px;
+		background: var(--color-surface);
+		border: 1px solid var(--color-line);
+		font-size: 0.65rem;
+		color: var(--color-ink-faint);
+	}
+
+	.page {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		padding: 0.9rem;
+	}
+
+	.topbar {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.mark {
+		inline-size: 2.4rem;
+		block-size: 0.5rem;
+		border-radius: 999px;
+		background: var(--color-brand);
+	}
+
+	.link {
+		inline-size: 1.6rem;
+		block-size: 0.35rem;
+		border-radius: 999px;
+		background: var(--color-line-strong);
+	}
+
+	.pill {
+		margin-inline-start: auto;
+		inline-size: 2.2rem;
+		block-size: 0.85rem;
+		border-radius: 999px;
+		background: var(--color-brand);
+	}
+
+	.hero {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 1.4rem 0;
+		border-radius: 0.75rem;
+		background: var(--color-brand-soft);
+	}
+
+	.headline {
+		inline-size: 60%;
+		block-size: 0.8rem;
+		border-radius: 999px;
+		background: var(--color-brand-line);
+	}
+
+	.sub {
+		inline-size: 42%;
+		block-size: 0.4rem;
+		border-radius: 999px;
+		background: var(--color-line-strong);
+	}
+
+	.cta {
+		inline-size: 3.2rem;
+		block-size: 0.9rem;
+		border-radius: 999px;
+		background: var(--color-brand);
+	}
+
+	.tiles {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+	}
+
+	.tile {
+		block-size: 2.4rem;
+		border-radius: 0.6rem;
+		border: 1px solid var(--color-line);
+		background: var(--color-raised);
+	}
+
+	.notices {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.notices .row {
+		block-size: 0.4rem;
+		border-radius: 999px;
+		background: var(--color-line-strong);
+	}
+
+	.notices .row:nth-child(2) {
+		inline-size: 85%;
+	}
+
+	.notices .row:nth-child(3) {
+		inline-size: 70%;
+	}
+
 	/* Once the stepper takes over, the cards share one place and only the
 	   current one is visible. */
 	.steps {
