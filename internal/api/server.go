@@ -59,6 +59,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/media/providers", inTenant(httpx.Handler(s.mediaProviders)))
 	mux.Handle("GET /v1/media/{id}/playback", inTenant(httpx.Handler(s.mediaPlayback)))
 	mux.Handle("POST /v1/media", teaches(s.ingestMedia))
+	mux.Handle("POST /v1/media/{id}/complete", teaches(s.completeUpload))
 	mux.Handle("PUT /v1/lessons/{id}/media", teaches(s.attachMedia))
 	mux.Handle("GET /v1/media/usage", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.mediaUsage))))
 

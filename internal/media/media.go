@@ -30,6 +30,8 @@ const (
 
 var (
 	ErrUnsupportedSource = errors.New("media: this provider cannot ingest that source")
+	ErrTooLarge          = errors.New("media: file is larger than this provider allows")
+	ErrMissingUpload     = errors.New("media: no file was uploaded")
 	ErrNotReady          = errors.New("media: asset is not ready for playback")
 	ErrUnknownProvider   = errors.New("media: unknown provider")
 )
@@ -52,13 +54,25 @@ type Asset struct {
 	DurationS   int32
 }
 
-// Ingested is what a provider returns after accepting a source.
+// Ingested is what a provider returns after accepting a source. A provider that
+// stores bytes itself returns an Upload for the client to send them to.
 type Ingested struct {
 	ExternalRef string
 	State       State
 	ContentType string
 	DurationS   int32
 	Metadata    map[string]any
+	Upload      *Upload
+}
+
+// Upload is a one-time target the client sends the file to directly, so bytes
+// never pass through the API process.
+type Upload struct {
+	URL       string            `json:"url"`
+	Method    string            `json:"method"`
+	Headers   map[string]string `json:"headers,omitempty"`
+	ExpiresAt time.Time         `json:"expires_at"`
+	MaxBytes  int64             `json:"max_bytes"`
 }
 
 // Viewer identifies who is watching, so a URL can be scoped and expiring.
@@ -90,6 +104,12 @@ type Provider interface {
 	Ingest(ctx context.Context, tenantID string, src Source) (Ingested, error)
 	Playback(ctx context.Context, a Asset, v Viewer) (Playback, error)
 	Caps() Caps
+}
+
+// Finalizer is implemented by providers that need confirming once the client
+// has finished uploading. Providers without an upload step simply omit it.
+type Finalizer interface {
+	Finalize(ctx context.Context, a Asset) (Ingested, error)
 }
 
 // Registry resolves a provider by name and names the default for new assets.

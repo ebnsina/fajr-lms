@@ -5,6 +5,15 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Upload files straight to storage: the API signs a one-time upload URL and the
+  file goes from the browser to the bucket without passing through the server.
+- Uploads are confirmed before a lesson can use them, so a half-finished upload
+  never becomes a video nobody can play.
+- File types are limited to video, audio, PDF, images and subtitles, and a size
+  limit is enforced before the upload starts rather than after it finishes.
+- Playback links expire and are issued per viewer.
+- Storage is any S3-compatible bucket, self-hosted MinIO by default; without one
+  configured the API still runs on embeds alone.
 - Enrolment: learners join a free public course themselves, staff enrol anyone,
   and enrolling twice is harmless.
 - Progress tracking with a resume point per lesson, a completion percentage per

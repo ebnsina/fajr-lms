@@ -1,20 +1,157 @@
 package api_test
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/ebnsina/fajr-lms/internal/media"
 )
 
+// testRegistry adds the file provider only when an object store is configured,
+// so the suite still runs without one.
 func testRegistry(t *testing.T) *media.Registry {
 	t.Helper()
-	r, err := media.NewRegistry("embed", media.Embed{AllowedHosts: []string{"tube.madrasa.test"}})
+	providers := []media.Provider{media.Embed{AllowedHosts: []string{"tube.madrasa.test"}}}
+
+	if endpoint := os.Getenv("FAJR_S3_ENDPOINT"); endpoint != "" {
+		store, err := media.NewObjectStore(context.Background(), media.ObjectStoreConfig{
+			Endpoint: endpoint, Bucket: "fajr-test",
+			AccessKey: os.Getenv("FAJR_S3_ACCESS_KEY"), SecretKey: os.Getenv("FAJR_S3_SECRET_KEY"),
+			Region: "us-east-1", MaxBytes: 1 << 20,
+		})
+		if err != nil {
+			t.Fatalf("build object store: %v", err)
+		}
+		providers = append(providers, store)
+	}
+
+	r, err := media.NewRegistry("embed", providers...)
 	if err != nil {
 		t.Fatalf("build media registry: %v", err)
 	}
 	return r
+}
+
+func TestFileUploadFlow(t *testing.T) {
+	if os.Getenv("FAJR_S3_ENDPOINT") == "" {
+		t.Skip("FAJR_S3_ENDPOINT not set")
+	}
+	h, ch, store := newHarness(t)
+	owner := enrol(t, h, ch, store, "owner")
+
+	var created struct {
+		ID     string        `json:"id"`
+		State  string        `json:"state"`
+		Upload *media.Upload `json:"upload"`
+	}
+
+	t.Run("asking to upload returns a direct upload target", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/media", owner.token, owner.slug, map[string]any{
+			"provider": "file", "filename": "درس.mp4", "content_type": "video/mp4",
+			"byte_size": 11, "title": "Lesson one",
+		})
+		if rec.Code != http.StatusCreated {
+			t.Fatalf("got %d, want 201: %s", rec.Code, rec.Body)
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &created); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if created.State != "pending" || created.Upload == nil || created.Upload.Method != "PUT" {
+			t.Fatalf("got %+v", created)
+		}
+	})
+
+	t.Run("completing before the bytes land is a conflict", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/media/"+created.ID+"/complete", owner.token, owner.slug, nil)
+		if rec.Code != http.StatusConflict {
+			t.Fatalf("got %d, want 409: %s", rec.Code, rec.Body)
+		}
+	})
+
+	t.Run("playback of a pending asset says not ready", func(t *testing.T) {
+		rec := do(t, h, "GET", "/v1/media/"+created.ID+"/playback", owner.token, owner.slug, nil)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("got %d: %s", rec.Code, rec.Body)
+		}
+		var got media.Playback
+		if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if got.Kind != media.PlaybackNotReady {
+			t.Errorf("got %+v, want not_ready", got)
+		}
+	})
+
+	t.Run("uploading then completing makes it playable", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodPut, created.Upload.URL, strings.NewReader("hello video"))
+		if err != nil {
+			t.Fatalf("build upload: %v", err)
+		}
+		req.Header.Set("Content-Type", "video/mp4")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("upload: %v", err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("upload: got %d", resp.StatusCode)
+		}
+
+		rec := do(t, h, "POST", "/v1/media/"+created.ID+"/complete", owner.token, owner.slug, nil)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("complete: got %d: %s", rec.Code, rec.Body)
+		}
+		var asset struct {
+			State    string `json:"state"`
+			ByteSize int64  `json:"byte_size"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &asset); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if asset.State != "ready" || asset.ByteSize != 11 {
+			t.Fatalf("got %+v, want ready at 11 bytes", asset)
+		}
+
+		rec = do(t, h, "GET", "/v1/media/"+created.ID+"/playback", owner.token, owner.slug, nil)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("playback: got %d: %s", rec.Code, rec.Body)
+		}
+		var got media.Playback
+		if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if got.Kind != media.PlaybackFile || got.ExpiresAt == nil {
+			t.Fatalf("got %+v", got)
+		}
+	})
+
+	t.Run("an oversized or disallowed file is refused up front", func(t *testing.T) {
+		big := do(t, h, "POST", "/v1/media", owner.token, owner.slug, map[string]any{
+			"provider": "file", "filename": "huge.mp4", "content_type": "video/mp4", "byte_size": 1 << 30,
+		})
+		if big.Code != http.StatusRequestEntityTooLarge {
+			t.Errorf("oversized: got %d, want 413: %s", big.Code, big.Body)
+		}
+		bad := do(t, h, "POST", "/v1/media", owner.token, owner.slug, map[string]any{
+			"provider": "file", "filename": "page.html", "content_type": "text/html", "byte_size": 10,
+		})
+		if bad.Code != http.StatusUnprocessableEntity {
+			t.Errorf("disallowed type: got %d, want 422: %s", bad.Code, bad.Body)
+		}
+	})
+
+	t.Run("an embed asset has nothing to complete", func(t *testing.T) {
+		id := createdID(t, do(t, h, "POST", "/v1/media", owner.token, owner.slug,
+			map[string]any{"url": "https://youtu.be/dQw4w9WgXcQ"}))
+		rec := do(t, h, "POST", "/v1/media/"+id+"/complete", owner.token, owner.slug, nil)
+		if rec.Code != http.StatusConflict {
+			t.Fatalf("got %d, want 409: %s", rec.Code, rec.Body)
+		}
+	})
 }
 
 func TestMedia(t *testing.T) {
@@ -33,8 +170,15 @@ func TestMedia(t *testing.T) {
 		if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
 			t.Fatalf("decode: %v", err)
 		}
-		if len(got.Providers) != 1 || got.Providers[0].Name != "embed" || !got.Providers[0].AcceptsURL {
-			t.Errorf("got %+v", got.Providers)
+		byName := map[string]media.Caps{}
+		for _, c := range got.Providers {
+			byName[c.Name] = c
+		}
+		if embed, ok := byName["embed"]; !ok || !embed.AcceptsURL || embed.AcceptsFile {
+			t.Errorf("embed caps = %+v", embed)
+		}
+		if file, ok := byName["file"]; ok && (!file.AcceptsFile || !file.Offline) {
+			t.Errorf("file caps = %+v", file)
 		}
 	})
 
@@ -70,7 +214,7 @@ func TestMedia(t *testing.T) {
 
 	t.Run("rejects an unconfigured provider by name", func(t *testing.T) {
 		rec := do(t, h, "POST", "/v1/media", owner.token, owner.slug,
-			map[string]any{"url": "https://youtu.be/dQw4w9WgXcQ", "provider": "transcoder"})
+			map[string]any{"url": "https://youtu.be/dQw4w9WgXcQ", "provider": "nonexistent"})
 		if rec.Code != http.StatusUnprocessableEntity {
 			t.Fatalf("got %d, want 422: %s", rec.Code, rec.Body)
 		}

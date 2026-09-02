@@ -43,7 +43,17 @@ func run() error {
 	}
 	defer store.Close()
 
-	registry, err := media.NewRegistry("embed", media.Embed{AllowedHosts: cfg.MediaHosts})
+	providers := []media.Provider{media.Embed{AllowedHosts: cfg.MediaHosts}}
+	if cfg.S3.Enabled() {
+		files, err := media.NewObjectStore(ctx, media.ObjectStoreConfig(cfg.S3))
+		if err != nil {
+			return err
+		}
+		providers = append(providers, files)
+		slog.Info("file media provider enabled", "bucket", cfg.S3.Bucket)
+	}
+
+	registry, err := media.NewRegistry("embed", providers...)
 	if err != nil {
 		return err
 	}

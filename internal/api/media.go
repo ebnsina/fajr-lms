@@ -18,10 +18,19 @@ func (s *Server) mediaProviders(w http.ResponseWriter, r *http.Request) error {
 }
 
 type ingestRequest struct {
-	Provider string `json:"provider"`
-	URL      string `json:"url"`
-	Title    string `json:"title"`
-	Kind     string `json:"kind"`
+	Provider    string `json:"provider"`
+	URL         string `json:"url"`
+	Filename    string `json:"filename"`
+	ContentType string `json:"content_type"`
+	ByteSize    int64  `json:"byte_size"`
+	Title       string `json:"title"`
+	Kind        string `json:"kind"`
+}
+
+// ingestResponse carries the upload target when the provider stores bytes.
+type ingestResponse struct {
+	database.MediaAsset
+	Upload *media.Upload `json:"upload,omitempty"`
 }
 
 // ingestMedia records an asset for whichever provider can handle the source.
@@ -39,7 +48,16 @@ func (s *Server) ingestMedia(w http.ResponseWriter, r *http.Request) error {
 		kind = database.LessonKindVideo
 	}
 
-	src := media.Source{URL: strings.TrimSpace(body.URL)}
+	src := media.Source{
+		URL: strings.TrimSpace(body.URL), Filename: strings.TrimSpace(body.Filename),
+		ContentType: strings.TrimSpace(body.ContentType), ByteSize: body.ByteSize,
+	}
+	if src.URL == "" && src.Filename == "" {
+		return invalid("url", "Provide a video link, or a filename to upload.")
+	}
+	if body.ByteSize < 0 {
+		return invalid("byte_size", "File size cannot be negative.")
+	}
 	provider, err := s.pickProvider(body.Provider, src)
 	if err != nil {
 		return err
@@ -47,11 +65,14 @@ func (s *Server) ingestMedia(w http.ResponseWriter, r *http.Request) error {
 
 	tenant := CurrentTenant(r.Context())
 	ingested, err := provider.Ingest(r.Context(), tenant.ID.String(), src)
-	if errors.Is(err, media.ErrUnsupportedSource) {
+	switch {
+	case errors.Is(err, media.ErrUnsupportedSource):
 		return &httpx.Error{Status: http.StatusUnprocessableEntity, Code: "unsupported_source",
 			Message: err.Error(), Field: "url"}
-	}
-	if err != nil {
+	case errors.Is(err, media.ErrTooLarge):
+		return &httpx.Error{Status: http.StatusRequestEntityTooLarge, Code: "file_too_large",
+			Message: err.Error(), Field: "byte_size"}
+	case err != nil:
 		return err
 	}
 
@@ -75,7 +96,73 @@ func (s *Server) ingestMedia(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return httpx.JSON(w, http.StatusCreated, asset)
+	return httpx.JSON(w, http.StatusCreated, ingestResponse{MediaAsset: asset, Upload: ingested.Upload})
+}
+
+// completeUpload confirms the bytes landed, so a half-finished upload never
+// becomes a lesson nobody can play.
+func (s *Server) completeUpload(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+
+	tenant := CurrentTenant(r.Context())
+	var asset database.MediaAsset
+	err = s.store.InTenant(r.Context(), tenant.ID, func(q *database.Queries) error {
+		var err error
+		asset, err = q.GetMediaAsset(r.Context(), id)
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	provider, err := s.media.Get(asset.Provider)
+	if err != nil {
+		return httpx.Errorf(http.StatusNotImplemented, "provider_unavailable",
+			"The provider that holds this media is not configured on this server.")
+	}
+	finalizer, ok := provider.(media.Finalizer)
+	if !ok {
+		return httpx.Errorf(http.StatusConflict, "no_upload_step", "This provider has nothing to confirm.")
+	}
+
+	result, err := finalizer.Finalize(r.Context(), media.Asset{
+		ID: asset.ID.String(), TenantID: asset.TenantID.String(),
+		ExternalRef: asset.ExternalRef, State: media.State(asset.State), ContentType: asset.ContentType,
+	})
+	switch {
+	case errors.Is(err, media.ErrMissingUpload):
+		return httpx.Errorf(http.StatusConflict, "upload_missing", "No file has been uploaded yet.")
+	case errors.Is(err, media.ErrTooLarge):
+		return httpx.Errorf(http.StatusRequestEntityTooLarge, "file_too_large", err.Error())
+	case err != nil:
+		return err
+	}
+
+	byteSize, _ := result.Metadata["byte_size"].(int64)
+	metadata, err := json.Marshal(result.Metadata)
+	if err != nil {
+		return err
+	}
+
+	var updated database.MediaAsset
+	err = s.store.InTenant(r.Context(), tenant.ID, func(q *database.Queries) error {
+		var err error
+		updated, err = q.UpdateMediaState(r.Context(), database.UpdateMediaStateParams{
+			ID: asset.ID, State: database.MediaState(result.State),
+			ByteSize: &byteSize, Metadata: metadata,
+		})
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, updated)
 }
 
 // pickProvider honours an explicit choice, otherwise asks the registry.

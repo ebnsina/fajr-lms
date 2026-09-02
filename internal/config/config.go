@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -15,6 +16,7 @@ type Config struct {
 	DatabaseURL     string
 	LogLevel        slog.Level
 	MediaHosts      []string
+	S3              S3Config
 	ShutdownTimeout time.Duration
 }
 
@@ -40,6 +42,27 @@ func Load() (Config, error) {
 		}
 	}
 
+	c.S3 = S3Config{
+		Endpoint:  env("FAJR_S3_ENDPOINT", ""),
+		Bucket:    env("FAJR_S3_BUCKET", "fajr-media"),
+		AccessKey: env("FAJR_S3_ACCESS_KEY", ""),
+		SecretKey: env("FAJR_S3_SECRET_KEY", ""),
+		Region:    env("FAJR_S3_REGION", "us-east-1"),
+		UseSSL:    env("FAJR_S3_USE_SSL", "false") == "true",
+	}
+	if c.S3.Enabled() {
+		if c.S3.AccessKey == "" || c.S3.SecretKey == "" {
+			return Config{}, fmt.Errorf("config: FAJR_S3_ENDPOINT needs FAJR_S3_ACCESS_KEY and FAJR_S3_SECRET_KEY")
+		}
+		if raw := env("FAJR_S3_MAX_UPLOAD_BYTES", ""); raw != "" {
+			n, err := strconv.ParseInt(raw, 10, 64)
+			if err != nil || n <= 0 {
+				return Config{}, fmt.Errorf("config: FAJR_S3_MAX_UPLOAD_BYTES must be a positive integer")
+			}
+			c.S3.MaxBytes = n
+		}
+	}
+
 	lvl := env("FAJR_LOG_LEVEL", "info")
 	if err := c.LogLevel.UnmarshalText([]byte(lvl)); err != nil {
 		return Config{}, fmt.Errorf("config: invalid FAJR_LOG_LEVEL %q: %w", lvl, err)
@@ -52,6 +75,20 @@ func Load() (Config, error) {
 	}
 	return c, nil
 }
+
+// S3Config is optional: without an endpoint the file provider is not registered
+// and the API runs on embeds alone.
+type S3Config struct {
+	Endpoint  string
+	Bucket    string
+	AccessKey string
+	SecretKey string
+	Region    string
+	UseSSL    bool
+	MaxBytes  int64
+}
+
+func (s S3Config) Enabled() bool { return s.Endpoint != "" }
 
 func (c Config) IsProduction() bool { return c.Env == "production" }
 
