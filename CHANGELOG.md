@@ -9,6 +9,9 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   actually does, from lessons and quizzes through to the website builder.
 
 ### Changed
+- Why Fajr argues the case — the money, the script, the connection, who owns
+  the records — rather than repeating the feature list underneath it.
+- The four steps hold the screen and come one at a time as you scroll.
 - The questions are an accordion now, centred, with the first one open.
 - The four steps sit beside a heading that stays put while they come past.
 - The middle of the landing page carries colour: brand-tinted sections, icon

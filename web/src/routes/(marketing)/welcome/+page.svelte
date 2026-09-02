@@ -1,11 +1,12 @@
 <script lang="ts">
 	import ShaderGradient from '$lib/components/marketing/ShaderGradient.svelte';
 	import RollingWords from '$lib/components/marketing/RollingWords.svelte';
-	import { reveal, parallax } from '$lib/actions/motion';
+	import { reveal, parallax, stepper } from '$lib/actions/motion';
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Wallet from '@lucide/svelte/icons/wallet';
+	import Wallet2 from '@lucide/svelte/icons/badge-dollar-sign';
 	import WifiOff from '@lucide/svelte/icons/wifi-off';
 	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
 	import Video from '@lucide/svelte/icons/video';
@@ -30,33 +31,33 @@
 	const reasons = [
 		{
 			icon: Wallet,
-			title: 'The payments your families already use',
-			body: 'bKash, SSLCommerz and plain bank transfer with a deposit slip somebody on staff approves. No card required to enroll a single learner.'
+			title: 'Money, the way it actually moves here',
+			body: 'A platform that only takes cards cannot enroll most of your learners. This one starts from bKash and a bank slip, and treats the card as the exception.'
 		},
 		{
 			icon: Globe,
-			title: 'Arabic and Bengali as first-class text',
-			body: 'Right to left and left to right render properly side by side, down to the punctuation and the numerals, on every screen.'
+			title: 'Written for your script, not translated into it',
+			body: 'Arabic and Bengali were not bolted on afterwards. Direction, punctuation and numerals were decided before the first screen was built.'
 		},
 		{
 			icon: WifiOff,
-			title: 'Built for a phone on a weak connection',
-			body: 'Progress is merged, not overwritten, so a lesson watched on the bus still counts when the signal comes back.'
+			title: 'Assumes the connection will drop',
+			body: 'Every platform works on fiber. This one is built for the bus, the village and the last week of the month, and never loses what was already done.'
 		},
 		{
-			icon: ClipboardCheck,
-			title: 'The whole teaching week',
-			body: 'Lessons, quizzes, assignments, grading, a gradebook that weighs it all, attendance that tells the guardians, and certificates anyone can verify.'
+			icon: ShieldCheck,
+			title: 'You are not renting your own records',
+			body: 'Isolation is enforced by the database, not by code that could forget. Everything exports in full, whenever you ask, and nothing is trained on.'
 		},
 		{
-			icon: Video,
-			title: 'Your live classes, your media',
-			body: 'Paste a Meet or Zoom link today. Media is pluggable, so your own transcoder drops in without changing a single lesson.'
+			icon: Wallet2,
+			title: 'One price, no feature gates',
+			body: 'Nobody has to buy the attendance module or the certificate add-on. The plan decides how many learners, never what you are allowed to teach.'
 		},
 		{
 			icon: Users,
-			title: 'One place, many schools',
-			body: 'A teacher who works at three institutions signs in once. Every school keeps its own data, enforced by the database itself.'
+			title: 'Built by people in the same time zone',
+			body: 'Support in Bangla, Arabic or English, from people who know what a Dakhil result sheet is and when the school year actually starts.'
 		}
 	];
 
@@ -270,9 +271,9 @@
 			</a>
 		</div>
 
-		<ol class="flex flex-col gap-4">
+		<ol class="steps flex flex-col gap-4" use:stepper>
 			{#each steps as step, index (step.title)}
-				<li class="card flex flex-wrap items-start gap-5 sm:flex-nowrap" use:reveal={{ y: 28 }}>
+				<li class="card flex flex-wrap items-start gap-5 sm:flex-nowrap" data-step>
 					<span class="icon-tile font-mono text-sm">
 						{String(index + 1).padStart(2, '0')}
 					</span>
@@ -380,21 +381,21 @@
 				<thead>
 					<tr class="border-b border-line">
 						<th class="px-6 py-4 text-start font-medium">&nbsp;</th>
-						<th class="w-40 px-4 py-4 font-display font-bold text-brand-text">Fajr LMS</th>
-						<th class="w-40 px-4 py-4 font-medium text-ink-soft">The usual</th>
+						<th class="w-56 px-4 py-4 font-display font-bold whitespace-nowrap text-brand-text">Fajr LMS</th>
+						<th class="w-56 px-4 py-4 font-medium whitespace-nowrap text-ink-soft">The usual</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each comparison as row (row.line)}
 						<tr class="border-b border-line last:border-0">
 							<td class="px-6 py-4">{row.line}</td>
-							<td class="px-4 py-4 text-center">
+							<td class="px-4 py-4 text-center whitespace-nowrap">
 								<span class="inline-flex items-center gap-1.5 font-medium">
 									<Check class="text-brand-text" size={16} aria-hidden="true" />
 									{row.us}
 								</span>
 							</td>
-							<td class="px-4 py-4 text-center text-ink-soft">
+							<td class="px-4 py-4 text-center whitespace-nowrap text-ink-soft">
 								<span class="inline-flex items-center gap-1.5">
 									<Minus class="text-ink-faint" size={16} aria-hidden="true" />
 									{row.them}
@@ -497,6 +498,23 @@
 </section>
 
 <style>
+	/* Once the stepper takes over, the cards share one place and only the
+	   current one is visible. */
+	.steps {
+		min-block-size: 11rem;
+	}
+
+	.steps:global(.stacked) {
+		position: relative;
+		display: block;
+	}
+
+	.steps:global(.stacked) > :global(li) {
+		position: absolute;
+		inset-inline: 0;
+		inset-block-start: 0;
+	}
+
 	.answer {
 		display: grid;
 		grid-template-rows: 0fr;

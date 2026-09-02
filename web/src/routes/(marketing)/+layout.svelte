@@ -53,7 +53,7 @@
 		{@render children()}
 	</main>
 
-	<footer class="rounded-t-2xl border border-b-0 border-line bg-surface px-6 pt-16 pb-8">
+	<footer class="rounded-t-4xl border border-b-0 border-line bg-surface px-6 pt-16 pb-8">
 		<div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-5">
 			<div class="lg:col-span-2">
 				<p class="mb-3 font-display text-xl font-bold">Fajr LMS</p>

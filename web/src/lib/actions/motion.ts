@@ -65,3 +65,41 @@ export function parallax(node: HTMLElement, distance = 40) {
 		}
 	};
 }
+
+/** Pins a section and shows its steps one at a time as the reader scrolls
+    through it. Without motion the steps stay a plain list, so nothing is
+    hidden behind an animation that never runs. */
+export function stepper(node: HTMLElement) {
+	if (!ready()) return {};
+
+	const cards = Array.from(node.querySelectorAll<HTMLElement>('[data-step]'));
+	if (cards.length < 2) return {};
+
+	node.classList.add('stacked');
+	gsap.set(cards, { autoAlpha: 0, y: 28 });
+	gsap.set(cards[0], { autoAlpha: 1, y: 0 });
+
+	const timeline = gsap.timeline({
+		scrollTrigger: {
+			trigger: node.closest('section') ?? node,
+			start: 'top top',
+			end: `+=${cards.length * 55}%`,
+			pin: true,
+			scrub: 0.4
+		}
+	});
+
+	cards.slice(1).forEach((card, i) => {
+		timeline
+			.to(cards[i], { autoAlpha: 0, y: -28, duration: 0.4 })
+			.fromTo(card, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: 0.4 }, '<0.15');
+	});
+
+	return {
+		destroy() {
+			node.classList.remove('stacked');
+			timeline.scrollTrigger?.kill();
+			timeline.kill();
+		}
+	};
+}
