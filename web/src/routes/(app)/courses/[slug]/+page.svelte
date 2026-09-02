@@ -1,6 +1,10 @@
 <script lang="ts">
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import { dirOf, duration, meta } from '$lib/api';
+	import { lessonIcon } from '$lib/icons';
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Check from '@lucide/svelte/icons/check';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -28,7 +32,14 @@
 <svelte:head><title>{course.title} · Fajr</title></svelte:head>
 
 <nav class="mb-4 text-sm">
-	<a class="text-brand-text underline-offset-4 hover:underline" href="/">Back to your courses</a>
+	<a
+		class="inline-flex items-center gap-1.5 text-brand-text underline-offset-4 hover:underline"
+		href="/"
+	>
+		<ArrowLeft class="rtl:hidden" size={16} aria-hidden="true" />
+		<ArrowRight class="hidden rtl:block" size={16} aria-hidden="true" />
+		Back to your courses
+	</a>
 </nav>
 
 <header class="mb-6">
@@ -77,19 +88,30 @@
 				<ul class="list-none space-y-2 p-0">
 					{#each module.lessons as lesson (lesson.id)}
 						{@const state = states.get(lesson.id)}
+						{@const Icon = lessonIcon(lesson.kind)}
 						<li>
 							<a
 								class="card flex items-center gap-3 p-4 transition hover:border-line-strong"
 								href="/courses/{course.slug}/lessons/{lesson.id}"
 							>
+								<span
+									class="flex size-9 shrink-0 items-center justify-center rounded-xl border border-line bg-sunken text-ink-soft"
+								>
+									<Icon size={17} aria-hidden="true" />
+								</span>
 								<span class="min-w-0 flex-1">
 									<span class="block font-medium" dir={dirOf(lesson.dir)}>{lesson.title}</span>
 									<span class="mt-0.5 block text-sm text-ink-soft" dir="auto">
 										{meta(lesson.kind, lesson.duration_s && duration(lesson.duration_s, locale))}
 									</span>
 								</span>
-								{#if state}
-									<span class="shrink-0 chip {state === 'completed' ? 'chip-brand' : ''}">{marks[state] ?? state}</span>
+								{#if state === 'completed'}
+									<span class="chip chip-brand shrink-0">
+										<Check size={13} aria-hidden="true" />
+										{marks[state]}
+									</span>
+								{:else if state}
+									<span class="chip shrink-0">{marks[state] ?? state}</span>
 								{/if}
 							</a>
 						</li>

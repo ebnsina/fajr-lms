@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -17,11 +19,20 @@
 			{/if}
 			<span class="ms-auto text-sm text-ink-soft" dir="auto">{session.user.full_name}</span>
 			{#if session.memberships.length > 1}
-				<a class="text-sm text-brand-text underline-offset-4 hover:underline" href="/tenant">Switch</a>
+				<a
+					class="inline-flex items-center gap-1.5 text-sm text-brand-text underline-offset-4 hover:underline"
+					href="/tenant"
+				>
+					<ArrowLeftRight size={15} aria-hidden="true" />
+					Switch
+				</a>
 			{/if}
 			<ThemeToggle theme={data.theme} />
 			<form method="POST" action="/login?/logout" use:enhance>
-				<button class="btn btn-sm btn-quiet" type="submit">Sign out</button>
+				<button class="btn btn-sm btn-quiet" type="submit">
+					<LogOut size={15} aria-hidden="true" />
+					Sign out
+				</button>
 			</form>
 		</div>
 	</header>

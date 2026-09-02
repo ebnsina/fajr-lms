@@ -5,6 +5,9 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Icons throughout: each lesson shows what kind it is at a glance, and buttons,
+  links and empty states carry a mark rather than words alone.
+
 - The six digit code is entered in six boxes, one per digit, with the cursor
   showing which one is next. Pasting a code and the phone's own autofill both
   still work.

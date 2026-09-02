@@ -2,6 +2,10 @@
 	import { enhance } from '$app/forms';
 	import MediaPlayer from '$lib/components/MediaPlayer.svelte';
 	import { dirOf, duration, meta } from '$lib/api';
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Check from '@lucide/svelte/icons/check';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -14,7 +18,12 @@
 <svelte:head><title>{data.lesson.title} · Fajr</title></svelte:head>
 
 <nav class="mb-4 text-sm">
-	<a class="text-brand-text underline-offset-4 hover:underline" href="/courses/{data.course.slug}">
+	<a
+		class="inline-flex items-center gap-1.5 text-brand-text underline-offset-4 hover:underline"
+		href="/courses/{data.course.slug}"
+	>
+		<ArrowLeft class="rtl:hidden" size={16} aria-hidden="true" />
+		<ArrowRight class="hidden rtl:block" size={16} aria-hidden="true" />
 		<span dir={dirOf(data.course.dir)}>{data.course.title}</span>
 	</a>
 </nav>
@@ -78,8 +87,10 @@
 				{#if saving}
 					Saving…
 				{:else if done}
+					<RotateCcw size={16} aria-hidden="true" />
 					Mark as not finished
 				{:else}
+					<Check size={16} aria-hidden="true" />
 					Mark as finished
 				{/if}
 			</button>
@@ -89,20 +100,17 @@
 
 <nav class="mt-6 flex flex-wrap items-center gap-3">
 	{#if data.previous}
-		<a
-			class="btn btn-quiet"
-			href="/courses/{data.course.slug}/lessons/{data.previous.id}"
-		>
-			<span aria-hidden="true" class="rtl:hidden">←</span>
-			<span aria-hidden="true" class="hidden rtl:inline">→</span>
+		<a class="btn btn-quiet" href="/courses/{data.course.slug}/lessons/{data.previous.id}">
+			<ArrowLeft class="rtl:hidden" size={16} aria-hidden="true" />
+			<ArrowRight class="hidden rtl:block" size={16} aria-hidden="true" />
 			Previous
 		</a>
 	{/if}
 	{#if data.next}
 		<a class="btn ms-auto" href="/courses/{data.course.slug}/lessons/{data.next.id}">
 			Next
-			<span aria-hidden="true" class="rtl:hidden">→</span>
-			<span aria-hidden="true" class="hidden rtl:inline">←</span>
+			<ArrowRight class="rtl:hidden" size={16} aria-hidden="true" />
+			<ArrowLeft class="hidden rtl:block" size={16} aria-hidden="true" />
 		</a>
 	{/if}
 </nav>

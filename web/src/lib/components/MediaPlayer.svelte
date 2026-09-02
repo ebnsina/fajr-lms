@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Play from '@lucide/svelte/icons/play';
+	import CloudOff from '@lucide/svelte/icons/cloud-off';
 	import type { Playback } from '$lib/api';
 
 	let { playback, title }: { playback: Playback | null; title: string } = $props();
@@ -9,7 +11,8 @@
 </script>
 
 {#if !playback || playback.kind === 'not_ready'}
-	<div class="card text-sm text-ink-soft">
+	<div class="card flex items-center gap-3 text-sm text-ink-soft" dir="auto">
+		<CloudOff size={18} aria-hidden="true" />
 		<p class="mb-0">The video for this lesson is not ready yet.</p>
 	</div>
 {:else if started}
@@ -36,7 +39,11 @@
 		type="button"
 		onclick={() => (started = true)}
 	>
-		<span aria-hidden="true" class="text-3xl">▶</span>
+		<span
+			class="flex size-14 items-center justify-center rounded-full border border-line bg-surface text-brand-text"
+		>
+			<Play size={22} fill="currentColor" aria-hidden="true" />
+		</span>
 		<span class="font-medium text-ink">Play this lesson</span>
 		<span class="text-sm">Nothing downloads until you press play</span>
 	</button>

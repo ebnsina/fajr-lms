@@ -16,5 +16,11 @@ export default defineConfig({
 			// Self-hosted next to the API, per the deployment plan.
 			adapter: adapter()
 		})
-	]
+	],
+
+	ssr: {
+		// The package ships .svelte source, which Node cannot load directly, so it
+		// has to be bundled rather than treated as an external dependency.
+		noExternal: ['@lucide/svelte']
+	}
 });
