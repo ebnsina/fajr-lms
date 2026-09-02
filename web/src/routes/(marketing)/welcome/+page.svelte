@@ -491,8 +491,8 @@
 <!-- The one quiet section: what is being built, said as what it is - not yet
      shipped, and worded so nobody mistakes it for something they can use today. -->
 <section class="relative isolate overflow-hidden border-t border-line bg-sunken px-6 py-28">
-	<div class="mx-auto flex max-w-4xl flex-col items-center gap-10 text-center">
-		<FluidOrb size={180} label="A slowly drifting orb of green light" />
+	<div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
+		<FluidOrb size={110} label="A slowly drifting orb of green light" />
 
 		<div use:reveal>
 			<span class="eyebrow mb-4">Being built</span>
