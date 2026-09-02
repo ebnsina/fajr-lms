@@ -3,6 +3,8 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash from '@lucide/svelte/icons/trash-2';
 	import Eye from '@lucide/svelte/icons/eye';
+	import ArrowUp from '@lucide/svelte/icons/arrow-up';
+	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -24,6 +26,15 @@
 		{ value: 'assignment', label: 'Assignment' }
 	];
 	const kindName = (kind: string) => kinds.find((k) => k.value === kind)?.label ?? kind;
+
+	// Positions are fractional, so a move writes one row: the new position is the
+	// midpoint between the two lessons it lands between.
+	function between(lessons: { position: number }[], from: number, to: number): number {
+		const target = lessons[to].position;
+		const beyond = to < from ? lessons[to - 1]?.position : lessons[to + 1]?.position;
+		if (beyond === undefined) return to < from ? target / 2 : target + 1;
+		return (target + beyond) / 2;
+	}
 	const takesLink = (kind: string) => ['video', 'audio', 'pdf', 'link'].includes(kind);
 
 	let kind = $state('text');
@@ -75,7 +86,7 @@
 				<p class="mb-0 text-sm text-ink-soft">Nothing in this section yet.</p>
 			{:else}
 				<ol class="flex flex-col gap-2">
-					{#each module.lessons as lesson (lesson.id)}
+					{#each module.lessons as lesson, index (lesson.id)}
 						<li class="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-4 py-3">
 							<span class="min-w-40 flex-1 font-medium" dir={lesson.dir}>{lesson.title}</span>
 							<span class="chip">{kindName(lesson.kind)}</span>
@@ -87,6 +98,42 @@
 									Set the {lesson.kind}
 								</a>
 							{/if}
+							<form method="POST" action="?/moveLesson" use:enhance>
+								<input type="hidden" name="lesson_id" value={lesson.id} />
+								<input type="hidden" name="module_id" value={module.id} />
+								<input
+									type="hidden"
+									name="position"
+									value={index > 0 ? between(module.lessons, index, index - 1) : 0}
+								/>
+								<button
+									class="btn btn-sm btn-quiet"
+									type="submit"
+									disabled={index === 0}
+									aria-label="Move {lesson.title} up"
+								>
+									<ArrowUp size={16} aria-hidden="true" />
+								</button>
+							</form>
+							<form method="POST" action="?/moveLesson" use:enhance>
+								<input type="hidden" name="lesson_id" value={lesson.id} />
+								<input type="hidden" name="module_id" value={module.id} />
+								<input
+									type="hidden"
+									name="position"
+									value={index < module.lessons.length - 1
+										? between(module.lessons, index, index + 1)
+										: 0}
+								/>
+								<button
+									class="btn btn-sm btn-quiet"
+									type="submit"
+									disabled={index === module.lessons.length - 1}
+									aria-label="Move {lesson.title} down"
+								>
+									<ArrowDown size={16} aria-hidden="true" />
+								</button>
+							</form>
 							<form method="POST" action="?/setLessonStatus" use:enhance>
 								<input type="hidden" name="lesson_id" value={lesson.id} />
 								<input

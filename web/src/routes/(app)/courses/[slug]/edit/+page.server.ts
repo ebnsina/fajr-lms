@@ -130,6 +130,23 @@ export const actions: Actions = {
 		return { removed: true };
 	},
 
+	moveLesson: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		try {
+			await api(`/v1/lessons/${form.get('lesson_id')}/position`, {
+				method: 'PUT',
+				body: {
+					module_id: String(form.get('module_id') ?? ''),
+					position: Number(form.get('position') ?? 0)
+				},
+				...scoped(locals, cookies, fetch)
+			});
+		} catch (cause) {
+			return failed(cause);
+		}
+		return { moved: true };
+	},
+
 	setCourseStatus: async ({ request, locals, cookies, fetch }) => {
 		const form = await request.formData();
 		try {

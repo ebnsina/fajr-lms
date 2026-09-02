@@ -13,8 +13,8 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   and see the answer key laid out. Set an assignment the same way, and change
   its due date or late penalty afterwards.
 - Build a course from the app rather than the API: create it, add sections and
-  lessons, paste a video or audio link to attach it, and publish a lesson or the
-  whole course when it is ready.
+  lessons, paste a video or audio link to attach it, reorder lessons, and
+  publish a lesson or the whole course when it is ready.
 - Every school gets a public website with a page builder: pages are built from
   sections (a headline, words, cards, questions, your courses, an invitation),
   published one at a time, with the menu built from the pages themselves.
