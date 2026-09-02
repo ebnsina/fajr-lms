@@ -1,0 +1,109 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import MediaPlayer from '$lib/components/MediaPlayer.svelte';
+	import { dirOf, duration } from '$lib/api';
+	import type { PageProps } from './$types';
+
+	let { data, form }: PageProps = $props();
+
+	let locale = $derived(data.session?.tenant?.locale ?? 'en');
+	let done = $derived(form?.completed ?? data.state === 'completed');
+	let saving = $state(false);
+</script>
+
+<svelte:head><title>{data.lesson.title} · Fajr</title></svelte:head>
+
+<nav class="mb-4 text-sm">
+	<a class="text-brand underline-offset-4 hover:underline" href="/courses/{data.course.slug}">
+		<span dir={dirOf(data.course.dir)}>{data.course.title}</span>
+	</a>
+</nav>
+
+<header class="mb-4">
+	<h1 class="text-2xl font-bold tracking-tight" dir={dirOf(data.lesson.dir)}>
+		{data.lesson.title}
+	</h1>
+	<p class="mt-1 text-sm text-ink-soft">
+		{data.lesson.kind}{#if data.lesson.duration_s}
+			· {duration(data.lesson.duration_s, locale)}{/if}
+		{#if done}· <span class="text-brand">Completed</span>{/if}
+	</p>
+</header>
+
+{#if data.lesson.kind === 'video' || data.lesson.kind === 'audio'}
+	<div class="mb-5">
+		<MediaPlayer playback={data.playback} title={data.lesson.title} />
+	</div>
+{/if}
+
+{#if data.lesson.body}
+	<article class="card mb-5 max-w-prose whitespace-pre-wrap" dir={dirOf(data.lesson.dir)}>
+		{data.lesson.body}
+	</article>
+{/if}
+
+{#if data.lesson.kind === 'quiz'}
+	<a class="btn mb-5" href="/courses/{data.course.slug}/lessons/{data.lesson.id}/quiz">
+		Open the quiz
+	</a>
+{:else if data.lesson.kind === 'assignment'}
+	<a class="btn mb-5" href="/courses/{data.course.slug}/lessons/{data.lesson.id}/assignment">
+		Open the assignment
+	</a>
+{/if}
+
+{#if form?.message}
+	<p class="banner-bad mb-4 text-sm">{form.message}</p>
+{/if}
+
+<div class="card">
+	{#if !data.enrolled}
+		<p class="mb-0 text-sm text-ink-soft">
+			You are not enrolled, so your progress through this lesson is not being kept.
+		</p>
+	{:else}
+		<form
+			method="POST"
+			action="?/progress"
+			use:enhance={() => {
+				saving = true;
+				return async ({ update }) => {
+					await update({ reset: false });
+					saving = false;
+				};
+			}}
+		>
+			<input type="hidden" name="position_s" value={data.lesson.duration_s || data.resumeAt} />
+			<input type="hidden" name="completed" value={done ? 'false' : 'true'} />
+			<button class="btn" class:btn-quiet={done} type="submit" disabled={saving}>
+				{#if saving}
+					Saving…
+				{:else if done}
+					Mark as not finished
+				{:else}
+					Mark as finished
+				{/if}
+			</button>
+		</form>
+	{/if}
+</div>
+
+<nav class="mt-6 flex flex-wrap items-center gap-3">
+	{#if data.previous}
+		<a
+			class="btn btn-quiet"
+			href="/courses/{data.course.slug}/lessons/{data.previous.id}"
+		>
+			<span aria-hidden="true" class="rtl:hidden">←</span>
+			<span aria-hidden="true" class="hidden rtl:inline">→</span>
+			Previous
+		</a>
+	{/if}
+	{#if data.next}
+		<a class="btn ms-auto" href="/courses/{data.course.slug}/lessons/{data.next.id}">
+			Next
+			<span aria-hidden="true" class="rtl:hidden">→</span>
+			<span aria-hidden="true" class="hidden rtl:inline">←</span>
+		</a>
+	{/if}
+</nav>

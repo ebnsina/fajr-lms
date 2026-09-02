@@ -1,0 +1,43 @@
+<script lang="ts">
+	import type { Playback } from '$lib/api';
+
+	let { playback, title }: { playback: Playback | null; title: string } = $props();
+
+	// Nothing loads until asked. On a metered connection an autoloaded embed can
+	// cost a learner more than the lesson is worth.
+	let started = $state(false);
+</script>
+
+{#if !playback || playback.kind === 'not_ready'}
+	<div class="card text-sm text-ink-soft">
+		<p class="mb-0">The video for this lesson is not ready yet.</p>
+	</div>
+{:else if started}
+	{#if playback.kind === 'embed'}
+		<div class="aspect-video w-full overflow-hidden rounded-lg border border-line bg-black">
+			<iframe
+				class="h-full w-full"
+				src={playback.url}
+				{title}
+				loading="lazy"
+				allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
+				allowfullscreen
+				sandbox="allow-scripts allow-same-origin allow-presentation"
+			></iframe>
+		</div>
+	{:else}
+		<!-- svelte-ignore a11y_media_has_caption -->
+		<video class="w-full rounded-lg border border-line bg-black" src={playback.url} controls
+		></video>
+	{/if}
+{:else}
+	<button
+		class="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-line bg-surface text-ink-soft transition hover:border-brand"
+		type="button"
+		onclick={() => (started = true)}
+	>
+		<span aria-hidden="true" class="text-3xl">▶</span>
+		<span class="font-medium text-ink">Play this lesson</span>
+		<span class="text-sm">Nothing downloads until you press play</span>
+	</button>
+{/if}

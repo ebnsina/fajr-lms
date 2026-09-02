@@ -5,6 +5,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Course pages: see the whole outline, how far you have got, and jump straight
+  back to where you stopped.
+- Lesson pages with video, written content and a finish button, plus next and
+  previous that point the right way in a right-to-left interface.
+- Video downloads nothing until you press play, so opening a lesson on a metered
+  connection costs almost nothing.
 - Web app: sign in with a one-time code, choose which school you are working in,
   and see your courses and unread messages.
 - The interface renders right to left for an Arabic school from the first paint,
