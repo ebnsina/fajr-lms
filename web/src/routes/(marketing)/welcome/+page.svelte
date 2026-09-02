@@ -31,6 +31,9 @@
 	// The first question is open, so the section never reads as a wall of bars.
 	let open = $state(0);
 
+	// Which step the laptop is showing.
+	let active = $state(0);
+
 	const institutions = ['school', 'madrasah', 'college', 'academy', 'university'];
 
 	const reasons = [
@@ -274,27 +277,49 @@
 			</p>
 		</div>
 
-		<!-- The four steps sit on a screen, because that is where they happen. -->
+		<!-- The four steps sit on a screen, because that is where they happen. The
+		     screen keeps a laptop's proportions, so one step shows at a time. -->
 		<div class="laptop mx-auto" use:reveal={{ y: 32 }}>
 			<div class="lid">
 				<span class="notch" aria-hidden="true"></span>
 				<div class="screen">
-					<ol class="grid gap-x-8 gap-y-7 sm:grid-cols-2">
-						{#each steps as step, index (step.title)}
-							<li class="flex gap-4">
-								<span class="icon-tile shrink-0 font-mono text-sm">
-									{String(index + 1).padStart(2, '0')}
-								</span>
-								<div class="min-w-0">
-									<h3 class="mb-1.5 font-medium">{step.title}</h3>
-									<p class="mb-0 text-sm text-ink-soft">{step.body}</p>
-								</div>
-							</li>
-						{/each}
-					</ol>
+					{#each steps as step, index (step.title)}
+						<div
+							class="step"
+							class:showing={index === active}
+							id="step-panel-{index}"
+							role="tabpanel"
+							aria-labelledby="step-tab-{index}"
+							aria-hidden={index === active ? undefined : 'true'}
+						>
+							<span class="font-display text-5xl font-bold text-brand-line sm:text-6xl">
+								{String(index + 1).padStart(2, '0')}
+							</span>
+							<h3 class="mt-5 font-display text-2xl font-bold sm:text-3xl">{step.title}</h3>
+							<p class="mx-auto mt-3 mb-0 max-w-md text-ink-soft">{step.body}</p>
+						</div>
+					{/each}
 				</div>
 			</div>
 			<div class="base" aria-hidden="true"><span class="lip"></span></div>
+		</div>
+
+		<div class="mt-8 flex flex-wrap justify-center gap-2" role="tablist" aria-label="The four steps">
+			{#each steps as step, index (step.title)}
+				<button
+					class="btn btn-sm"
+					class:btn-quiet={index !== active}
+					type="button"
+					role="tab"
+					id="step-tab-{index}"
+					aria-selected={index === active}
+					aria-controls="step-panel-{index}"
+					onclick={() => (active = index)}
+				>
+					<span class="font-mono">{String(index + 1).padStart(2, '0')}</span>
+					{step.title}
+				</button>
+			{/each}
 		</div>
 
 		<div class="mt-12 flex justify-center" use:reveal>
@@ -571,10 +596,42 @@
 		z-index: 1;
 	}
 
+	/* A MacBook screen is 16:10; anything else and the drawing is a lie. */
 	.screen {
+		position: relative;
+		aspect-ratio: 16 / 10;
 		border-radius: 0.75rem;
 		background: var(--color-surface);
-		padding: 3rem 2rem 2.5rem;
+		overflow: hidden;
+	}
+
+	.step {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 2.5rem 2rem;
+		text-align: center;
+		opacity: 0;
+		transform: translateY(0.75rem);
+		transition:
+			opacity 320ms ease,
+			transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+		pointer-events: none;
+	}
+
+	.showing {
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.step {
+			transition: none;
+		}
 	}
 
 	.base {

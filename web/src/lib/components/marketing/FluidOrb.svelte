@@ -3,7 +3,13 @@
 
 	// A sphere of drifting colour, in the spirit of the FluidOrb on rareui.com,
 	// written for Svelte rather than pulling in a React component.
-	let { size = 320, label = '' }: { size?: number; label?: string } = $props();
+	// The middle and bottom bands are derived from one colour — a pale tint and
+	// the full thing — while the top of the sphere stays white.
+	let {
+		size = 320,
+		color = '#059669',
+		label = ''
+	}: { size?: number; color?: string; label?: string } = $props();
 
 	let canvas = $state<HTMLCanvasElement | null>(null);
 	let failed = $state(false);
@@ -17,9 +23,8 @@
 		precision mediump float;
 		uniform vec2 size;
 		uniform float time;
-		uniform vec3 deep;
-		uniform vec3 mid;
-		uniform vec3 warm;
+		uniform vec3 tint;
+		uniform vec3 full;
 
 		float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
@@ -30,12 +35,11 @@
 			           mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
 		}
 
-		// Layered noise, warped by itself: patches that drift and reform instead
-		// of sliding past one another.
+		// Noise warped by itself, so the bands wander and reform rather than slide.
 		float fluid(vec2 p, float t) {
-			vec2 warp = vec2(noise(p + t * 0.12), noise(p.yx - t * 0.09));
-			float n = noise(p * 1.6 + warp * 1.9 + vec2(t * 0.08, -t * 0.05));
-			n += 0.5 * noise(p * 3.1 - warp * 1.2 - vec2(t * 0.06, t * 0.11));
+			vec2 warp = vec2(noise(p * 1.3 + t * 0.11), noise(p.yx * 1.1 - t * 0.08));
+			float n = noise(p * 1.7 + warp * 1.6 + vec2(t * 0.07, -t * 0.05));
+			n += 0.5 * noise(p * 3.3 - warp * 1.1 + vec2(-t * 0.05, t * 0.09));
 			return n / 1.5;
 		}
 
@@ -44,19 +48,20 @@
 			float r = length(uv);
 			if (r > 1.0) discard;
 
-			// Bend the sampling toward the edges so the colour wraps like a sphere.
+			// Bend the sampling toward the rim so the bands wrap like a sphere.
 			float z = sqrt(max(0.0, 1.0 - r * r));
-			vec2 p = uv / (0.55 + z * 0.75);
+			vec2 p = uv / (0.6 + z * 0.7);
 
-			float a = fluid(p + 0.0, time);
-			float b = fluid(p * 1.4 - 3.7, time * 1.3);
+			// Height down the sphere, pushed about by the fluid.
+			float band = (1.0 - (uv.y * 0.5 + 0.5)) + (fluid(p, time) - 0.5) * 0.55;
 
-			vec3 color = mix(deep, mid, smoothstep(0.25, 0.85, a));
-			color = mix(color, warm, smoothstep(0.55, 1.0, b) * 0.7);
+			vec3 color = vec3(1.0);
+			color = mix(color, tint, smoothstep(0.34, 0.62, band));
+			color = mix(color, full, smoothstep(0.62, 0.92, band));
 
-			// A little light from above, and a soft edge rather than a cut one.
-			color += vec3(0.10) * pow(max(0.0, z), 2.5);
-			float edge = smoothstep(1.0, 0.86, r);
+			// The rim turns away from the light rather than ending in a hard line.
+			color *= 0.82 + 0.18 * pow(max(0.0, z), 0.6);
+			float edge = smoothstep(1.0, 0.965, r);
 			gl_FragColor = vec4(color, edge);
 		}
 	`;
@@ -111,9 +116,8 @@
 
 		const uSize = gl.getUniformLocation(program, 'size');
 		const uTime = gl.getUniformLocation(program, 'time');
-		const uDeep = gl.getUniformLocation(program, 'deep');
-		const uMid = gl.getUniformLocation(program, 'mid');
-		const uWarm = gl.getUniformLocation(program, 'warm');
+		const uTint = gl.getUniformLocation(program, 'tint');
+		const uFull = gl.getUniformLocation(program, 'full');
 
 		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -122,10 +126,9 @@
 		gl.viewport(0, 0, canvas.width, canvas.height);
 		gl.uniform2f(uSize, canvas.width, canvas.height);
 
-		// Dawn: the deep of the night, the green of the brand, the first light.
-		gl.uniform3fv(uDeep, rgb('#052e21'));
-		gl.uniform3fv(uMid, rgb('#0f9b6c'));
-		gl.uniform3fv(uWarm, rgb('#f2c078'));
+		const [r, g, b] = rgb(color);
+		gl.uniform3fv(uTint, [r + (1 - r) * 0.72, g + (1 - g) * 0.72, b + (1 - b) * 0.72]);
+		gl.uniform3fv(uFull, [r, g, b]);
 
 		let frame = 0;
 		const start = performance.now();
@@ -143,7 +146,6 @@
 
 <div class="orb" style:inline-size="{size}px" style:block-size="{size}px" role="img" aria-label={label}>
 	<canvas class:hidden={failed} bind:this={canvas}></canvas>
-	<span class="halo" aria-hidden="true"></span>
 </div>
 
 <style>
@@ -161,12 +163,4 @@
 		border-radius: 999px;
 	}
 
-	/* The light it throws on whatever it is sitting on. */
-	.halo {
-		position: absolute;
-		inset: -22%;
-		border-radius: 999px;
-		background: radial-gradient(closest-side, var(--color-brand-soft), transparent 70%);
-		opacity: 0.75;
-	}
 </style>
