@@ -1,17 +1,19 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
+	import AccountMenu from '$lib/components/AccountMenu.svelte';
+	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { breadcrumbs } from '$lib/breadcrumbs';
 	import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right';
-	import LogOut from '@lucide/svelte/icons/log-out';
 	import Menu from '@lucide/svelte/icons/menu';
+	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
 	let session = $derived(data.session);
 	let open = $state(false);
+	let crumbs = $derived(breadcrumbs(page.url.pathname, page.data));
 
 	// Close on navigation, so the drawer never covers the page it just opened.
 	$effect(() => {
@@ -20,28 +22,45 @@
 	});
 </script>
 
-<!-- Inset: the navigation sits on the page ground and the work sits on a panel
-     lifted above it, so the two never read as one continuous surface. -->
-<div class="flex min-h-dvh bg-ground">
+<div class="min-h-dvh bg-ground">
 	{#if open}
 		<button
-			class="fixed inset-0 z-30 bg-black/40 lg:hidden"
+			class="fixed inset-0 z-30 bg-black/40 transition-opacity motion-reduce:transition-none lg:hidden"
 			type="button"
 			aria-label="Close the menu"
 			onclick={() => (open = false)}
 		></button>
 	{/if}
 
+	<!-- The sidebar is always position: fixed, so it never scrolls with the
+	     content column; only its mobile visibility is toggled by translate. -->
 	<aside
-		class="fixed inset-y-0 z-40 flex w-64 shrink-0 flex-col bg-ground transition-transform lg:static lg:translate-x-0"
+		class="fixed inset-y-0 start-0 z-40 flex w-64 shrink-0 flex-col border-e border-line bg-ground transition-transform duration-200 motion-reduce:transition-none lg:translate-x-0"
 		class:-translate-x-full={!open}
 		class:rtl:translate-x-full={!open}
 		class:translate-x-0={open}
 	>
-		<div class="flex h-16 items-center gap-2 px-6">
-			<a class="text-lg font-semibold tracking-tight" href="/">Fajr</a>
+		<div class="flex h-16 shrink-0 items-center gap-2 px-4">
+			{#if session?.tenant}
+				<div class="min-w-0 flex-1">
+					<p class="truncate text-sm font-semibold tracking-tight" dir="auto">
+						{session.tenant.name}
+					</p>
+					{#if (session.memberships?.length ?? 0) > 1}
+						<a
+							class="inline-flex items-center gap-1 text-xs text-ink-soft transition-colors hover:text-ink"
+							href="/tenant"
+						>
+							<ArrowLeftRight size={12} aria-hidden="true" />
+							Switch school
+						</a>
+					{/if}
+				</div>
+			{:else}
+				<a class="text-lg font-semibold tracking-tight" href="/">Fajr</a>
+			{/if}
 			<button
-				class="btn btn-sm btn-quiet ms-auto lg:hidden"
+				class="btn btn-sm btn-quiet lg:hidden"
 				type="button"
 				aria-label="Close the menu"
 				onclick={() => (open = false)}
@@ -49,55 +68,81 @@
 				<X size={16} aria-hidden="true" />
 			</button>
 		</div>
-		<Sidebar role={session?.tenant?.role} onNavigate={() => (open = false)} />
+
+		<div class="min-h-0 flex-1 overflow-y-auto">
+			<Sidebar role={session?.tenant?.role} onNavigate={() => (open = false)} />
+		</div>
+
+		{#if session?.user}
+			<div class="shrink-0 border-t border-line p-3">
+				<AccountMenu fullName={session.user.full_name} onNavigate={() => (open = false)} />
+			</div>
+		{/if}
 	</aside>
 
-	<div class="flex min-w-0 flex-1 flex-col gap-3 p-3 lg:ps-0">
-		<main class="card min-w-0 flex-1 overflow-hidden p-0">
-			<header
-				class="flex h-16 items-center gap-3 border-b border-line px-4 sm:px-6"
+	<div class="flex min-w-0 flex-col lg:ms-64">
+		<header
+			class="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-ground/95 px-4 backdrop-blur sm:px-6"
+		>
+			<button
+				class="btn btn-sm btn-quiet lg:hidden"
+				type="button"
+				aria-label="Open the menu"
+				onclick={() => (open = true)}
 			>
-				<button
-					class="btn btn-sm btn-quiet lg:hidden"
-					type="button"
-					aria-label="Open the menu"
-					onclick={() => (open = true)}
-				>
-					<Menu size={16} aria-hidden="true" />
-				</button>
+				<Menu size={16} aria-hidden="true" />
+			</button>
 
-				{#if session?.tenant}
-					<span class="chip max-w-[12rem] truncate" dir="auto">{session.tenant.name}</span>
-					<span class="hidden text-sm text-ink-soft sm:inline" dir="auto">
-						{session.tenant.role}
-					</span>
-				{/if}
+			<nav aria-label="Breadcrumb" class="min-w-0">
+				<ol class="m-0 flex list-none items-center gap-1.5 overflow-hidden p-0 text-sm">
+					{#each crumbs as crumb, i (crumb.href)}
+						{#if i > 0}
+							<li class="text-ink-faint" aria-hidden="true">/</li>
+						{/if}
+						<li class="min-w-0 truncate">
+							{#if i === crumbs.length - 1}
+								<span class="font-medium text-ink" dir="auto" aria-current="page">
+									{crumb.label}
+								</span>
+							{:else}
+								<a
+									class="text-ink-soft transition-colors hover:text-ink"
+									dir="auto"
+									href={crumb.href}
+								>
+									{crumb.label}
+								</a>
+							{/if}
+						</li>
+					{/each}
+				</ol>
+			</nav>
 
-				<div class="ms-auto flex items-center gap-2">
-					<span class="hidden text-sm text-ink-soft sm:inline" dir="auto">
-						{session?.user.full_name ?? ''}
-					</span>
-					{#if (session?.memberships.length ?? 0) > 1}
-						<a class="btn btn-sm btn-quiet" href="/tenant" title="Switch school">
-							<ArrowLeftRight size={15} aria-hidden="true" />
-							<span class="hidden sm:inline">Switch</span>
-						</a>
-					{/if}
-					<ThemeToggle theme={data.theme} />
-					<form method="POST" action="/login?/logout" use:enhance>
-						<button class="btn btn-sm btn-quiet" type="submit" title="Sign out">
-							<LogOut size={15} aria-hidden="true" />
-							<span class="hidden sm:inline">Sign out</span>
-						</button>
-					</form>
+			<div class="ms-auto flex items-center gap-2">
+				<div class="hidden sm:block">
+					<label class="sr-only" for="content-search">Search</label>
+					<div class="relative">
+						<Search
+							class="pointer-events-none absolute inset-y-0 start-3 my-auto text-ink-faint"
+							size={15}
+							aria-hidden="true"
+						/>
+						<input
+							id="content-search"
+							class="field h-9 w-56 ps-9"
+							type="search"
+							placeholder="Search (coming soon)"
+							readonly
+							aria-disabled="true"
+						/>
+					</div>
 				</div>
-			</header>
-
-			<div class="p-4 sm:p-6 lg:p-8">
-				<div class="mx-auto max-w-4xl">
-					{@render children()}
-				</div>
+				<NotificationBell notifications={data.recentNotifications} unread={data.unread} />
 			</div>
+		</header>
+
+		<main class="min-w-0 p-4 sm:p-6 lg:p-8">
+			{@render children()}
 		</main>
 	</div>
 </div>
