@@ -21,7 +21,11 @@
 {:else}
 	<ul class="list-none space-y-2 p-0">
 		{#each data.submissions as row (row.submission.id)}
-			<li class="card flex items-center gap-3 p-4">
+			<li>
+				<a
+					class="card flex items-center gap-3 p-4 transition hover:border-line-strong"
+					href="/submissions/{row.submission.id}"
+				>
 				<span class="min-w-0 flex-1">
 					<span class="block font-medium" dir="auto">{row.full_name}</span>
 					<span class="mt-0.5 block text-sm text-ink-soft" dir="auto">
@@ -34,6 +38,7 @@
 						Late
 					</span>
 				{/if}
+				</a>
 			</li>
 		{/each}
 	</ul>

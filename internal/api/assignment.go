@@ -12,6 +12,7 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/assessment"
 	"github.com/ebnsina/fajr-lms/internal/database"
 	"github.com/ebnsina/fajr-lms/internal/httpx"
+	"github.com/ebnsina/fajr-lms/internal/media"
 )
 
 type assignmentRequest struct {
@@ -242,6 +243,81 @@ func (s *Server) submissionQueue(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return httpx.JSON(w, http.StatusOK, map[string]any{"submissions": rows})
+}
+
+// submissionSheet is what a marker needs: the work, the brief, and playable
+// links for whatever was attached.
+type submissionSheet struct {
+	Submission  database.Submission `json:"submission"`
+	Assignment  database.Assignment `json:"assignment"`
+	FullName    string              `json:"full_name"`
+	Attachments []attachmentView    `json:"attachments"`
+}
+
+type attachmentView struct {
+	MediaID uuid.UUID       `json:"media_id"`
+	Kind    string          `json:"kind"`
+	Title   string          `json:"title"`
+	State   string          `json:"state"`
+	Play    *media.Playback `json:"playback,omitempty"`
+}
+
+func (s *Server) submissionSheet(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+
+	tenant := CurrentTenant(r.Context())
+	var (
+		row    database.SubmissionForMarkingRow
+		assets []database.MediaAsset
+	)
+	err = s.store.InTenant(r.Context(), tenant.ID, func(q *database.Queries) error {
+		var err error
+		if row, err = q.SubmissionForMarking(r.Context(), id); err != nil {
+			return err
+		}
+		for _, mediaID := range row.Submission.MediaIds {
+			asset, err := q.GetMediaAsset(r.Context(), mediaID)
+			if database.IsNotFound(err) {
+				continue // deleted since it was attached
+			}
+			if err != nil {
+				return err
+			}
+			assets = append(assets, asset)
+		}
+		return nil
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	viewer := media.Viewer{UserID: Authenticated(r.Context()).UserID.String(), TenantID: tenant.ID.String()}
+	out := submissionSheet{
+		Submission: row.Submission, Assignment: row.Assignment, FullName: row.FullName,
+		Attachments: make([]attachmentView, 0, len(assets)),
+	}
+	for _, asset := range assets {
+		view := attachmentView{
+			MediaID: asset.ID, Kind: string(asset.Kind),
+			Title: asset.Title, State: string(asset.State),
+		}
+		if provider, err := s.media.Get(asset.Provider); err == nil {
+			if play, err := provider.Playback(r.Context(), media.Asset{
+				ID: asset.ID.String(), TenantID: asset.TenantID.String(), ExternalRef: asset.ExternalRef,
+				State: media.State(asset.State), ContentType: asset.ContentType,
+			}, viewer); err == nil {
+				view.Play = &play
+			}
+		}
+		out.Attachments = append(out.Attachments, view)
+	}
+	return httpx.JSON(w, http.StatusOK, out)
 }
 
 type gradeSubmissionRequest struct {

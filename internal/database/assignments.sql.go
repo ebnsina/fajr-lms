@@ -372,6 +372,58 @@ func (q *Queries) MySubmission(ctx context.Context, arg MySubmissionParams) (Sub
 	return i, err
 }
 
+const submissionForMarking = `-- name: SubmissionForMarking :one
+SELECT s.id, s.tenant_id, s.assignment_id, s.enrollment_id, s.user_id, s.state, s.body, s.media_ids, s.is_late, s.submitted_at, s.points_awarded, s.feedback, s.graded_by, s.graded_at, s.created_at, s.updated_at, a.id, a.tenant_id, a.lesson_id, a.title, a.instructions, a.dir, a.points, a.due_at, a.allow_late, a.late_penalty, a.max_files, a.created_at, a.updated_at, u.full_name
+FROM submissions s
+JOIN assignments a ON a.id = s.assignment_id
+JOIN users u ON u.id = s.user_id
+WHERE s.id = $1
+`
+
+type SubmissionForMarkingRow struct {
+	Submission Submission `json:"submission"`
+	Assignment Assignment `json:"assignment"`
+	FullName   string     `json:"full_name"`
+}
+
+func (q *Queries) SubmissionForMarking(ctx context.Context, id uuid.UUID) (SubmissionForMarkingRow, error) {
+	row := q.db.QueryRow(ctx, submissionForMarking, id)
+	var i SubmissionForMarkingRow
+	err := row.Scan(
+		&i.Submission.ID,
+		&i.Submission.TenantID,
+		&i.Submission.AssignmentID,
+		&i.Submission.EnrollmentID,
+		&i.Submission.UserID,
+		&i.Submission.State,
+		&i.Submission.Body,
+		&i.Submission.MediaIds,
+		&i.Submission.IsLate,
+		&i.Submission.SubmittedAt,
+		&i.Submission.PointsAwarded,
+		&i.Submission.Feedback,
+		&i.Submission.GradedBy,
+		&i.Submission.GradedAt,
+		&i.Submission.CreatedAt,
+		&i.Submission.UpdatedAt,
+		&i.Assignment.ID,
+		&i.Assignment.TenantID,
+		&i.Assignment.LessonID,
+		&i.Assignment.Title,
+		&i.Assignment.Instructions,
+		&i.Assignment.Dir,
+		&i.Assignment.Points,
+		&i.Assignment.DueAt,
+		&i.Assignment.AllowLate,
+		&i.Assignment.LatePenalty,
+		&i.Assignment.MaxFiles,
+		&i.Assignment.CreatedAt,
+		&i.Assignment.UpdatedAt,
+		&i.FullName,
+	)
+	return i, err
+}
+
 const updateAssignment = `-- name: UpdateAssignment :one
 UPDATE assignments SET
   title        = coalesce($1, title),

@@ -243,3 +243,69 @@ func TestLateSubmissions(t *testing.T) {
 		}
 	})
 }
+
+func TestSubmissionSheet(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enrol(t, h, ch, store, "owner")
+	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	_, assignmentID, _ := assignmentCourse(t, h, owner, student, map[string]any{
+		"title": "Reflection", "points": 30,
+	})
+
+	mediaID := createdID(t, do(t, h, "POST", "/v1/media", owner.token, owner.slug,
+		map[string]any{"url": "https://youtu.be/dQw4w9WgXcQ", "kind": "link"}))
+	got := hand(t, h, student, assignmentID, map[string]any{
+		"body": "my reflection", "media_ids": []string{mediaID}, "submit": true,
+	})
+	if got.code != http.StatusOK {
+		t.Fatalf("hand in: got %d: %s", got.code, got.body)
+	}
+	submissionID := got.decode(t).ID
+
+	t.Run("a marker sees the work, the brief and the attachments", func(t *testing.T) {
+		rec := do(t, h, "GET", "/v1/submissions/"+submissionID, owner.token, owner.slug, nil)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("got %d: %s", rec.Code, rec.Body)
+		}
+		var sheet struct {
+			Submission struct {
+				Body string `json:"body"`
+			} `json:"submission"`
+			Assignment struct {
+				Points int32 `json:"points"`
+			} `json:"assignment"`
+			FullName    string `json:"full_name"`
+			Attachments []struct {
+				MediaID  string `json:"media_id"`
+				Playback *struct {
+					URL string `json:"url"`
+				} `json:"playback"`
+			} `json:"attachments"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &sheet); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if sheet.Submission.Body != "my reflection" || sheet.Assignment.Points != 30 {
+			t.Fatalf("got %+v", sheet)
+		}
+		if sheet.FullName == "" {
+			t.Error("the marker needs to know whose work this is")
+		}
+		if len(sheet.Attachments) != 1 || sheet.Attachments[0].Playback == nil {
+			t.Fatalf("attachment did not come back playable: %+v", sheet.Attachments)
+		}
+	})
+
+	t.Run("a learner cannot open the sheet", func(t *testing.T) {
+		if rec := do(t, h, "GET", "/v1/submissions/"+submissionID, student.token, owner.slug, nil); rec.Code != http.StatusForbidden {
+			t.Errorf("got %d, want 403", rec.Code)
+		}
+	})
+
+	t.Run("a submission in another tenant is not found", func(t *testing.T) {
+		other := enrol(t, h, ch, store, "owner")
+		if rec := do(t, h, "GET", "/v1/submissions/"+submissionID, other.token, other.slug, nil); rec.Code != http.StatusNotFound {
+			t.Errorf("got %d, want 404", rec.Code)
+		}
+	})
+}

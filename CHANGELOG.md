@@ -5,6 +5,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Mark an assignment: the work, the brief and any attached photos on one page,
+  with the mark and a comment returned to the learner.
+- Late work shows what the learner will actually receive once the penalty comes
+  off, before the mark is saved.
+
 - Gradebook grid: every learner against every graded item, with the course
   percentage worked out for you. Type in a box to enter or correct a score, and
   empty it to go back to the marked one.

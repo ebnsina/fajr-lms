@@ -66,3 +66,10 @@ SELECT a.id AS assignment_id, s.enrollment_id, s.points_awarded
 FROM submissions s JOIN assignments a ON a.id = s.assignment_id
 JOIN lessons l ON l.id = a.lesson_id JOIN modules m ON m.id = l.module_id
 WHERE m.course_id = @course_id AND s.state = 'returned' AND s.points_awarded IS NOT NULL;
+
+-- name: SubmissionForMarking :one
+SELECT sqlc.embed(s), sqlc.embed(a), u.full_name
+FROM submissions s
+JOIN assignments a ON a.id = s.assignment_id
+JOIN users u ON u.id = s.user_id
+WHERE s.id = @id;
