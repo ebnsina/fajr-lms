@@ -66,6 +66,11 @@ export function duration(seconds: number, locale = 'en'): string {
 	return rest ? `${fmt.format(hours)} h ${fmt.format(rest)} min` : `${fmt.format(hours)} h`;
 }
 
+/** Joins the small facts under a title, skipping the ones that are absent. */
+export function meta(...parts: (string | number | false | null | undefined)[]): string {
+	return parts.filter(Boolean).join(' · ');
+}
+
 export function money(minor: number, currency: string, locale = 'en'): string {
 	return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(minor / 100);
 }

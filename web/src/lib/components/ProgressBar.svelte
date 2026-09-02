@@ -4,7 +4,7 @@
 
 <div class="flex items-center gap-3">
 	<div
-		class="h-2 flex-1 overflow-hidden rounded-full bg-line"
+		class="h-2 flex-1 overflow-hidden rounded-full bg-sunken"
 		role="progressbar"
 		aria-valuenow={percent}
 		aria-valuemin="0"

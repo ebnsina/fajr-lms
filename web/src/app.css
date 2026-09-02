@@ -1,42 +1,100 @@
 @import 'tailwindcss';
 
-/* One palette, defined once and swapped for dark, so no colour is only ever
-   declared inside a media query. */
-@theme {
-	--color-ink: #16181d;
-	--color-ink-soft: #5a6070;
-	--color-line: #dfe2e8;
-	--color-surface: #ffffff;
-	--color-ground: #f6f7f9;
-	--color-brand: #1f6f5c;
-	--color-brand-ink: #ffffff;
-	--color-brand-soft: #eef6f3;
-	--color-danger: #a2372a;
-	--color-danger-soft: #fdf1ef;
-
-	--font-sans:
-		system-ui, 'Segoe UI', 'Noto Sans', 'Noto Sans Arabic', 'Noto Sans Bengali', sans-serif;
-	--font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+/* Nohemi is one variable file covering every weight, so the whole interface
+   costs a single 39 KB download. It carries no Arabic or Bengali, and the
+   stack falls through per character to faces that do. */
+@font-face {
+	font-family: 'Nohemi';
+	src: url('/fonts/nohemi-variable.woff2') format('woff2-variations');
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
 }
 
+@theme {
+	/* Light is layered whites rather than one flat sheet: the page sits a shade
+	   below the cards that sit on it. */
+	--color-ground: #f6f7f8;
+	--color-surface: #ffffff;
+	--color-raised: #fbfcfc;
+	--color-sunken: #f1f3f4;
+
+	--color-line: #ecedf0;
+	--color-line-strong: #e0e2e7;
+
+	--color-ink: #14171a;
+	--color-ink-soft: #676f7b;
+	--color-ink-faint: #9aa1ac;
+
+	--color-brand: #1b6b57;
+	--color-brand-ink: #ffffff;
+	--color-brand-soft: #ecf5f2;
+	--color-brand-line: #cfe4dd;
+
+	--color-danger: #a03528;
+	--color-danger-soft: #fdf0ee;
+	--color-danger-line: #f0d3ce;
+
+	--color-focus-line: #e2e8f0;
+
+	--font-sans: 'Nohemi', 'Noto Sans Arabic', 'Noto Sans Bengali', system-ui, sans-serif;
+	--font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+
+	--radius-control: 0.75rem;
+	--radius-card: 1.5rem;
+}
+
+/* Dark is charcoal, never black: a true black ground makes light text buzz and
+   removes any room to layer surfaces above it.
+
+   Three states, not two. The system default is unstamped, so it is matched by
+   the media query; an explicit choice stamps the root and wins either way. */
 @media (prefers-color-scheme: dark) {
-	@theme {
-		--color-ink: #e7e9ee;
-		--color-ink-soft: #a3aab8;
-		--color-line: #2b303a;
-		--color-surface: #171a20;
-		--color-ground: #0f1216;
-		--color-brand: #56b394;
-		--color-brand-ink: #0f1216;
-		--color-brand-soft: #16241f;
-		--color-danger: #e08376;
-		--color-danger-soft: #2a1a18;
+	:root:not([data-theme='light']) {
+	--color-ground: #16181b;
+	--color-surface: #1c1f23;
+	--color-raised: #21252a;
+	--color-sunken: #131518;
+	--color-line: #272b31;
+	--color-line-strong: #333941;
+	--color-ink: #e8eaed;
+	--color-ink-soft: #9aa2ad;
+	--color-ink-faint: #6d7681;
+	--color-brand: #5fbfa0;
+	--color-brand-ink: #10241e;
+	--color-brand-soft: #172622;
+	--color-brand-line: #294038;
+	--color-danger: #e0857a;
+	--color-danger-soft: #2a1b18;
+	--color-danger-line: #472c27;
+	--color-focus-line: #3a424d;
 	}
+}
+
+[data-theme='dark'] {
+	--color-ground: #16181b;
+	--color-surface: #1c1f23;
+	--color-raised: #21252a;
+	--color-sunken: #131518;
+	--color-line: #272b31;
+	--color-line-strong: #333941;
+	--color-ink: #e8eaed;
+	--color-ink-soft: #9aa2ad;
+	--color-ink-faint: #6d7681;
+	--color-brand: #5fbfa0;
+	--color-brand-ink: #10241e;
+	--color-brand-soft: #172622;
+	--color-brand-line: #294038;
+	--color-danger: #e0857a;
+	--color-danger-soft: #2a1b18;
+	--color-danger-line: #472c27;
+	--color-focus-line: #3a424d;
 }
 
 @layer base {
 	html {
 		line-height: 1.55;
+		-webkit-font-smoothing: antialiased;
 	}
 
 	/* Bengali conjuncts and Arabic descenders clip at Latin metrics. */
@@ -52,72 +110,97 @@
 		font-family: var(--font-sans);
 	}
 
+	h1,
+	h2,
+	h3 {
+		font-weight: 600;
+		letter-spacing: -0.015em;
+		text-wrap: balance;
+	}
+
+	/* One focus treatment everywhere: the border settles to a neutral and the
+	   ring does the signalling, so it reads the same on any coloured control. */
 	:focus-visible {
+		border-color: var(--color-focus-line);
 		outline: 2px solid var(--color-brand);
 		outline-offset: 2px;
 	}
 }
 
-/* Utilities used on nearly every screen. Everything is written with logical
-   properties, so one dir attribute flips the whole interface. */
+/* Depth comes from a hairline and a shade change, never a shadow. */
 @utility card {
 	background: var(--color-surface);
 	border: 1px solid var(--color-line);
-	border-radius: 0.5rem;
-	padding: 1.25rem;
+	border-radius: var(--radius-card);
+	padding: 1.5rem;
 }
 
 @utility field {
 	inline-size: 100%;
-	padding: 0.6rem 0.75rem;
-	border: 1px solid var(--color-line);
-	border-radius: 0.5rem;
-	background: var(--color-surface);
+	padding: 0.65rem 0.9rem;
+	border: 1px solid var(--color-line-strong);
+	border-radius: var(--radius-control);
+	background: var(--color-raised);
 	color: inherit;
 	font: inherit;
+	transition: border-color 0.15s ease;
 }
 
 @utility btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.4rem;
-	padding: 0.6rem 1rem;
-	border-radius: 0.5rem;
+	justify-content: center;
+	gap: 0.45rem;
+	padding: 0.65rem 1.1rem;
+	border-radius: var(--radius-control);
 	border: 1px solid transparent;
 	background: var(--color-brand);
 	color: var(--color-brand-ink);
 	font: inherit;
-	font-weight: 600;
+	font-weight: 500;
 	cursor: pointer;
+	transition:
+		opacity 0.15s ease,
+		border-color 0.15s ease;
 }
 
 @utility btn-quiet {
 	background: var(--color-surface);
-	border-color: var(--color-line);
+	border-color: var(--color-line-strong);
 	color: var(--color-ink);
 }
 
 @utility banner {
-	border-inline-start: 3px solid var(--color-brand);
+	border: 1px solid var(--color-brand-line);
 	background: var(--color-brand-soft);
-	padding: 0.65rem 0.9rem;
-	border-radius: 0.375rem;
+	padding: 0.8rem 1rem;
+	border-radius: var(--radius-control);
 }
 
 @utility banner-bad {
-	border-inline-start: 3px solid var(--color-danger);
+	border: 1px solid var(--color-danger-line);
 	background: var(--color-danger-soft);
 	color: var(--color-danger);
-	padding: 0.65rem 0.9rem;
-	border-radius: 0.375rem;
+	padding: 0.8rem 1rem;
+	border-radius: var(--radius-control);
 }
 
 @utility chip {
-	font-size: 0.75rem;
+	display: inline-flex;
+	align-items: center;
+	font-size: 0.7rem;
+	font-weight: 500;
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.07em;
 	color: var(--color-ink-soft);
+	background: var(--color-sunken);
 	border: 1px solid var(--color-line);
-	border-radius: 999px;
-	padding: 0.1rem 0.5rem;
+	border-radius: var(--radius-control);
+	padding: 0.2rem 0.6rem;
+}
+
+@utility chip-brand {
+	color: var(--color-brand);
+	background: var(--color-brand-soft);
+	border-color: var(--color-brand-line);
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
-	import { dirOf, duration } from '$lib/api';
+	import { dirOf, duration, meta } from '$lib/api';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -79,17 +79,17 @@
 						{@const state = states.get(lesson.id)}
 						<li>
 							<a
-								class="card flex items-center gap-3 transition hover:border-brand"
+								class="card flex items-center gap-3 p-4 transition hover:border-line-strong"
 								href="/courses/{course.slug}/lessons/{lesson.id}"
 							>
 								<span class="min-w-0 flex-1">
 									<span class="block font-medium" dir={dirOf(lesson.dir)}>{lesson.title}</span>
 									<span class="mt-0.5 block text-sm text-ink-soft" dir="auto">
-										{lesson.kind}{#if lesson.duration_s} · {duration(lesson.duration_s, locale)}{/if}
+										{meta(lesson.kind, lesson.duration_s && duration(lesson.duration_s, locale))}
 									</span>
 								</span>
 								{#if state}
-									<span class="chip shrink-0">{marks[state] ?? state}</span>
+									<span class="shrink-0 chip {state === 'completed' ? 'chip-brand' : ''}">{marks[state] ?? state}</span>
 								{/if}
 							</a>
 						</li>

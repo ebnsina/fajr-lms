@@ -34,7 +34,7 @@
 	<ul class="grid list-none gap-3 p-0 sm:grid-cols-2">
 		{#each data.enrollments as row (row.enrollment.id)}
 			<li>
-				<a class="card block transition hover:border-brand" href="/courses/{row.slug}">
+				<a class="card block transition hover:border-line-strong" href="/courses/{row.slug}">
 					<span class="block font-semibold" dir={dirOf(row.dir)}>
 						{row.title}
 					</span>

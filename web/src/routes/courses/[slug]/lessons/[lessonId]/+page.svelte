@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import MediaPlayer from '$lib/components/MediaPlayer.svelte';
-	import { dirOf, duration } from '$lib/api';
+	import { dirOf, duration, meta } from '$lib/api';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -24,8 +24,8 @@
 		{data.lesson.title}
 	</h1>
 	<p class="mt-1 text-sm text-ink-soft" dir="auto">
-		{data.lesson.kind}{#if data.lesson.duration_s} · {duration(data.lesson.duration_s, locale)}{/if}
-		{#if done}· <span class="text-brand">Completed</span>{/if}
+		{meta(data.lesson.kind, data.lesson.duration_s && duration(data.lesson.duration_s, locale))}
+		{#if done}<span class="text-brand"> · Completed</span>{/if}
 	</p>
 </header>
 

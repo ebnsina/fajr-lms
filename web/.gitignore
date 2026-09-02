@@ -21,3 +21,6 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Licensed font: see web/static/fonts/README.md
+static/fonts/*.woff2

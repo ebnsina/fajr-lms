@@ -5,6 +5,7 @@ declare global {
 			tenantSlug?: string;
 			dir?: 'ltr' | 'rtl';
 			lang?: string;
+			theme?: 'light' | 'dark' | 'system';
 		}
 	}
 }

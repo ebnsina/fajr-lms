@@ -5,7 +5,8 @@ import type { Session, Tenant, User, Membership } from '$lib/types';
 
 export const load: LayoutServerLoad = async ({ locals, cookies, fetch }) => {
 	const empty: Session = { user: { id: '', full_name: '' }, memberships: [], tenant: null };
-	if (!locals.token) return { session: null };
+	const theme = locals.theme ?? 'system';
+	if (!locals.token) return { session: null, theme };
 
 	try {
 		const me = await api<{ user: User; memberships: Membership[] }>('/v1/me', {
@@ -29,9 +30,9 @@ export const load: LayoutServerLoad = async ({ locals, cookies, fetch }) => {
 
 		locals.dir = tenant?.default_dir === 'rtl' ? 'rtl' : 'ltr';
 		locals.lang = tenant?.locale ?? 'en';
-		return { session: { ...empty, user: me.user, memberships: me.memberships, tenant } };
+		return { session: { ...empty, user: me.user, memberships: me.memberships, tenant }, theme };
 	} catch (error) {
 		if (error instanceof ApiFailure && error.status === 401) clearSession(cookies);
-		return { session: null };
+		return { session: null, theme };
 	}
 };

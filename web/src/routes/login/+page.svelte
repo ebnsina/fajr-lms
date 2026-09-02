@@ -1,14 +1,19 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import type { ActionData } from './$types';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import type { PageProps } from './$types';
 
-	let { form }: { form: ActionData } = $props();
+	let { data, form }: PageProps = $props();
 	let sending = $state(false);
 </script>
 
 <svelte:head><title>Sign in · Fajr</title></svelte:head>
 
 <div class="mx-auto max-w-sm pt-10">
+	<div class="mb-6 flex justify-end">
+		<ThemeToggle theme={data.theme} />
+	</div>
+
 	<h1 class="mb-1 text-2xl font-bold tracking-tight">Sign in to Fajr</h1>
 	<p class="mb-6 text-sm text-ink-soft">
 		We send a six digit code. No password to remember or lose.
@@ -39,7 +44,7 @@
 
 				<label class="mb-1 block font-semibold" for="code">Six digit code</label>
 				<input
-					class="field mb-4 text-center font-mono text-lg tracking-[0.4em]"
+					class="field mb-4 text-center font-mono text-xl tracking-[0.4em]"
 					id="code"
 					name="code"
 					inputmode="numeric"
@@ -60,14 +65,14 @@
 				/>
 				<p class="mb-4 text-sm text-ink-soft">Write it as you want it on your certificate.</p>
 
-				<button class="btn w-full justify-center" type="submit" disabled={sending}>
+				<button class="btn w-full" type="submit" disabled={sending}>
 					{sending ? 'Checking…' : 'Continue'}
 				</button>
 			</form>
 
 			<form method="POST" action="?/request" use:enhance class="mt-3">
 				<input type="hidden" name="destination" value={form.destination} />
-				<button class="btn btn-quiet w-full justify-center text-sm" type="submit">
+				<button class="btn btn-quiet w-full text-sm" type="submit">
 					Send another code
 				</button>
 			</form>
@@ -96,7 +101,7 @@
 				/>
 				<p class="mb-4 text-sm text-ink-soft">Include the country code.</p>
 
-				<button class="btn w-full justify-center" type="submit" disabled={sending}>
+				<button class="btn w-full" type="submit" disabled={sending}>
 					{sending ? 'Sending…' : 'Send code'}
 				</button>
 			</form>

@@ -2,6 +2,7 @@ import type { Cookies } from '@sveltejs/kit';
 
 export const TOKEN_COOKIE = 'fajr_session';
 export const TENANT_COOKIE = 'fajr_tenant';
+export const THEME_COOKIE = 'fajr_theme';
 
 const year = 60 * 60 * 24 * 365;
 
@@ -24,6 +25,10 @@ export function saveTenant(cookies: Cookies, slug: string, secure: boolean) {
 		secure,
 		maxAge: year
 	});
+}
+
+export function saveTheme(cookies: Cookies, theme: string, secure: boolean) {
+	cookies.set(THEME_COOKIE, theme, { path: '/', sameSite: 'lax', secure, maxAge: year });
 }
 
 export function clearSession(cookies: Cookies) {

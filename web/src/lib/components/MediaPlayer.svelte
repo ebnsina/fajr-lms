@@ -14,7 +14,7 @@
 	</div>
 {:else if started}
 	{#if playback.kind === 'embed'}
-		<div class="aspect-video w-full overflow-hidden rounded-lg border border-line bg-black">
+		<div class="aspect-video w-full overflow-hidden rounded-3xl border border-line bg-sunken">
 			<iframe
 				class="h-full w-full"
 				src={playback.url}
@@ -27,12 +27,12 @@
 		</div>
 	{:else}
 		<!-- svelte-ignore a11y_media_has_caption -->
-		<video class="w-full rounded-lg border border-line bg-black" src={playback.url} controls
+		<video class="w-full rounded-3xl border border-line bg-sunken" src={playback.url} controls
 		></video>
 	{/if}
 {:else}
 	<button
-		class="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-line bg-surface text-ink-soft transition hover:border-brand"
+		class="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border border-line bg-raised text-ink-soft transition hover:border-line-strong"
 		type="button"
 		onclick={() => (started = true)}
 	>

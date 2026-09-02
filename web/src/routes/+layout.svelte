@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { enhance } from '$app/forms';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -21,9 +22,9 @@
 </svelte:head>
 
 {#if session}
-	<header class="border-b border-line bg-surface">
+	<header class="border-b border-line bg-surface/80 backdrop-blur">
 		<div class="mx-auto flex max-w-4xl flex-wrap items-center gap-3 px-4 py-3">
-			<span class="font-bold tracking-tight">Fajr</span>
+			<span class="text-lg font-semibold tracking-tight">Fajr</span>
 			{#if session.tenant}
 				<span class="chip" dir="auto">{session.tenant.name}</span>
 				<span class="text-sm text-ink-soft">{session.tenant.role}</span>
@@ -32,8 +33,9 @@
 			{#if session.memberships.length > 1}
 				<a class="text-sm text-brand underline-offset-4 hover:underline" href="/tenant">Switch</a>
 			{/if}
+			<ThemeToggle theme={data.theme} />
 			<form method="POST" action="/login?/logout" use:enhance>
-				<button class="btn btn-quiet text-sm" type="submit">Sign out</button>
+				<button class="btn btn-quiet px-3 py-1.5 text-sm" type="submit">Sign out</button>
 			</form>
 		</div>
 	</header>

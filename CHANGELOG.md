@@ -5,6 +5,14 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- A light and a dark appearance, and a control to choose between them or follow
+  the device. The choice is remembered and applied before the page paints, so
+  there is no flash of the wrong one.
+
+### Changed
+- New typeface and a quieter surface treatment: layered whites in light, charcoal
+  rather than black in dark, hairline borders in place of shadows, and softer
+  corners on cards and controls.
 - Course pages: see the whole outline, how far you have got, and jump straight
   back to where you stopped.
 - Lesson pages with video, written content and a finish button, plus next and

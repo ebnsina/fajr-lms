@@ -29,7 +29,7 @@
 		<form method="POST" use:enhance>
 			<input type="hidden" name="slug" value={tenant.slug} />
 			<button
-				class="card w-full cursor-pointer text-start transition hover:border-brand"
+				class="card w-full cursor-pointer text-start transition hover:border-line-strong"
 				class:border-brand={tenant.slug === data.current}
 				type="submit"
 			>
