@@ -6,3 +6,6 @@
 coverage.out
 node_modules/
 .DS_Store
+
+# Agent worktrees are scratch space, not part of the project
+.claude/worktrees/
