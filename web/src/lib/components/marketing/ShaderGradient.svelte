@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let { light = '#eaf3ee', dark = '#12211c' }: { light?: string; dark?: string } = $props();
+	let { light = '#eef0ff', dark = '#171a2b' }: { light?: string; dark?: string } = $props();
 
 	let canvas = $state<HTMLCanvasElement | null>(null);
 	let failed = $state(false);
@@ -104,8 +104,8 @@
 			const stamped = document.documentElement.dataset.theme;
 			const isDark = stamped === 'dark' || (stamped !== 'light' && media.matches);
 			gl.uniform3fv(uBase, rgb(isDark ? dark : light));
-			gl.uniform3fv(uWarm, rgb(isDark ? '#3a2f1d' : '#ffeed6'));
-			gl.uniform3fv(uCool, rgb(isDark ? '#0f3a2c' : '#c9ecdc'));
+			gl.uniform3fv(uWarm, rgb(isDark ? '#3b2a4d' : '#ffe9d0'));
+			gl.uniform3fv(uCool, rgb(isDark ? '#2a2c63' : '#dcdcfb'));
 		}
 
 		function resize() {
