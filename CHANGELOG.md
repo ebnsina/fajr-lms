@@ -5,6 +5,17 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Take a roll call: pick a class, mark everyone present, late, absent or excused,
+  and marking somebody absent tells them and anyone listed as their guardian.
+- Review a bank transfer or wallet payment: the learner's transaction id, their
+  note and the deposit slip on one card, with approving enrolling them straight away.
+
+### Changed
+- Dropdowns are our own design rather than the browser's, and turn into a
+  searchable list once there is enough to scroll through.
+- The button that finishes a form now sits at the end of it rather than the start.
+
+### Added
 - A proper application shell: the menu stays put while the page scrolls, your
   school and a switcher sit at the top of it, and your account sits at the
   bottom with settings and sign out.

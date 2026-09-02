@@ -168,12 +168,12 @@
 </ol>
 
 {#if !done}
-	<form method="POST" action="?/release" use:enhance>
+	<form method="POST" action="?/release" use:enhance class="flex flex-col items-end">
 		<button class="btn" type="submit" disabled={pending > 0}>
 			<Send size={16} aria-hidden="true" />
 			Release the result
 		</button>
-		<p class="mt-2 text-sm text-ink-soft" dir="auto">
+		<p class="mt-2 text-end text-sm text-ink-soft" dir="auto">
 			{#if pending > 0}
 				Mark every written answer first.
 			{:else}

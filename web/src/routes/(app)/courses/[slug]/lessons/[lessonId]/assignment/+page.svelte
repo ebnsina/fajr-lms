@@ -241,13 +241,13 @@
 	{/if}
 
 	{#if !handedIn}
-		<div class="flex flex-wrap gap-3">
+		<div class="flex flex-wrap justify-end gap-3">
 			<button class="btn btn-quiet" type="submit" name="submit" value="false">Save a draft</button>
 			{#if !closed}
 				<button class="btn" type="submit" name="submit" value="true">Hand in</button>
 			{/if}
 		</div>
-		<p class="text-sm text-ink-soft" dir="auto">
+		<p class="text-end text-sm text-ink-soft" dir="auto">
 			A draft is only visible to you. Handing in is final.
 		</p>
 	{/if}

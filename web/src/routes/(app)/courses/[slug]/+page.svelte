@@ -6,6 +6,7 @@
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Check from '@lucide/svelte/icons/check';
 	import Table from '@lucide/svelte/icons/table';
+	import CalendarCheck from '@lucide/svelte/icons/calendar-check';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -52,10 +53,16 @@
 		<p class="mt-1 max-w-prose text-ink-soft" dir={dirOf(course.dir)}>{course.summary}</p>
 	{/if}
 	{#if staff}
-		<a class="btn btn-sm btn-quiet mt-3" href="/courses/{course.slug}/gradebook">
-			<Table size={15} aria-hidden="true" />
-			Gradebook
-		</a>
+		<span class="mt-3 flex flex-wrap gap-2">
+			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/gradebook">
+				<Table size={15} aria-hidden="true" />
+				Gradebook
+			</a>
+			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/attendance">
+				<CalendarCheck size={15} aria-hidden="true" />
+				Attendance
+			</a>
+		</span>
 	{/if}
 </header>
 

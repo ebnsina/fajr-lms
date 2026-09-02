@@ -169,9 +169,9 @@
 			></textarea>
 		</div>
 
-		<div>
+		<div class="flex flex-col items-end">
 			<button class="btn" type="submit">Return the mark</button>
-			<p class="mt-2 mb-0 text-sm text-ink-soft" dir="auto">
+			<p class="mt-2 mb-0 text-end text-sm text-ink-soft" dir="auto">
 				The learner is told, and this cannot be changed afterwards.
 			</p>
 		</div>

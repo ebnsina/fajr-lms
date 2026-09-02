@@ -224,8 +224,10 @@
 		}}
 	>
 		<input type="hidden" name="attempt_id" value={live.attempt.id} />
-		<button class="btn" type="submit">Hand in this attempt</button>
-		<p class="mt-2 text-sm text-ink-soft" dir="auto">
+		<div class="flex justify-end">
+			<button class="btn" type="submit">Hand in this attempt</button>
+		</div>
+		<p class="mt-2 text-end text-sm text-ink-soft" dir="auto">
 			Anything left blank scores nothing. You cannot change it after handing in.
 		</p>
 	</form>
