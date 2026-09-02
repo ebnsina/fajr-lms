@@ -8,6 +8,7 @@
 	import Table from '@lucide/svelte/icons/table';
 	import CalendarCheck from '@lucide/svelte/icons/calendar-check';
 	import PencilLine from '@lucide/svelte/icons/pencil-line';
+	import Video from '@lucide/svelte/icons/video';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -66,6 +67,10 @@
 			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/attendance">
 				<CalendarCheck size={15} aria-hidden="true" />
 				Attendance
+			</a>
+			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/classes">
+				<Video size={15} aria-hidden="true" />
+				Live classes
 			</a>
 		</span>
 	{/if}

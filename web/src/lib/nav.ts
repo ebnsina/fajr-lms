@@ -1,6 +1,7 @@
 import Home from '@lucide/svelte/icons/house';
 import Library from '@lucide/svelte/icons/library';
 import GraduationCap from '@lucide/svelte/icons/graduation-cap';
+import Award from '@lucide/svelte/icons/award';
 import Bell from '@lucide/svelte/icons/bell';
 import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
 import Inbox from '@lucide/svelte/icons/inbox';
@@ -30,6 +31,7 @@ const groups: NavGroup[] = [
 			{ label: 'Home', href: '/', icon: Home },
 			{ label: 'Courses', href: '/courses', icon: Library },
 			{ label: 'My grades', href: '/grades', icon: GraduationCap },
+			{ label: 'Certificates', href: '/certificates', icon: Award },
 			{ label: 'Notifications', href: '/notifications', icon: Bell }
 		]
 	},

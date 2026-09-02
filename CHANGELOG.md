@@ -5,6 +5,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Live classes have a page: staff paste the Google Meet or Zoom link and attach
+  the recording afterwards, and anyone enrolled joins from there when it opens.
+- Certificates have a page: what you have been awarded, the serial anyone can
+  check, and a claim button on a course you have finished.
 - Set a quiz from the app: write questions of any kind, tick the right choices,
   and see the answer key laid out. Set an assignment the same way, and change
   its due date or late penalty afterwards.
