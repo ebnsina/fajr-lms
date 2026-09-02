@@ -23,9 +23,8 @@
 	<h1 class="text-2xl font-bold tracking-tight" dir={dirOf(data.lesson.dir)}>
 		{data.lesson.title}
 	</h1>
-	<p class="mt-1 text-sm text-ink-soft">
-		{data.lesson.kind}{#if data.lesson.duration_s}
-			· {duration(data.lesson.duration_s, locale)}{/if}
+	<p class="mt-1 text-sm text-ink-soft" dir="auto">
+		{data.lesson.kind}{#if data.lesson.duration_s} · {duration(data.lesson.duration_s, locale)}{/if}
 		{#if done}· <span class="text-brand">Completed</span>{/if}
 	</p>
 </header>
@@ -58,7 +57,7 @@
 
 <div class="card">
 	{#if !data.enrolled}
-		<p class="mb-0 text-sm text-ink-soft">
+		<p class="mb-0 text-sm text-ink-soft" dir="auto">
 			You are not enrolled, so your progress through this lesson is not being kept.
 		</p>
 	{:else}

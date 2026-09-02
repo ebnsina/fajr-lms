@@ -5,6 +5,15 @@
 
 	let { data, children }: LayoutProps = $props();
 	let session = $derived(data.session);
+
+	// The server writes dir onto the document, but a client side navigation does
+	// not reload it, so switching from the sign in page would keep the old
+	// direction until a refresh.
+	$effect(() => {
+		const root = document.documentElement;
+		root.dir = session?.tenant?.default_dir === 'rtl' ? 'rtl' : 'ltr';
+		root.lang = session?.tenant?.locale ?? 'en';
+	});
 </script>
 
 <svelte:head>

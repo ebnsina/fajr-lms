@@ -41,8 +41,8 @@
 {#if data.progress}
 	<div class="card mb-6">
 		<div class="mb-3 flex flex-wrap items-baseline gap-2">
-			<span class="font-semibold">Your progress</span>
-			<span class="text-sm text-ink-soft">
+			<span class="font-semibold" dir="auto">Your progress</span>
+			<span class="text-sm text-ink-soft" dir="auto">
 				{data.progress.lessons_done} of {data.progress.lessons_total} lessons
 			</span>
 			{#if data.progress.enrollment.status === 'completed'}
@@ -58,7 +58,7 @@
 		{/if}
 	</div>
 {:else}
-	<p class="banner mb-6 text-sm">
+	<p class="banner mb-6 text-sm" dir="auto">
 		You are not enrolled in this course yet, so nothing is being recorded.
 	</p>
 {/if}
@@ -66,13 +66,13 @@
 <div class="stack space-y-6">
 	{#each data.outline.modules as module, index (module.id)}
 		<section>
-			<h2 class="mb-2 text-lg font-semibold" dir="auto">
-				<span class="text-ink-soft tabular-nums">{index + 1}.</span>
-				{module.title}
+			<h2 class="mb-2 text-lg font-semibold">
+				<bdi class="text-ink-soft tabular-nums">{index + 1}.</bdi>
+				<bdi dir="auto">{module.title}</bdi>
 			</h2>
 
 			{#if module.lessons.length === 0}
-				<p class="text-sm text-ink-soft">Nothing in this part yet.</p>
+				<p class="text-sm text-ink-soft" dir="auto">Nothing in this part yet.</p>
 			{:else}
 				<ul class="list-none space-y-2 p-0">
 					{#each module.lessons as lesson (lesson.id)}
@@ -84,9 +84,8 @@
 							>
 								<span class="min-w-0 flex-1">
 									<span class="block font-medium" dir={dirOf(lesson.dir)}>{lesson.title}</span>
-									<span class="mt-0.5 block text-sm text-ink-soft">
-										{lesson.kind}{#if lesson.duration_s}
-											· {duration(lesson.duration_s, locale)}{/if}
+									<span class="mt-0.5 block text-sm text-ink-soft" dir="auto">
+										{lesson.kind}{#if lesson.duration_s} · {duration(lesson.duration_s, locale)}{/if}
 									</span>
 								</span>
 								{#if state}

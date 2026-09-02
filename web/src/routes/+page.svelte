@@ -10,10 +10,10 @@
 
 <svelte:head><title>Home · Fajr</title></svelte:head>
 
-<h1 class="mb-1 text-2xl font-bold tracking-tight">
+<h1 class="mb-1 text-2xl font-bold tracking-tight" dir="auto">
 	Assalamu alaikum, <span dir="auto">{name}</span>
 </h1>
-<p class="mb-6 text-sm text-ink-soft">
+<p class="mb-6 text-sm text-ink-soft" dir="auto">
 	{#if data.unread > 0}
 		You have {data.unread} unread {data.unread === 1 ? 'message' : 'messages'}.
 	{:else}
@@ -21,10 +21,10 @@
 	{/if}
 </p>
 
-<h2 class="mb-3 text-lg font-semibold">Your courses</h2>
+<h2 class="mb-3 text-lg font-semibold" dir="auto">Your courses</h2>
 
 {#if data.enrollments.length === 0}
-	<div class="card text-sm text-ink-soft">
+	<div class="card text-sm text-ink-soft" dir="auto">
 		<p class="mb-0">
 			You are not enrolled in anything yet. Once a teacher adds you, or you join a course, it
 			appears here.
@@ -38,7 +38,7 @@
 					<span class="block font-semibold" dir={dirOf(row.dir)}>
 						{row.title}
 					</span>
-					<span class="mt-1 block text-sm text-ink-soft">
+					<span class="mt-1 block text-sm text-ink-soft" dir="auto">
 						{row.enrollment.status === 'completed' ? 'Completed' : 'In progress'}
 					</span>
 				</a>
