@@ -15,6 +15,7 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/database"
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 	"github.com/ebnsina/fajr-lms/internal/identity"
+	"github.com/ebnsina/fajr-lms/internal/media"
 	"github.com/ebnsina/fajr-lms/internal/notify"
 )
 
@@ -42,7 +43,12 @@ func run() error {
 	}
 	defer store.Close()
 
-	server := api.NewServer(store, identity.New(store, notify.LogChannel{}))
+	registry, err := media.NewRegistry("embed", media.Embed{AllowedHosts: cfg.MediaHosts})
+	if err != nil {
+		return err
+	}
+
+	server := api.NewServer(store, identity.New(store, notify.LogChannel{}), registry)
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,

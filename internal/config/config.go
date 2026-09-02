@@ -14,6 +14,7 @@ type Config struct {
 	Addr            string
 	DatabaseURL     string
 	LogLevel        slog.Level
+	MediaHosts      []string
 	ShutdownTimeout time.Duration
 }
 
@@ -28,6 +29,15 @@ func Load() (Config, error) {
 
 	if c.DatabaseURL == "" {
 		return Config{}, fmt.Errorf("config: FAJR_DATABASE_URL is required")
+	}
+
+	// Extra video hosts an operator trusts, on top of the built-in platforms.
+	if hosts := env("FAJR_MEDIA_HOSTS", ""); hosts != "" {
+		for _, h := range strings.Split(hosts, ",") {
+			if h = strings.TrimSpace(h); h != "" {
+				c.MediaHosts = append(c.MediaHosts, h)
+			}
+		}
 	}
 
 	lvl := env("FAJR_LOG_LEVEL", "info")

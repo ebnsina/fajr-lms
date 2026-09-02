@@ -104,6 +104,50 @@ func (ns NullLessonKind) Value() (driver.Value, error) {
 	return string(ns.LessonKind), nil
 }
 
+type MediaState string
+
+const (
+	MediaStatePending    MediaState = "pending"
+	MediaStateProcessing MediaState = "processing"
+	MediaStateReady      MediaState = "ready"
+	MediaStateFailed     MediaState = "failed"
+)
+
+func (e *MediaState) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MediaState(s)
+	case string:
+		*e = MediaState(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MediaState: %T", src)
+	}
+	return nil
+}
+
+type NullMediaState struct {
+	MediaState MediaState `json:"media_state"`
+	Valid      bool       `json:"valid"` // Valid is true if MediaState is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMediaState) Scan(value interface{}) error {
+	if value == nil {
+		ns.MediaState, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MediaState.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMediaState) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MediaState), nil
+}
+
 type MemberRole string
 
 const (
@@ -437,6 +481,7 @@ type Lesson struct {
 	Position  float64            `json:"position"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	MediaID   uuid.NullUUID      `json:"media_id"`
 }
 
 type LiveSession struct {
@@ -445,6 +490,31 @@ type LiveSession struct {
 	TokenHash []byte             `json:"token_hash"`
 	FullName  string             `json:"full_name"`
 	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+}
+
+type MediaAsset struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	Provider    string             `json:"provider"`
+	ExternalRef string             `json:"external_ref"`
+	State       MediaState         `json:"state"`
+	Kind        LessonKind         `json:"kind"`
+	Title       string             `json:"title"`
+	DurationS   int32              `json:"duration_s"`
+	ByteSize    int64              `json:"byte_size"`
+	ContentType string             `json:"content_type"`
+	Error       string             `json:"error"`
+	Metadata    []byte             `json:"metadata"`
+	CreatedBy   uuid.NullUUID      `json:"created_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type MediaDelivery struct {
+	TenantID uuid.UUID   `json:"tenant_id"`
+	Day      pgtype.Date `json:"day"`
+	Requests int64       `json:"requests"`
+	Bytes    int64       `json:"bytes"`
 }
 
 type Membership struct {

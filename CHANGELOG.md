@@ -5,6 +5,14 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Media is pluggable: one provider interface with an embed adapter shipping
+  first, so video costs nothing at launch. A transcoder drops in behind the
+  same interface without changing anything above it.
+- Paste a YouTube, Vimeo, Dailymotion or self-hosted video link onto a lesson;
+  anything else is refused with a clear reason.
+- Playback URLs are handed out per viewer, and embeds are sandboxed.
+- Delivery is counted per tenant per day from day one, so bandwidth can be
+  priced later without a backfill.
 - Course catalog: courses with modules and lessons, draft/published/archived
   states, per-course text direction, price and visibility.
 - `GET /v1/courses/{slug}` returns the full outline in display order.

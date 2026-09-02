@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/google/uuid"
@@ -118,4 +119,19 @@ func readOutline(t *testing.T, h http.Handler, a actor, slug string) outlineResp
 		t.Fatalf("decode outline: %v", err)
 	}
 	return out
+}
+
+// createdID reads the id from a 201 response, failing the test otherwise.
+func createdID(t *testing.T, rec *httptest.ResponseRecorder) string {
+	t.Helper()
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("got %d, want 201: %s", rec.Code, rec.Body)
+	}
+	var got struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+		t.Fatalf("decode id: %v", err)
+	}
+	return got.ID
 }

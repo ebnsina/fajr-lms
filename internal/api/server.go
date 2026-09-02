@@ -6,16 +6,18 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/database"
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 	"github.com/ebnsina/fajr-lms/internal/identity"
+	"github.com/ebnsina/fajr-lms/internal/media"
 )
 
 // Server holds the dependencies every endpoint shares.
 type Server struct {
 	store    *database.Store
 	identity *identity.Service
+	media    *media.Registry
 }
 
-func NewServer(store *database.Store, ident *identity.Service) *Server {
-	return &Server{store: store, identity: ident}
+func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry) *Server {
+	return &Server{store: store, identity: ident, media: registry}
 }
 
 // Routes returns the full API surface, health probes included.
@@ -52,6 +54,12 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/modules/{id}/lessons", teaches(s.createLesson))
 	mux.Handle("PUT /v1/lessons/{id}/position", teaches(s.moveLesson))
 	mux.Handle("DELETE /v1/lessons/{id}", teaches(s.deleteLesson))
+
+	mux.Handle("GET /v1/media/providers", inTenant(httpx.Handler(s.mediaProviders)))
+	mux.Handle("GET /v1/media/{id}/playback", inTenant(httpx.Handler(s.mediaPlayback)))
+	mux.Handle("POST /v1/media", teaches(s.ingestMedia))
+	mux.Handle("PUT /v1/lessons/{id}/media", teaches(s.attachMedia))
+	mux.Handle("GET /v1/media/usage", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.mediaUsage))))
 
 	return mux
 }

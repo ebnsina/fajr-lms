@@ -77,7 +77,7 @@ const createLesson = `-- name: CreateLesson :one
 INSERT INTO lessons (tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, position)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
         coalesce((SELECT max(position) + 1024 FROM lessons WHERE module_id = $2), 1024))
-RETURNING id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at
+RETURNING id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at, media_id
 `
 
 type CreateLessonParams struct {
@@ -117,6 +117,7 @@ func (q *Queries) CreateLesson(ctx context.Context, arg CreateLessonParams) (Les
 		&i.Position,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MediaID,
 	)
 	return i, err
 }
@@ -237,7 +238,7 @@ func (q *Queries) GetCourseBySlug(ctx context.Context, slug string) (Course, err
 }
 
 const getLesson = `-- name: GetLesson :one
-SELECT id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at FROM lessons WHERE id = $1
+SELECT id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at, media_id FROM lessons WHERE id = $1
 `
 
 func (q *Queries) GetLesson(ctx context.Context, id uuid.UUID) (Lesson, error) {
@@ -257,6 +258,7 @@ func (q *Queries) GetLesson(ctx context.Context, id uuid.UUID) (Lesson, error) {
 		&i.Position,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MediaID,
 	)
 	return i, err
 }
@@ -310,7 +312,7 @@ func (q *Queries) ListCourses(ctx context.Context, arg ListCoursesParams) ([]Cou
 }
 
 const listLessonsForCourse = `-- name: ListLessonsForCourse :many
-SELECT l.id, l.tenant_id, l.module_id, l.title, l.kind, l.body, l.dir, l.duration_s, l.is_preview, l.status, l.position, l.created_at, l.updated_at FROM lessons l JOIN modules m ON m.id = l.module_id
+SELECT l.id, l.tenant_id, l.module_id, l.title, l.kind, l.body, l.dir, l.duration_s, l.is_preview, l.status, l.position, l.created_at, l.updated_at, l.media_id FROM lessons l JOIN modules m ON m.id = l.module_id
 WHERE m.course_id = $1
 ORDER BY m.position, l.position, l.created_at
 `
@@ -338,6 +340,7 @@ func (q *Queries) ListLessonsForCourse(ctx context.Context, courseID uuid.UUID) 
 			&i.Position,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.MediaID,
 		); err != nil {
 			return nil, err
 		}
@@ -382,7 +385,7 @@ func (q *Queries) ListModules(ctx context.Context, courseID uuid.UUID) ([]Module
 }
 
 const moveLesson = `-- name: MoveLesson :one
-UPDATE lessons SET module_id = $1, position = $2 WHERE id = $3 RETURNING id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at
+UPDATE lessons SET module_id = $1, position = $2 WHERE id = $3 RETURNING id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at, media_id
 `
 
 type MoveLessonParams struct {
@@ -408,6 +411,7 @@ func (q *Queries) MoveLesson(ctx context.Context, arg MoveLessonParams) (Lesson,
 		&i.Position,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MediaID,
 	)
 	return i, err
 }
@@ -530,7 +534,7 @@ UPDATE lessons SET
   is_preview = coalesce($6, is_preview),
   status     = coalesce($7, status)
 WHERE id = $8
-RETURNING id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at
+RETURNING id, tenant_id, module_id, title, kind, body, dir, duration_s, is_preview, status, position, created_at, updated_at, media_id
 `
 
 type UpdateLessonParams struct {
@@ -570,6 +574,7 @@ func (q *Queries) UpdateLesson(ctx context.Context, arg UpdateLessonParams) (Les
 		&i.Position,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MediaID,
 	)
 	return i, err
 }
