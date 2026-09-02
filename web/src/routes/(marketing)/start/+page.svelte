@@ -37,7 +37,7 @@
 <svelte:head><title>Open a school · Fajr LMS</title></svelte:head>
 
 <section class="mx-auto max-w-xl px-6 pt-40 pb-24">
-	<h1 class="font-display text-4xl font-extrabold tracking-tight">Open a school</h1>
+	<h1 class="font-display text-4xl font-bold">Open a school</h1>
 	<p class="mt-2 text-ink-soft">
 		This takes a minute. You become its owner, and you can invite teachers straight after.
 	</p>

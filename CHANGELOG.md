@@ -4,6 +4,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 
 ## [Unreleased]
 
+### Changed
+- The brand color is emerald green, on every screen and in both themes.
+- The landing pages are set in Clash Display and Excon.
+
 ### Fixed
 - Switching school now shows the new school straight away. It used to set the
   choice and leave the old school's courses, grades and notifications on screen

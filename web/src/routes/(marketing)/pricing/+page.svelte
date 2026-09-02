@@ -78,7 +78,7 @@
 
 <section class="px-6 pt-40 pb-20">
 	<div class="mx-auto max-w-3xl text-center">
-		<h1 class="font-display text-4xl font-extrabold tracking-tight text-balance sm:text-5xl">
+		<h1 class="font-display text-4xl font-bold text-balance sm:text-5xl">
 			Priced by learners, not by features
 		</h1>
 		<p class="mt-3 text-ink-soft">
@@ -112,7 +112,7 @@
 
 <section class="border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
-		<h2 class="mb-8 font-display text-3xl font-bold tracking-tight">Questions we are asked</h2>
+		<h2 class="mb-8 font-display text-3xl font-bold">Questions we are asked</h2>
 		<div class="flex flex-col gap-3">
 			{#each faq as item (item.q)}
 				<div class="card">

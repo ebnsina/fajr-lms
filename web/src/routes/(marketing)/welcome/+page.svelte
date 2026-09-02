@@ -140,7 +140,7 @@
 	<ShaderGradient />
 	<div class="relative mx-auto max-w-4xl text-center">
 		<h1
-			class="font-display text-5xl leading-[1.05] font-extrabold tracking-tight text-balance text-ink sm:text-7xl"
+			class="font-display text-5xl leading-[1.08] font-bold text-balance text-ink sm:text-7xl"
 			use:reveal={{ y: 32 }}
 		>
 			Run the whole
@@ -187,7 +187,7 @@
 
 <section class="mx-auto max-w-6xl px-6 py-24">
 	<div class="mb-14 max-w-2xl" use:reveal>
-		<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+		<h2 class="font-display text-3xl font-bold sm:text-4xl">
 			Why schools here choose it
 		</h2>
 		<p class="mt-3 mb-0 text-lg text-ink-soft">
@@ -208,7 +208,7 @@
 <section class="border-y border-line bg-raised px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 		<div class="mb-14 max-w-2xl" use:reveal>
-			<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				From nothing to teaching, in four steps
 			</h2>
 			<p class="mt-3 mb-0 text-lg text-ink-soft">
@@ -232,7 +232,7 @@
 <!-- Bento: tiles of different weight, drifting at different speeds. -->
 <section class="mx-auto max-w-6xl px-6 py-24">
 	<div class="mb-14 max-w-2xl" use:reveal>
-		<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+		<h2 class="font-display text-3xl font-bold sm:text-4xl">
 			Your website, without a web developer
 		</h2>
 		<p class="mt-3 mb-0 text-lg text-ink-soft">
@@ -300,7 +300,7 @@
 <section class="border-y border-line bg-raised px-6 py-24">
 	<div class="mx-auto max-w-4xl">
 		<div class="mb-12 max-w-2xl" use:reveal>
-			<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				What the big platforms leave out
 			</h2>
 			<p class="mt-3 mb-0 text-lg text-ink-soft">
@@ -343,7 +343,7 @@
 <section class="mx-auto max-w-6xl px-6 py-24">
 	<div class="grid gap-12 lg:grid-cols-2">
 		<div use:reveal>
-			<h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				Everything is included
 			</h2>
 			<p class="mt-3 mb-6 text-lg text-ink-soft">
@@ -365,7 +365,7 @@
 
 <section class="border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
-		<h2 class="mb-10 font-display text-3xl font-bold tracking-tight sm:text-4xl" use:reveal>
+		<h2 class="mb-10 font-display text-3xl font-bold sm:text-4xl" use:reveal>
 			Questions we are asked
 		</h2>
 		<div class="flex flex-col gap-4" use:reveal={{ stagger: 'div.card' }}>
@@ -382,7 +382,7 @@
 <section class="relative isolate overflow-hidden px-6 py-32">
 	<ShaderGradient />
 	<div class="relative mx-auto max-w-3xl text-center" use:reveal>
-		<h2 class="font-display text-4xl font-extrabold tracking-tight text-balance text-ink sm:text-5xl">
+		<h2 class="font-display text-4xl font-bold text-balance text-ink sm:text-5xl">
 			Your school could be teaching by this evening
 		</h2>
 		<p class="mx-auto mt-5 max-w-xl text-lg text-ink-soft">

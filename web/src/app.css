@@ -31,15 +31,54 @@
 		U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* The display face is the landing page's voice: wider, heavier, and only ever
-   used at size, so it never fights Cabin in the product. */
+/* The landing page has its own voice: Clash Display for the headings, Excon
+   for the words under them. Both are only loaded where they are used. */
 @font-face {
-	font-family: 'Bricolage Grotesque';
-	src: url('/fonts/bricolage-latin.woff2') format('woff2');
-	font-weight: 500 800;
+	font-family: 'Clash Display';
+	src: url('/fonts/clash-display-500.woff2') format('woff2');
+	font-weight: 500;
 	font-style: normal;
 	font-display: swap;
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: 'Clash Display';
+	src: url('/fonts/clash-display-600.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Clash Display';
+	src: url('/fonts/clash-display-700.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Excon';
+	src: url('/fonts/excon-400.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Excon';
+	src: url('/fonts/excon-500.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Excon';
+	src: url('/fonts/excon-700.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
 }
 
 @font-face {
@@ -68,11 +107,11 @@
 	--color-ink-soft: #676f7b;
 	--color-ink-faint: #9aa1ac;
 
-	--color-brand: #34348c;
+	--color-brand: #047857;
 	--color-brand-ink: #ffffff;
-	--color-brand-text: #333382;
-	--color-brand-soft: #eeeef7;
-	--color-brand-line: #d2d2ea;
+	--color-brand-text: #046b4e;
+	--color-brand-soft: #e7f6f0;
+	--color-brand-line: #bfe6d6;
 
 	/* First light: used sparingly, for the one thing on a screen that is worth
 	   looking at before anything else. */
@@ -88,7 +127,8 @@
 
 	--font-sans: 'Cabin', 'Noto Sans Arabic', 'Noto Sans Bengali', system-ui, sans-serif;
 	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
-	--font-display: 'Bricolage Grotesque', 'Cabin', system-ui, sans-serif;
+	--font-display: 'Clash Display', 'Cabin', system-ui, sans-serif;
+	--font-body: 'Excon', 'Cabin', system-ui, sans-serif;
 
 	--radius-control: 0.75rem;
 	--radius-card: 1.5rem;
@@ -114,11 +154,11 @@
 		--color-ink: #e8eaed;
 		--color-ink-soft: #9aa2ad;
 		--color-ink-faint: #6d7681;
-		--color-brand: #4340b0;
+		--color-brand: #059669;
 		--color-brand-ink: #ffffff;
-		--color-brand-text: #8e8be8;
-		--color-brand-soft: #1b1b2e;
-		--color-brand-line: #2f2f4d;
+		--color-brand-text: #34d399;
+		--color-brand-soft: #0d2a21;
+		--color-brand-line: #174535;
 
 		--color-accent: #e8a33d;
 		--color-accent-soft: #251c11;
@@ -140,11 +180,11 @@
 	--color-ink: #e8eaed;
 	--color-ink-soft: #9aa2ad;
 	--color-ink-faint: #6d7681;
-	--color-brand: #4340b0;
+	--color-brand: #059669;
 	--color-brand-ink: #ffffff;
-	--color-brand-text: #8e8be8;
-	--color-brand-soft: #1b1b2e;
-	--color-brand-line: #2f2f4d;
+	--color-brand-text: #34d399;
+	--color-brand-soft: #0d2a21;
+	--color-brand-line: #174535;
 
 	--color-accent: #e8a33d;
 	--color-accent-soft: #251c11;
@@ -208,6 +248,19 @@
 }
 
 /* Depth comes from a hairline and a shade change, never a shadow. */
+/* The marketing pages set their own body face; the product keeps Cabin. */
+@utility font-body {
+	font-family: var(--font-body);
+}
+
+/* Clash Display sets its own tight spaces, so the tracking a Latin grotesque
+   needs would run the words together. */
+@utility font-display {
+	font-family: var(--font-display);
+	letter-spacing: 0;
+	word-spacing: 0.08em;
+}
+
 @utility card {
 	background: var(--color-surface);
 	border: 1px solid var(--color-line);

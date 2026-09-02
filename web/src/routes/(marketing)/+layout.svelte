@@ -13,11 +13,11 @@
 	const here = (href: string) => page.url.pathname === href;
 </script>
 
-<div class="flex min-h-dvh flex-col bg-ground" dir="ltr">
+<div class="font-body flex min-h-dvh flex-col bg-ground" dir="ltr">
 	<!-- No rule under the header: it sits on the hero rather than above it. -->
 	<header class="absolute inset-x-0 top-0 z-20">
 		<nav class="mx-auto flex max-w-6xl items-center px-6 py-6">
-			<a class="font-display text-lg font-bold tracking-tight" href="/welcome">Fajr LMS</a>
+			<a class="font-display text-lg font-bold" href="/welcome">Fajr LMS</a>
 
 			<div class="flex flex-1 items-center justify-center gap-8 text-sm">
 				{#each links as link (link.href)}
@@ -46,7 +46,7 @@
 	<footer class="border-t border-line px-6 py-14">
 		<div class="mx-auto grid max-w-6xl gap-10 sm:grid-cols-3">
 			<div>
-				<p class="mb-1 font-display text-lg font-bold tracking-tight">Fajr LMS</p>
+				<p class="mb-1 font-display text-lg font-bold">Fajr LMS</p>
 				<p class="mb-0 max-w-xs text-sm text-ink-soft">
 					Teaching, grading and fees for schools in South Asia and the Gulf.
 				</p>
