@@ -13,6 +13,97 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CourseVisibility string
+
+const (
+	CourseVisibilityPrivate  CourseVisibility = "private"
+	CourseVisibilityUnlisted CourseVisibility = "unlisted"
+	CourseVisibilityPublic   CourseVisibility = "public"
+)
+
+func (e *CourseVisibility) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CourseVisibility(s)
+	case string:
+		*e = CourseVisibility(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CourseVisibility: %T", src)
+	}
+	return nil
+}
+
+type NullCourseVisibility struct {
+	CourseVisibility CourseVisibility `json:"course_visibility"`
+	Valid            bool             `json:"valid"` // Valid is true if CourseVisibility is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCourseVisibility) Scan(value interface{}) error {
+	if value == nil {
+		ns.CourseVisibility, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CourseVisibility.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCourseVisibility) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CourseVisibility), nil
+}
+
+type LessonKind string
+
+const (
+	LessonKindVideo      LessonKind = "video"
+	LessonKindAudio      LessonKind = "audio"
+	LessonKindText       LessonKind = "text"
+	LessonKindPdf        LessonKind = "pdf"
+	LessonKindLink       LessonKind = "link"
+	LessonKindLive       LessonKind = "live"
+	LessonKindQuiz       LessonKind = "quiz"
+	LessonKindAssignment LessonKind = "assignment"
+)
+
+func (e *LessonKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LessonKind(s)
+	case string:
+		*e = LessonKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LessonKind: %T", src)
+	}
+	return nil
+}
+
+type NullLessonKind struct {
+	LessonKind LessonKind `json:"lesson_kind"`
+	Valid      bool       `json:"valid"` // Valid is true if LessonKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLessonKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.LessonKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LessonKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLessonKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LessonKind), nil
+}
+
 type MemberRole string
 
 const (
@@ -144,6 +235,49 @@ func (ns NullOtpPurpose) Value() (driver.Value, error) {
 	return string(ns.OtpPurpose), nil
 }
 
+type PublishStatus string
+
+const (
+	PublishStatusDraft     PublishStatus = "draft"
+	PublishStatusPublished PublishStatus = "published"
+	PublishStatusArchived  PublishStatus = "archived"
+)
+
+func (e *PublishStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PublishStatus(s)
+	case string:
+		*e = PublishStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PublishStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPublishStatus struct {
+	PublishStatus PublishStatus `json:"publish_status"`
+	Valid         bool          `json:"valid"` // Valid is true if PublishStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPublishStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PublishStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PublishStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPublishStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PublishStatus), nil
+}
+
 type TenantKind string
 
 const (
@@ -272,6 +406,39 @@ func (ns NullTextDir) Value() (driver.Value, error) {
 	return string(ns.TextDir), nil
 }
 
+type Course struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	Slug        string             `json:"slug"`
+	Title       string             `json:"title"`
+	Summary     string             `json:"summary"`
+	Dir         TextDir            `json:"dir"`
+	Status      PublishStatus      `json:"status"`
+	Visibility  CourseVisibility   `json:"visibility"`
+	PriceMinor  int64              `json:"price_minor"`
+	Currency    string             `json:"currency"`
+	CreatedBy   uuid.NullUUID      `json:"created_by"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Lesson struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	ModuleID  uuid.UUID          `json:"module_id"`
+	Title     string             `json:"title"`
+	Kind      LessonKind         `json:"kind"`
+	Body      string             `json:"body"`
+	Dir       TextDir            `json:"dir"`
+	DurationS int32              `json:"duration_s"`
+	IsPreview bool               `json:"is_preview"`
+	Status    PublishStatus      `json:"status"`
+	Position  float64            `json:"position"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type LiveSession struct {
 	SessionID uuid.UUID          `json:"session_id"`
 	UserID    uuid.UUID          `json:"user_id"`
@@ -286,6 +453,16 @@ type Membership struct {
 	UserID    uuid.UUID          `json:"user_id"`
 	Role      MemberRole         `json:"role"`
 	Status    MemberStatus       `json:"status"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Module struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	CourseID  uuid.UUID          `json:"course_id"`
+	Title     string             `json:"title"`
+	Position  float64            `json:"position"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }

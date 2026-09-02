@@ -39,6 +39,20 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/tenant/members", inTenant(
 		RequireRole("owner", "admin", "instructor")(httpx.Handler(s.listMembers))))
 
+	// Reading the catalog is open to any member; authoring is not.
+	mux.Handle("GET /v1/courses", inTenant(httpx.Handler(s.listCourses)))
+	mux.Handle("GET /v1/courses/{slug}", inTenant(httpx.Handler(s.courseOutline)))
+
+	teaches := func(h httpx.Handler) http.Handler {
+		return inTenant(RequireRole("owner", "admin", "instructor")(h))
+	}
+	mux.Handle("POST /v1/courses", teaches(s.createCourse))
+	mux.Handle("PUT /v1/courses/{id}/status", teaches(s.setCourseStatus))
+	mux.Handle("POST /v1/courses/{id}/modules", teaches(s.createModule))
+	mux.Handle("POST /v1/modules/{id}/lessons", teaches(s.createLesson))
+	mux.Handle("PUT /v1/lessons/{id}/position", teaches(s.moveLesson))
+	mux.Handle("DELETE /v1/lessons/{id}", teaches(s.deleteLesson))
+
 	return mux
 }
 

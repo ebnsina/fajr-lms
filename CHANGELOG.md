@@ -5,6 +5,13 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Course catalog: courses with modules and lessons, draft/published/archived
+  states, per-course text direction, price and visibility.
+- `GET /v1/courses/{slug}` returns the full outline in display order.
+- Drag-to-reorder writes a single row, using fractional positions.
+- Titles in Arabic or Bengali get a generated web address instead of an empty
+  one, and keep their own text direction.
+- Authoring is limited to owners, admins and instructors; any member can read.
 - Passwordless login by one-time code to a phone number or email address, with
   a first-login signup, rate limiting and a replay-proof code.
 - Session tokens that can be revoked instantly, and `POST /v1/auth/logout`.
