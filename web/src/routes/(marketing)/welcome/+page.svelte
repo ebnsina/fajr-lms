@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ShaderGradient from '$lib/components/marketing/ShaderGradient.svelte';
 	import RollingWords from '$lib/components/marketing/RollingWords.svelte';
-	import { reveal, parallax, countUp } from '$lib/actions/motion';
+	import { reveal, parallax } from '$lib/actions/motion';
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
 	import Globe from '@lucide/svelte/icons/globe';
@@ -162,27 +162,6 @@
 			Free for your first fifty learners. No card to begin.
 		</p>
 	</div>
-</section>
-
-<section class="px-6 py-16">
-	<dl class="mx-auto grid max-w-5xl gap-10 text-center sm:grid-cols-4" use:reveal={{ stagger: 'div' }}>
-		<div>
-			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={3}>3</span></dt>
-			<dd class="mt-2 mb-0 text-sm text-ink-soft">scripts rendered properly</dd>
-		</div>
-		<div>
-			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={4}>4</span></dt>
-			<dd class="mt-2 mb-0 text-sm text-ink-soft">ways to take a fee</dd>
-		</div>
-		<div>
-			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={1}>1</span></dt>
-			<dd class="mt-2 mb-0 text-sm text-ink-soft">minute to open a school</dd>
-		</div>
-		<div>
-			<dt class="font-display text-4xl font-bold tabular-nums"><span use:countUp={0}>0</span></dt>
-			<dd class="mt-2 mb-0 text-sm text-ink-soft">features behind a higher tier</dd>
-		</div>
-	</dl>
 </section>
 
 <section id="why" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">

@@ -65,28 +65,3 @@ export function parallax(node: HTMLElement, distance = 40) {
 		}
 	};
 }
-
-/** Counts a number up once it is on screen, for the figures in the hero band. */
-export function countUp(node: HTMLElement, to: number) {
-	if (!ready()) {
-		node.textContent = String(to);
-		return {};
-	}
-
-	const state = { value: 0 };
-	const onScreen = node.getBoundingClientRect().top < window.innerHeight;
-	const tween = gsap.to(state, {
-		value: to,
-		duration: 1.2,
-		ease: 'power2.out',
-		onUpdate: () => (node.textContent = String(Math.round(state.value))),
-		scrollTrigger: onScreen ? undefined : { trigger: node, start: 'top 90%', once: true }
-	});
-
-	return {
-		destroy() {
-			tween.scrollTrigger?.kill();
-			tween.kill();
-		}
-	};
-}
