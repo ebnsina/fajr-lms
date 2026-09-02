@@ -5,6 +5,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- A proper dashboard: a grouped menu down the side for learning, teaching and
+  administration, with the work sitting on its own panel.
+- New pages behind it: all courses, my grades, notifications, marking,
+  submissions, members and payments to review.
+
 - Icons throughout: each lesson shows what kind it is at a glance, and buttons,
   links and empty states carry a mark rather than words alone.
 
