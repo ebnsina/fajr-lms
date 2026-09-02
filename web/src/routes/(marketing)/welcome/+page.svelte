@@ -488,21 +488,29 @@
 	</div>
 </section>
 
-<!-- The one quiet section on the page: what the name means, and why. -->
+<!-- The one quiet section: what is being built, said as what it is - not yet
+     shipped, and worded so nobody mistakes it for something they can use today. -->
 <section class="relative isolate overflow-hidden border-t border-line bg-sunken px-6 py-28">
 	<div class="mx-auto flex max-w-4xl flex-col items-center gap-12 text-center">
-		<FluidOrb size={300} label="A slowly drifting orb of green and first light" />
+		<FluidOrb size={300} label="A slowly drifting orb of green light" />
 
 		<div use:reveal>
-			<span class="eyebrow mb-4">The name</span>
+			<span class="eyebrow mb-4">Being built</span>
 			<h2 class="font-display text-3xl font-bold text-balance sm:text-4xl">
-				Fajr is the hour before the light
+				The help a teacher would actually take
 			</h2>
 			<p class="mx-auto mt-4 max-w-xl text-lg text-ink-soft">
-				The prayer before sunrise, and the part of the day a teacher is already awake for. We named
-				the thing after the hour the work actually starts — not after a feature, and not after a
-				word that means nothing in the places we built it for.
+				A first draft of a quiz from the lesson you already wrote. A transcript and subtitles for
+				the video you pasted, in the language you teach in. A first pass at grading fifty essays,
+				with every mark left for a person to accept or change.
 			</p>
+			<p class="mx-auto mt-4 max-w-xl text-ink-soft">
+				None of it is on yet, and none of it will decide anything on its own. It drafts; the
+				teacher decides.
+			</p>
+			<div class="mt-8 flex flex-wrap justify-center gap-3">
+				<a class="btn btn-quiet" href="/start">Get started free</a>
+			</div>
 		</div>
 	</div>
 </section>

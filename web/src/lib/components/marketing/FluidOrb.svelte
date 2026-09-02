@@ -1,166 +1,193 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	// A sphere of drifting colour, in the spirit of the FluidOrb on rareui.com,
-	// written for Svelte rather than pulling in a React component.
-	// The middle and bottom bands are derived from one colour — a pale tint and
-	// the full thing — while the top of the sphere stays white.
+	// A port of the FluidOrb from rareui.com to Svelte: the shader is theirs,
+	// the wrapper is ours, so no React comes along with it.
 	let {
-		size = 320,
+		size = 240,
 		color = '#059669',
 		label = ''
 	}: { size?: number; color?: string; label?: string } = $props();
 
 	let canvas = $state<HTMLCanvasElement | null>(null);
-	let failed = $state(false);
 
-	const vertex = `
-		attribute vec2 position;
-		void main() { gl_Position = vec4(position, 0.0, 1.0); }
+	const VERT = `
+		attribute vec2 a_pos;
+		void main() {
+			gl_Position = vec4(a_pos, 0.0, 1.0);
+		}
 	`;
 
-	const fragment = `
+	const FRAG = `
+		#ifdef GL_FRAGMENT_PRECISION_HIGH
+		precision highp float;
+		#else
 		precision mediump float;
-		uniform vec2 size;
-		uniform float time;
-		uniform vec3 tint;
-		uniform vec3 full;
+		#endif
 
-		float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+		uniform vec2 u_resolution;
+		uniform float u_time;
+		uniform vec3 u_color;
 
-		float noise(vec2 p) {
-			vec2 i = floor(p), f = fract(p);
-			vec2 u = f * f * (3.0 - 2.0 * f);
-			return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-			           mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+		float hash(vec2 p) {
+			return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
 		}
 
-		// Noise warped by itself, so the bands wander and reform rather than slide.
-		float fluid(vec2 p, float t) {
-			vec2 warp = vec2(noise(p * 1.3 + t * 0.11), noise(p.yx * 1.1 - t * 0.08));
-			float n = noise(p * 1.7 + warp * 1.6 + vec2(t * 0.07, -t * 0.05));
-			n += 0.5 * noise(p * 3.3 - warp * 1.1 + vec2(-t * 0.05, t * 0.09));
-			return n / 1.5;
+		float noise(vec2 p) {
+			vec2 i = floor(p);
+			vec2 f = fract(p);
+			vec2 u = f * f * (3.0 - 2.0 * f);
+			return mix(
+				mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x),
+				mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+				u.y
+			);
+		}
+
+		float fbm(vec2 p) {
+			float v = 0.0;
+			float a = 0.6;
+			for (int i = 0; i < 3; i++) {
+				v += a * noise(p);
+				p *= 2.0;
+				a *= 0.5;
+			}
+			return v;
 		}
 
 		void main() {
-			vec2 uv = (gl_FragCoord.xy / size) * 2.0 - 1.0;
-			float r = length(uv);
-			if (r > 1.0) discard;
+			vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+			float t = u_time * 0.22;
 
-			// Bend the sampling toward the rim so the bands wrap like a sphere.
-			float z = sqrt(max(0.0, 1.0 - r * r));
-			vec2 p = uv / (0.6 + z * 0.7);
+			vec2 drift = vec2(
+				sin(t) + 0.6 * sin(t * 1.7 + 1.3),
+				cos(t * 0.8) + 0.6 * cos(t * 1.3 + 2.1)
+			);
 
-			// Height down the sphere, pushed about by the fluid.
-			float band = (1.0 - (uv.y * 0.5 + 0.5)) + (fluid(p, time) - 0.5) * 0.55;
+			vec2 p = vec2(uv.x * 1.8, uv.y * 1.0) + drift * 0.7;
 
-			vec3 color = vec3(1.0);
-			color = mix(color, tint, smoothstep(0.34, 0.62, band));
-			color = mix(color, full, smoothstep(0.62, 0.92, band));
+			vec2 q = vec2(fbm(p + drift), fbm(p + vec2(3.2, 1.5) - drift));
+			float f = fbm(p + 1.2 * q);
 
-			// The rim turns away from the light rather than ending in a hard line.
-			color *= 0.82 + 0.18 * pow(max(0.0, z), 0.6);
-			float edge = smoothstep(1.0, 0.965, r);
-			gl_FragColor = vec4(color, edge);
+			float g = clamp(1.0 - uv.y, 0.0, 1.0);
+			float anchor = smoothstep(0.0, 0.3, uv.y);
+			float shade = clamp(g + (f - 0.5) * 0.8 * anchor, 0.0, 1.0);
+
+			vec3 white = vec3(0.99, 1.0, 1.0);
+			vec3 light = mix(white, u_color, 0.5);
+			vec3 dark = u_color;
+
+			vec3 col = white;
+			col = mix(col, light, smoothstep(0.28, 0.52, shade));
+			col = mix(col, dark, smoothstep(0.58, 0.88, shade));
+
+			float edge = smoothstep(0.5, 0.49, distance(uv, vec2(0.5)));
+
+			gl_FragColor = vec4(col * edge, edge);
 		}
 	`;
 
-	function rgb(hex: string): [number, number, number] {
-		const value = parseInt(hex.replace('#', ''), 16);
-		return [((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
+	function hexToRgb(hex: string): [number, number, number] {
+		let h = hex.replace('#', '').trim();
+		if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+		const n = parseInt(h, 16);
+		if (h.length !== 6 || Number.isNaN(n)) return [0.1, 0.45, 0.95];
+		return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 	}
 
-	function compile(gl: WebGLRenderingContext, kind: number, source: string) {
-		const shader = gl.createShader(kind);
+	function compile(gl: WebGLRenderingContext, type: number, src: string) {
+		const shader = gl.createShader(type);
 		if (!shader) return null;
-		gl.shaderSource(shader, source);
+		gl.shaderSource(shader, src);
 		gl.compileShader(shader);
-		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return null;
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			gl.deleteShader(shader);
+			return null;
+		}
 		return shader;
 	}
 
 	onMount(() => {
 		if (!canvas) return;
-		const context = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
-		if (!context) {
-			failed = true;
-			return;
-		}
+		const context = canvas.getContext('webgl', { antialias: true, alpha: true });
+		if (!context) return;
 		const gl: WebGLRenderingContext = context;
 
-		const vs = compile(gl, gl.VERTEX_SHADER, vertex);
-		const fs = compile(gl, gl.FRAGMENT_SHADER, fragment);
 		const program = gl.createProgram();
-		if (!vs || !fs || !program) {
-			failed = true;
-			return;
-		}
-		gl.attachShader(program, vs);
-		gl.attachShader(program, fs);
+		const vert = compile(gl, gl.VERTEX_SHADER, VERT);
+		const frag = compile(gl, gl.FRAGMENT_SHADER, FRAG);
+		if (!program || !vert || !frag) return;
+
+		gl.attachShader(program, vert);
+		gl.attachShader(program, frag);
 		gl.linkProgram(program);
-		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-			failed = true;
-			return;
-		}
+		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
 		gl.useProgram(program);
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 		const buffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-		const position = gl.getAttribLocation(program, 'position');
-		gl.enableVertexAttribArray(position);
-		gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+			gl.STATIC_DRAW
+		);
+		const aPos = gl.getAttribLocation(program, 'a_pos');
+		gl.enableVertexAttribArray(aPos);
+		gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-		const uSize = gl.getUniformLocation(program, 'size');
-		const uTime = gl.getUniformLocation(program, 'time');
-		const uTint = gl.getUniformLocation(program, 'tint');
-		const uFull = gl.getUniformLocation(program, 'full');
+		const uResolution = gl.getUniformLocation(program, 'u_resolution');
+		const uTime = gl.getUniformLocation(program, 'u_time');
+		gl.uniform3f(gl.getUniformLocation(program, 'u_color'), ...hexToRgb(color));
 
-		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		const ratio = Math.min(window.devicePixelRatio || 1, 2);
-		canvas.width = size * ratio;
-		canvas.height = size * ratio;
-		gl.viewport(0, 0, canvas.width, canvas.height);
-		gl.uniform2f(uSize, canvas.width, canvas.height);
+		const dpr = Math.min(window.devicePixelRatio || 1, 2);
+		const px = Math.round(size * dpr);
+		canvas.width = px;
+		canvas.height = px;
+		gl.viewport(0, 0, px, px);
+		gl.uniform2f(uResolution, px, px);
 
-		const [r, g, b] = rgb(color);
-		gl.uniform3fv(uTint, [r + (1 - r) * 0.72, g + (1 - g) * 0.72, b + (1 - b) * 0.72]);
-		gl.uniform3fv(uFull, [r, g, b]);
-
-		let frame = 0;
+		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const start = performance.now();
-		function draw() {
-			gl.uniform1f(uTime, still ? 12 : (performance.now() - start) / 1000);
-			gl.clear(gl.COLOR_BUFFER_BIT);
-			gl.drawArrays(gl.TRIANGLES, 0, 3);
-			if (!still) frame = requestAnimationFrame(draw);
-		}
-		draw();
+		let raf = 0;
 
-		return () => cancelAnimationFrame(frame);
+		function render(now: number) {
+			gl.uniform1f(uTime, reduce ? 0 : (now - start) / 1000);
+			gl.drawArrays(gl.TRIANGLES, 0, 6);
+			if (!reduce) raf = requestAnimationFrame(render);
+		}
+		render(start);
+
+		return () => {
+			cancelAnimationFrame(raf);
+			gl.deleteProgram(program);
+			gl.deleteShader(vert);
+			gl.deleteShader(frag);
+			gl.deleteBuffer(buffer);
+		};
 	});
 </script>
 
-<div class="orb" style:inline-size="{size}px" style:block-size="{size}px" role="img" aria-label={label}>
-	<canvas class:hidden={failed} bind:this={canvas}></canvas>
+<div
+	class="orb"
+	style:inline-size="{size}px"
+	style:block-size="{size}px"
+	role="img"
+	aria-label={label}
+>
+	<canvas bind:this={canvas}></canvas>
 </div>
 
 <style>
 	.orb {
 		position: relative;
-		display: block;
+		overflow: hidden;
+		border-radius: 999px;
 		max-inline-size: 100%;
 	}
 
 	canvas {
-		position: relative;
-		z-index: 1;
 		inline-size: 100%;
 		block-size: 100%;
-		border-radius: 999px;
+		display: block;
 	}
-
 </style>
