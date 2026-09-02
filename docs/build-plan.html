@@ -1,0 +1,618 @@
+<title>Fajr LMS Build Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground:      #f6f7f9;
+    --surface:     #ffffff;
+    --surface-alt: #eef0f4;
+    --ink:         #141b2d;
+    --ink-soft:    #4a5468;
+    --ink-faint:   #7b8598;
+    --rule:        #d9dde5;
+    --accent:      #b8791f;
+    --accent-soft: #f3e6cc;
+    --pos:         #1f6b52;
+    --neg:         #a63b2c;
+    --code-bg:     #eceff4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0e1320;
+      --surface:     #161d2e;
+      --surface-alt: #1d2537;
+      --ink:         #e6e9ef;
+      --ink-soft:    #a8b1c2;
+      --ink-faint:   #7c8699;
+      --rule:        #2a3345;
+      --accent:      #e0a94a;
+      --accent-soft: #33291a;
+      --pos:         #4fae87;
+      --neg:         #d9705e;
+      --code-bg:     #1d2537;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #0e1320;
+    --surface:     #161d2e;
+    --surface-alt: #1d2537;
+    --ink:         #e6e9ef;
+    --ink-soft:    #a8b1c2;
+    --ink-faint:   #7c8699;
+    --rule:        #2a3345;
+    --accent:      #e0a94a;
+    --accent-soft: #33291a;
+    --pos:         #4fae87;
+    --neg:         #d9705e;
+    --code-bg:     #1d2537;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  /* --- masthead --- */
+  .masthead { display: flex; flex-direction: column; gap: 14px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: Newsreader, Georgia, serif;
+    font-weight: 600; font-size: clamp(34px, 6vw, 50px);
+    line-height: 1.1; margin: 0; text-wrap: balance;
+    letter-spacing: -0.015em;
+  }
+  .standfirst {
+    font-size: 18px; color: var(--ink-soft); margin: 0; max-width: 62ch;
+  }
+  .locked {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+    border-radius: 3px; overflow: hidden; margin-top: 8px;
+  }
+  .locked div { background: var(--surface); padding: 12px 14px; }
+  .locked dt {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint);
+  }
+  .locked dd { margin: 3px 0 0; font-size: 14.5px; font-weight: 500; }
+
+  /* --- sections --- */
+  section { display: flex; flex-direction: column; gap: 18px; }
+  h2 {
+    font-family: Newsreader, Georgia, serif;
+    font-size: 27px; font-weight: 600; margin: 0; letter-spacing: -0.01em;
+    padding-bottom: 10px; border-bottom: 1px solid var(--rule);
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: 15px; font-weight: 600; margin: 0;
+    letter-spacing: 0.01em;
+  }
+  p { margin: 0; max-width: 68ch; }
+  p + p { margin-top: -4px; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  strong { font-weight: 600; }
+  code {
+    font-family: "IBM Plex Mono", monospace; font-size: 0.86em;
+    background: var(--code-bg); padding: 1px 5px; border-radius: 3px;
+  }
+  ul { margin: 0; padding-inline-start: 1.15em; max-width: 68ch; }
+  li { margin-bottom: 5px; }
+  li::marker { color: var(--ink-faint); }
+
+  /* --- tables --- */
+  .scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 620px; }
+  th, td { text-align: start; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  thead th {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-faint);
+    font-weight: 500; background: var(--surface-alt); white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.name { font-weight: 600; white-space: nowrap; }
+  .gap { color: var(--neg); font-weight: 500; }
+  .tbl-title { font-family: Newsreader, Georgia, serif; font-size: 19px; margin-top: 14px; }
+  .flag {
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: 0.08em;
+    color: var(--accent); border: 1px solid var(--accent); border-radius: 2px;
+    padding: 0 4px; vertical-align: 2px; font-weight: 500;
+  }
+
+  /* --- wedge list --- */
+  .wedges { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--rule); }
+  .wedge {
+    display: grid; grid-template-columns: 2.2em 1fr; gap: 4px 14px;
+    padding: 16px 0; border-bottom: 1px solid var(--rule);
+  }
+  .wedge .n {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px;
+    color: var(--accent); padding-top: 2px;
+  }
+  .wedge .body { display: flex; flex-direction: column; gap: 5px; }
+  .wedge p { font-size: 14.5px; color: var(--ink-soft); }
+  .versus {
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
+    color: var(--ink-faint);
+  }
+  .versus b { color: var(--ink); font-weight: 500; }
+
+  /* --- roadmap --- */
+  .phases { display: flex; flex-direction: column; gap: 14px; }
+  .phase {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .phase.ship { border-color: var(--accent); background: var(--accent-soft); }
+  .phase.later { background: transparent; border-style: dashed; }
+  .phase-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  .phase-head .id {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+  }
+  .phase-head h3 { font-size: 17px; font-family: Newsreader, Georgia, serif; font-weight: 600; }
+  .dur {
+    margin-inline-start: auto; font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  }
+  .phase ul { font-size: 14.5px; }
+  .done {
+    font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--rule);
+    padding-top: 9px; margin-top: 2px;
+  }
+  .done b { font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-faint);
+    font-weight: 500; display: block; }
+
+  .callout {
+    border-inline-start: 3px solid var(--accent); background: var(--surface);
+    padding: 14px 18px; display: flex; flex-direction: column; gap: 7px;
+    font-size: 14.5px;
+  }
+  .callout h3 { font-size: 14px; }
+
+  .stack { display: flex; flex-direction: column; gap: 0; }
+  .row {
+    display: grid; grid-template-columns: 150px 1fr; gap: 6px 18px;
+    padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: 14.5px;
+  }
+  .row:first-child { border-top: 1px solid var(--rule); }
+  .row dt { font-weight: 600; }
+  .row dd { margin: 0; color: var(--ink-soft); }
+  .row dd em { font-style: normal; color: var(--ink); font-weight: 500; }
+
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr; }
+    .wedge { grid-template-columns: 1fr; }
+    .wedge .n { padding-top: 0; }
+  }
+  .code {
+    background: var(--code-bg); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 14px 16px; overflow-x: auto; margin: 0;
+    font-family: "IBM Plex Mono", monospace; font-size: 12.5px; line-height: 1.6;
+    color: var(--ink);
+  }
+  .code code { background: none; padding: 0; font-size: inherit; }
+  .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
+    border-radius: 2px; padding: 1px 5px; margin-inline-start: 6px; font-weight: 500;
+    white-space: nowrap;
+  }
+  .src { font-size: 14px; }
+  .src li { color: var(--ink-faint); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">Build plan · v1 scope · September 2026</div>
+  <h1>Fajr LMS</h1>
+  <p class="standfirst">A Go API with three faces: a madrasa in Sylhet, a Qur'an tutor in Karachi selling her own course, and a bank in Riyadh running compliance training — all on one codebase, one contract, one deploy.</p>
+  <dl class="locked">
+    <div><dt>Buyer</dt><dd>Institutions + creators + corporate</dd></div>
+    <div><dt>v1 line</dt><dd>Full teaching workflow</dd></div>
+    <div><dt>Backend</dt><dd>Go, API-first</dd></div>
+    <div><dt>Clients</dt><dd>SvelteKit → Expo</dd></div>
+    <div><dt>Markets</dt><dd>South Asia + Gulf → EU/US</dd></div>
+    <div><dt>Non-negotiable</dt><dd>Bidi text, local pay, offline, residency</dd></div>
+  </dl>
+</header>
+
+<section>
+  <h2>What the market actually ships</h2>
+  <p>I looked at who wins today and, more usefully, what people complain about. The pattern is consistent: the platforms that are pleasant to use are priced for Western budgets, and the platform that is affordable everywhere (Moodle) is the one everyone describes as dated and painful. Nobody serves a Dhaka madrasa and a Dubai training company from the same product.</p>
+
+  <h3 class="tbl-title">Global — what the analyst lists rank</h3>
+
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Platform</th><th>Owns</th><th>Costs</th><th>Where it leaves a gap</th></tr></thead>
+    <tbody>
+      <tr><td class="name">Moodle</td><td>Self-hosted institutions, 2,000+ plugins</td><td>~$200/mo hosted; real cost is IT hours</td><td class="gap">Dated UI, painful file handling, AI only via plugins</td></tr>
+      <tr><td class="name">Canvas / Blackboard</td><td>Universities, K-12 polish</td><td>$10k–$50k+/yr, six figures past entry</td><td class="gap">Priced out of every market you're targeting</td></tr>
+      <tr><td class="name">TalentLMS</td><td>SMB corporate training, onboarding</td><td>From $119/mo (40 users)</td><td class="gap">No academic structure — no terms, gradebook, parents</td></tr>
+      <tr><td class="name">Docebo</td><td>AI learning paths at enterprise scale</td><td>~$40k/yr entry</td><td class="gap">AI locked behind enterprise pricing</td></tr>
+      <tr><td class="name">Thinkific / Kajabi / LearnDash</td><td>Creator course selling</td><td>$40–$200/mo</td><td class="gap">No SCORM, no offline, Stripe-only, form limits</td></tr>
+      <tr><td class="name">Classter</td><td>All-in-one SIS + LMS</td><td>Mid-market institutional</td><td class="gap">Heavy, no creator or self-serve motion</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="tbl-title">Regional and adjacent — the ones you will actually lose deals to</h3>
+  <p>These matter more than Docebo does. Two of them were built in Dhaka, which means your buyers already know the names and your engineers already know the price expectations.</p>
+
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Platform</th><th>Owns</th><th>Costs</th><th>Where it leaves a gap</th></tr></thead>
+    <tbody>
+      <tr><td class="name">EzyCourse <span class="flag">BD</span></td><td>Creator all-in-one: 20+ revenue streams, 12+ lesson types, community, coaching, 250+ site templates, white-label iOS/Android app bundled</td><td>$59 / $139 / $199 / $299 per month, annual</td><td class="gap">Creator-only — no gradebook, terms, attendance, parents or SCORM. Priced in USD, above most BD/PK institutional budgets.</td></tr>
+      <tr><td class="name">Tutor LMS <span class="flag">BD</span></td><td>WordPress plugin; frontend course builder, quiz types, reports. Huge install base, agency channel</td><td>$199 / $399 / $799 per year</td><td class="gap">No built-in payments — needs WooCommerce. You inherit WordPress: security, performance, plugin conflicts. No multi-tenancy.</td></tr>
+      <tr><td class="name">Academy LMS, and the CodeCanyon script market</td><td>One-time-purchase self-hosted LMS scripts, widely resold across BD/PK</td><td>$50–$100 once</td><td class="gap">Sets a brutal price anchor, but no SaaS, no updates discipline, no support. This is who you unseat on quality, never on price.</td></tr>
+      <tr><td class="name">ClassTune, Pathshala Soft, ZoomIT, Fedena</td><td>BD/India school management: Bangla UI, bKash, fees, attendance, results</td><td>Local institutional pricing</td><td class="gap">SIS-shaped. Learning delivery is an afterthought — no real course builder, assessment engine or video.</td></tr>
+      <tr><td class="name">Ilmify, Muntazim, Dugsi, MadrasaSIMS</td><td>Islamic schools; Urdu/Arabic/Bangla UI, Hifz tracking, Aliya/Qawmi structures</td><td>Local pricing</td><td class="gap">Same shape — admin systems with a course list bolted on.</td></tr>
+      <tr><td class="name">Shikho, 10 Minute School, Bohubrihi</td><td>B2C content brands with their own platforms</td><td>Consumer subscription</td><td class="gap">Not competitors — they are <em>prospects</em>, and they set what a BD student expects a player to feel like.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Two things fall out of this table. First, <strong>the market is split down the middle:</strong> creator platforms (EzyCourse, Tutor LMS) have no academic spine, and school systems (ClassTune, Ilmify, Pathshala) have no learning platform. Every institution that wants both is currently buying both, or buying neither. Second, <strong>the local tools understand the operational reality</strong> — Aliya/Qawmi dual streams, BEFAQ and BMEB boards, Hifz progress, bKash, Bangla — and the international ones understand none of it, while being ten to fifty times the price.</p>
+
+  <p><strong>That space between them is Fajr.</strong> Not "a better Moodle" and not "EzyCourse with more features" — the one platform where a madrasa runs its term <em>and</em> sells a public course, with the local operational vocabulary built in rather than bolted on.</p>
+</section>
+
+<section>
+  <h2>Table stakes — build these or don't ship</h2>
+  <p>Nothing here differentiates you. Every item is something a buyer will assume exists and will walk over if it doesn't.</p>
+  <ul>
+    <li>Course → module → lesson authoring, drag-reorder, draft/publish, versioning</li>
+    <li>Video with adaptive bitrate, resume-where-you-left-off, playback speed, captions</li>
+    <li>Enrollment, progress tracking, completion rules, prerequisites</li>
+    <li>Quizzes and exams: MCQ, true/false, short answer, essay, file upload, question bank, randomization, timers, attempt limits</li>
+    <li>Assignments with due dates, late policy, rubric grading, plagiarism-flag hook</li>
+    <li>Gradebook with weighted categories, teacher overrides, export</li>
+    <li>Attendance, roll call, absence reporting</li>
+    <li>Live class sessions, recordings attached back to the lesson</li>
+    <li>Discussions, announcements, direct messages</li>
+    <li>Certificates with verification URLs</li>
+    <li>Roles and permissions: owner, admin, instructor, TA, student, parent, observer</li>
+    <li>Reporting: per-learner, per-course, per-cohort; CSV and PDF export</li>
+    <li>Bulk import of users and enrollments; a real integration API and webhooks</li>
+    <li>Accessibility to WCAG 2.1 AA — this is a hard EU/US procurement gate</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Why Fajr, and not the other one</h2>
+  <p>Ten wedges. Each is something a named competitor structurally cannot or will not match — not a feature they simply haven't built yet.</p>
+
+  <div class="wedges">
+    <div class="wedge"><div class="n">01</div><div class="body">
+      <h3>Three tenant modes, one account</h3>
+      <p>A madrasa runs internal classes <em>and</em> sells a public Tajweed course. A solo tutor grows into a school without migrating. Tenant type flips the module set; the core stays identical.</p>
+      <div class="versus">vs. <b>Thinkific</b> (no institution) and <b>Canvas</b> (no storefront) — you'd need both, and they don't talk.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">02</div><div class="body">
+      <h3>Bidirectional text that actually renders</h3>
+      <p>No translation layer — the interface is English. What matters is that <em>content</em> in Arabic, Bangla or Urdu renders correctly wherever it appears: a Gulf tenant authoring right-to-left, a Bangla lesson title inside an English admin table, an Arabic student name in a notification. See the section below; it is cheap now and near-impossible later.</p>
+      <div class="versus">vs. everyone international, where RTL is a theme setting and mixed-direction content scrambles.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">03</div><div class="body">
+      <h3>Payments that actually clear locally</h3>
+      <p>bKash, Nagad, SSLCommerz, JazzCash, Tap, PayTabs, Mada, Stripe — behind one interface. Plus fee installment plans and <strong>manual bank-transfer approval</strong>: parent uploads a deposit slip, admin approves, enrollment unlocks. That last one is how most South Asian school fees are genuinely paid.</p>
+      <div class="versus">vs. <b>Kajabi / Thinkific / Docebo</b> — Stripe or nothing.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">04</div><div class="body">
+      <h3>Designed for a 3G phone on a village edge tower</h3>
+      <p>Budget: under 100 KB on first paint. Audio-only track per video lesson, transcript-only fallback, downloadable lesson packs, 144p rung in every ladder. Ship a data-usage counter — students on prepaid data will love you for it.</p>
+      <div class="versus">vs. every Western LMS, which assumes campus wifi.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">05</div><div class="body">
+      <h3>Offline is a feature, not a failure state</h3>
+      <p>PWA and Expo app both cache lessons and queue quiz answers, assignment submissions and progress; sync on reconnect with server-side conflict rules. A student finishes a quiz on the bus.</p>
+      <div class="versus">vs. <b>LearnDash / Kajabi</b>, where "no offline mode" is a documented gap.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">06</div><div class="body">
+      <h3>WhatsApp and SMS as the primary channel</h3>
+      <p>Email is not how these markets communicate. Attendance alerts, fee reminders, grade releases and class links go to WhatsApp Business API and SMS, in the parent's language, with delivery receipts.</p>
+      <div class="versus">vs. everyone, who assume an inbox and get single-digit open rates.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">07</div><div class="body">
+      <h3>Islamic education as a first-class module</h3>
+      <p>Optional, switched on per tenant: Hifz tracking with sabaq / sabqi / manzil cycles, Qur'an progress by juz, surah and ayah, teacher listening logs, Tajweed error tagging, Hijri calendar, prayer-time-aware timetabling, and exam structures for the Aliya, Qawmi, BEFAQ and BMEB boards.</p>
+      <div class="versus">vs. <b>Canvas</b> and <b>Docebo</b>, which will never build it, and <b>Ilmify / Muntazim</b>, which have it inside a weak learning platform.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">08</div><div class="body">
+      <h3>AI at the entry tier, not the enterprise tier</h3>
+      <p>Generate a quiz from lesson content, auto-transcribe and translate video into Bangla, Urdu and Arabic subtitles, draft rubric-based feedback on short answers for teacher approval, summarize a recorded class. All teacher-in-the-loop, all included.</p>
+      <div class="versus">vs. <b>Docebo</b> at ~$40k/yr and <b>Moodle</b>, where AI needs plugins.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">09</div><div class="body">
+      <h3>Self-hosting is a shipped product</h3>
+      <p>One Go binary plus a compose file. A Gulf ministry or an EU university that requires data residency deploys in-region without an enterprise negotiation. Same code as cloud, licensed differently.</p>
+      <div class="versus">vs. <b>Canvas / Docebo</b>, where residency is a six-figure conversation.</div>
+    </div></div>
+
+    <div class="wedge"><div class="n">10</div><div class="body">
+      <h3>Priced per active learner</h3>
+      <p>Seat-based pricing punishes exactly the institutions you want — a 900-student madrasa with 200 monthly actives. Charge for use, publish the price, no "contact sales" on the entry tiers.</p>
+      <div class="versus">vs. <b>TalentLMS</b> at $119/mo for 40 seats and <b>EzyCourse</b> at $59–$299/mo — both unsellable at Dhaka or Lahore institutional price points.</div>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Bidi and scripts — not i18n</h2>
+  <p>To be precise about scope: <strong>the interface stays in English.</strong> No message catalogs, no translation workflow, no locale negotiation — that is a whole subsystem you do not need and would have to maintain forever. What you do need is that <em>content</em> renders correctly whatever script it arrives in, including mixed into English chrome. That is a much smaller, mostly one-time job, and it has to happen at the start.</p>
+
+  <dl class="stack">
+    <div class="row"><dt>Direction, per field</dt><dd><code>dir="auto"</code> on every user-content element — the browser infers direction from the first strong character, per field, for free. An Arabic lesson title right-aligns itself inside an otherwise left-to-right admin table. Keep a per-course explicit override for the cases <code>auto</code> reads wrong: a title opening with a number, a date, or a Latin brand name.</dd></div>
+    <div class="row"><dt>Isolation, inline</dt><dd>Wrap any interpolated user string in <code>&lt;bdi&gt;</code>. This is where bidi bugs actually live: an Arabic name dropped into an English sentence drags the trailing punctuation to the wrong end. One wrapper component, applied once, and the class of bug never appears.</dd></div>
+    <div class="row"><dt>Logical properties only</dt><dd><code>margin-inline-start</code>, <code>padding-inline-end</code>, <code>inset-inline</code>, <code>text-align: start</code>. Never <code>left</code> or <code>right</code>. A tenant-level <code>dir="rtl"</code> on the document root then flips the whole chrome for a Gulf customer with no extra CSS. Add a stylelint rule so nobody reintroduces a physical property in month six.</dd></div>
+    <div class="row"><dt>Fonts, subsetted</dt><dd>Noto Sans for Latin, <strong>Noto Sans Arabic</strong>, <strong>Noto Sans Bengali</strong> — self-hosted WOFF2 with <code>unicode-range</code> per face, so a Dhaka student on 3G downloads the Bengali file and never the Arabic one. Variable fonts where available; subset to the ranges you actually serve. Budget roughly 40–60 KB per script.</dd></div>
+    <div class="row"><dt>Vertical metrics</dt><dd>Bangla conjuncts and Arabic descenders clip at the line-height that looks right for Latin. Set <code>line-height</code> per script through a <code>:lang()</code> rule — around 1.5 for Latin, 1.75 for Bengali and Arabic — and never fix overflow by clipping.</dd></div>
+    <div class="row"><dt>PDF and image output</dt><dd>Certificates, transcripts and report cards need real text shaping. Go's PDF libraries generally do not shape, so <strong>render HTML through a headless Chromium worker</strong> and let the browser engine you already trust do the bidi and the ligatures. Slower per document, correct every time, and it reuses your existing templates.</dd></div>
+    <div class="row"><dt>Storage and comparison</dt><dd>Postgres in UTF-8 with ICU collations so Bangla and Arabic names sort the way a human expects. Normalize to NFC on write. Search uses the <code>simple</code> FTS config plus trigram for these scripts — the built-in stemmers do not cover them.</dd></div>
+    <div class="row"><dt>Numerals</dt><dd>Arabic-Indic digits (٠١٢٣) as a per-tenant display toggle. Store canonical Western digits always; convert only at render. Never parse a localized numeral back into a grade.</dd></div>
+  </dl>
+
+  <p>All of it is a few days of work at the start. Deferred, it becomes a rewrite of every stylesheet, every form input and every place a string is concatenated — which is why it sits in Phase 0 and not in a backlog.</p>
+</section>
+
+<section>
+  <h2>Architecture</h2>
+  <p>One Go binary, modular monolith, split into services only when a module measurably hurts. Microservices on day one would buy you nothing but deploy complexity and distributed bugs.</p>
+
+  <dl class="stack">
+    <div class="row"><dt>Contract</dt><dd><em>OpenAPI 3.1 spec is the source of truth.</em> Generate Go server stubs and a TypeScript client from it. SvelteKit and Expo consume the same generated client — one contract, three consumers, no drift.</dd></div>
+    <div class="row"><dt>API</dt><dd>Go 1.24, stdlib <code>net/http</code> routing, <code>chi</code> if you want middleware sugar. Modules under <code>internal/</code>: identity, tenancy, catalog, enrollment, assessment, grading, billing, messaging, media, reporting. Cross-module calls go through interfaces, never direct table reads.</dd></div>
+    <div class="row"><dt>Data</dt><dd>Postgres 17. Shared schema, <code>tenant_id</code> on every row, row-level security enforced in the database — not in application code you'll forget once. <code>sqlc</code> for typed queries, <code>goose</code> for migrations.</dd></div>
+    <div class="row"><dt>Jobs</dt><dd><code>river</code> — Postgres-backed queue. Video transcode callbacks, SMS sends, report generation, sync reconciliation. No Redis until you can prove you need it.</dd></div>
+    <div class="row"><dt>Media</dt><dd><em>Pluggable — see the next section.</em> The core stores a <code>media_asset</code> row and asks a provider for a playback manifest. Ships with an embed provider; your transcoder drops in behind the same interface with no changes above it.</dd></div>
+    <div class="row"><dt>Storage</dt><dd>S3 API as the contract, <strong>MinIO or Garage self-hosted</strong> as the default backend. Any S3-compatible bucket works if a tenant would rather pay for one. Presigned direct uploads so bytes never touch the API process.</dd></div>
+    <div class="row"><dt>Live classes</dt><dd>Adapter over <strong>Jitsi Meet</strong> and <strong>BigBlueButton</strong>, both self-hosted and open source. BBB is the default for institutions — it has breakout rooms, polls and recording built in. Never write WebRTC yourself.</dd></div>
+    <div class="row"><dt>Realtime</dt><dd>Server-sent events for notifications and live-class presence. WebSockets only when something genuinely needs a duplex channel.</dd></div>
+    <div class="row"><dt>Search</dt><dd>Postgres full-text search, with per-language configs. Meilisearch when it stops being good enough — not before.</dd></div>
+    <div class="row"><dt>Auth</dt><dd>Own it. Phone-number-plus-OTP first (email is secondary in these markets), argon2id passwords, JWT access with rotating refresh tokens, device sessions. OIDC and SAML land in the corporate phase.</dd></div>
+    <div class="row"><dt>Residency</dt><dd>One regional deployment per data domain (Singapore, Bahrain, later Frankfurt), plus the single-tenant self-host build. Region is a deploy target, not a runtime branch.</dd></div>
+    <div class="row"><dt>Caching</dt><dd>In-process LRU for hot config and permission checks, plus correct HTTP cache headers and ETags so manifests and static assets never re-hit Go. Valkey only when a second node makes an in-process cache wrong.</dd></div>
+    <div class="row"><dt>Observability</dt><dd>OpenTelemetry from the first endpoint into <strong>Prometheus, Loki and Grafana</strong>, with <strong>GlitchTip</strong> for errors — the whole stack self-hosted and free. Structured <code>slog</code>, trace IDs on every response header. Retrofitting this after a production incident is how weekends die.</dd></div>
+    <div class="row"><dt>Deploy</dt><dd>One binary, Docker Compose, <strong>Caddy</strong> in front for automatic TLS and byte-range media serving. Scale by adding API containers behind Caddy; Postgres gets a bigger box and then read replicas. No Kubernetes until the org has someone whose job it is.</dd></div>
+  </dl>
+</section>
+
+<section>
+  <h2>Media, made pluggable</h2>
+  <p>Media is the only part of an LMS whose cost curve can outrun its revenue curve, so it gets its own boundary. The core never knows what a video <em>is</em> — it holds a <code>media_asset</code> row and asks a provider for something playable.</p>
+
+  <pre class="code"><code>// internal/media/provider.go
+type Provider interface {
+    // Called after an upload or when a URL is pasted.
+    Ingest(ctx context.Context, a *Asset, src Source) (State, error)
+    // Called by the player. Returns an embed URL, an HLS manifest URL,
+    // or a progressive file URL — expiring, scoped to one viewer.
+    Playback(ctx context.Context, a *Asset, v Viewer) (Playback, error)
+    // Provider tells the core what it can do; the UI adapts.
+    Caps() Caps // renditions, captions, drm, offline, thumbnails
+}</code></pre>
+
+  <p>Four adapters, in the order they earn their place:</p>
+
+  <dl class="stack">
+    <div class="row"><dt>Embed <span class="tag">phase 1</span></dt><dd>Paste a YouTube, Vimeo, Odysee, PeerTube or bare iframe URL; resolve via oEmbed; render in a sandboxed frame. <em>Costs you nothing, ships in a day, and is how most BD and Gulf tutors already host video.</em> Launch on this alone.</dd></div>
+    <div class="row"><dt>Direct file <span class="tag">phase 1</span></dt><dd>Presigned upload to MinIO, served back through Caddy with byte-range support and an HMAC-signed expiring URL. No transcode — the file plays as uploaded. Good enough for audio, PDFs, slides and small video.</dd></div>
+    <div class="row"><dt>Your transcoder <span class="tag">when ready</span></dt><dd>The interface is the integration point. You hand back a job ID on <code>Ingest</code>, hit a webhook when the ladder is built, and return an HLS manifest URL from <code>Playback</code>. <strong>Nothing above the interface changes.</strong> Until it exists, a stub adapter fronting <code>ffmpeg</code> in a River worker covers the gap.</dd></div>
+    <div class="row"><dt>Hosted <span class="tag">optional</span></dt><dd>A Stream or Bunny adapter exists as a per-tenant escape hatch for a customer who wants to pay for it. Never the default, never a dependency.</dd></div>
+  </dl>
+
+  <p>The same shape applies everywhere a vendor could otherwise become load-bearing: <code>PaymentProvider</code>, <code>LiveClassProvider</code>, <code>NotificationChannel</code>, <code>StorageBackend</code>, <code>AIProvider</code>. One interface, a free default, a paid adapter only if someone asks.</p>
+</section>
+
+<section>
+  <h2>Cost, performance, scale</h2>
+  <p>The whole runtime is open source and self-hostable. Nothing in the default path bills per seat, per minute or per API call.</p>
+
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Need</th><th>Free / OSS default</th><th>Why not the usual paid pick</th></tr></thead>
+    <tbody>
+      <tr><td class="name">Object storage</td><td>MinIO or Garage</td><td>S3 egress is the bill that kills video products</td></tr>
+      <tr><td class="name">Transcode</td><td>ffmpeg in a River worker → your own transcoder</td><td>Stream and Bunny charge per minute stored and delivered</td></tr>
+      <tr><td class="name">Queue</td><td>River, on the Postgres you already run</td><td>No Redis, no SQS, no extra service to operate</td></tr>
+      <tr><td class="name">Cache</td><td>In-process LRU + HTTP caching; Valkey if clustered</td><td>Managed Redis is billed hourly to solve a problem you may not have</td></tr>
+      <tr><td class="name">Search</td><td>Postgres FTS → Meilisearch</td><td>Algolia bills per search operation</td></tr>
+      <tr><td class="name">Live class</td><td>Jitsi / BigBlueButton, self-hosted</td><td>Zoom is per-host, per-month, forever</td></tr>
+      <tr><td class="name">Email</td><td>Postal or Maddy on your own IP</td><td>SendGrid and Postmark bill per message</td></tr>
+      <tr><td class="name">Push</td><td>Expo push (free) or UnifiedPush</td><td>OneSignal gates volume behind tiers</td></tr>
+      <tr><td class="name">Subtitles &amp; transcription</td><td>whisper.cpp / faster-whisper on your own GPU</td><td>Whisper API and AssemblyAI bill per audio minute</td></tr>
+      <tr><td class="name">Quiz gen &amp; draft grading</td><td>Ollama with a small open model, hosted API as an adapter</td><td>Per-token billing on a feature students use constantly</td></tr>
+      <tr><td class="name">Monitoring</td><td>Prometheus + Loki + Grafana + GlitchTip</td><td>Datadog and Sentry bill per host and per event</td></tr>
+      <tr><td class="name">TLS / edge</td><td>Caddy</td><td>Nothing to pay, automatic certificates</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <h3>The two rails you cannot self-host — say so honestly</h3>
+    <p><strong>Payment gateways</strong> (bKash, SSLCommerz, Tap, Stripe) and <strong>SMS / WhatsApp Business API</strong> are licensed rails, not tools. There is no open-source substitute; the adapter pattern is the mitigation — you are never locked to one, and a tenant can bring their own merchant account and SMS credentials so the cost sits on their side of the line, not yours.</p>
+  </div>
+
+  <p>On performance, the numbers that matter and where to hold them: <strong>API p95 under 150 ms</strong> — Go plus <code>sqlc</code> gets there if you never N+1 and index every foreign key. <strong>Under 100 KB on first paint</strong> — SvelteKit compiles away the framework, so this is achievable rather than aspirational. <strong>Media served by Caddy, never by Go</strong> — the API issues a signed URL and gets out of the way. <strong>Bandwidth metered per tenant from the first migration</strong>, because you cannot price what you did not measure.</p>
+
+  <p>Scale in the boring order: one box → separate Postgres → more API containers behind Caddy → read replicas for reporting → split a module out only when its metrics prove it. A single Go binary on a well-specified VM will carry tens of thousands of learners, and the four-figure monthly bill everyone else is paying is your margin.</p>
+</section>
+
+<section>
+  <h2>Roadmap to the v1 line</h2>
+  <p>Phases are ordered by dependency, and each one ends with something you could demo to a paying buyer. Durations assume a small focused team.</p>
+
+  <div class="phases">
+    <div class="phase">
+      <div class="phase-head"><span class="id">Phase 0</span><h3>Foundations</h3><span class="dur">2–3 weeks</span></div>
+      <ul>
+        <li>Repo, CI, one deployed environment, migrations, seed data</li>
+        <li>OpenAPI spec and codegen pipeline wired both ways</li>
+        <li>Identity: signup, OTP, sessions, roles</li>
+        <li>Tenancy with RLS, and a test that <em>proves</em> cross-tenant reads fail</li>
+        <li>Bidi primitives: logical properties, <code>dir="auto"</code> inputs, <code>&lt;bdi&gt;</code> wrapper, subsetted script fonts</li>
+      </ul>
+      <div class="done"><b>Done when</b>Two tenants exist, neither can see the other, and an Arabic course title sits correctly inside an English admin table.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="id">Phase 1</span><h3>Course delivery</h3><span class="dur">4–6 weeks</span></div>
+      <ul>
+        <li>Catalog: course, module, lesson, drag-reorder, draft/publish</li>
+        <li>Media provider interface + embed and direct-file adapters (no transcoding yet)</li>
+        <li>Enrollment, progress, resume position, completion rules</li>
+        <li>Student player and instructor authoring UI</li>
+      </ul>
+      <div class="done"><b>Done when</b>A teacher builds a course and a student finishes it on a throttled 3G connection.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="id">Phase 2</span><h3>Money</h3><span class="dur">3–4 weeks</span></div>
+      <ul>
+        <li>Payment provider interface; adapters for SSLCommerz, bKash and Stripe first</li>
+        <li>Checkout, coupons, invoices, refunds, webhook reconciliation</li>
+        <li>Manual bank transfer: slip upload, admin approval queue</li>
+        <li>Installment plans with reminders</li>
+      </ul>
+      <div class="done"><b>Done when</b>Real taka and real dirhams have landed in a real account.</div>
+    </div>
+
+    <div class="phase ship">
+      <div class="phase-head"><span class="id">Phase 3</span><h3>Teaching workflow — the v1 line</h3><span class="dur">6–8 weeks</span></div>
+      <ul>
+        <li>Assignments: submission, due dates, late policy, rubric grading</li>
+        <li>Assessment engine: question bank, all question types, randomization, timers, attempts</li>
+        <li>Gradebook with weighted categories and overrides</li>
+        <li>Attendance and roll call</li>
+        <li>Live class adapter and recording attachment</li>
+        <li>Certificates with public verification</li>
+        <li>Notifications: WhatsApp, SMS, email, in-app; parent accounts</li>
+      </ul>
+      <div class="done"><b>Done when</b>An institution runs a full term end-to-end without a spreadsheet. <strong>This is what you sell.</strong></div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="id">Phase 4</span><h3>The moat</h3><span class="dur">4–6 weeks</span></div>
+      <ul>
+        <li>Offline PWA with sync queue and conflict resolution</li>
+        <li>Low-bandwidth mode: audio track, transcript view, downloadable packs, data counter</li>
+        <li>AI: quiz generation, subtitle transcription and translation, draft grading</li>
+        <li>Islamic module: Hifz cycles, Qur'an progress, Hijri calendar, board exam structures</li>
+      </ul>
+      <div class="done"><b>Done when</b>A competitor's demo can't answer a question yours can.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="id">Phase 5</span><h3>Corporate and the West</h3><span class="dur">6–8 weeks</span></div>
+      <ul>
+        <li>SCORM 1.2 / 2004 and xAPI with an LRS — non-negotiable for corporate buyers</li>
+        <li>Learning paths, skills matrix, certification expiry and recertification</li>
+        <li>SSO: SAML 2.0 and OIDC; SCIM provisioning</li>
+        <li>Compliance reporting, audit logs, GDPR data export and erasure</li>
+        <li>Expo mobile app</li>
+      </ul>
+      <div class="done"><b>Done when</b>You can answer an EU procurement questionnaire without lying.</div>
+    </div>
+
+    <div class="phase later">
+      <div class="phase-head"><span class="id">Deferred</span><h3>Institution management (SIS/ERP)</h3><span class="dur">not yet</span></div>
+      <p>Admissions pipeline, fee ledger and receipts, timetable and room allocation, batch and section management, staff records, transport, hostel, library, board reporting.</p>
+      <p>This is an ERP, not an LMS. It doubles surface area and pulls you into per-country regulatory work. Deferring it is the right call — but it's also what makes an institution unable to leave you, so it isn't <em>never</em>.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>You asked me to push you at the right time — here's the trigger</h3>
+    <p>Start the institution module when <strong>any two</strong> of these are true, and not before:</p>
+    <ul>
+      <li>Three or more paying institutions have asked for fee collection or admissions <em>in writing</em></li>
+      <li>A deal you actually wanted is lost or stalled specifically on timetable or admissions</li>
+      <li>Support is spending more than four hours a week on manual fee or enrollment tracking</li>
+      <li>Phase 3 has been live and stable for a full academic term</li>
+    </ul>
+    <p>Ask me to check this at the end of every Phase 3 and Phase 4 milestone. If two are true, I'll say so and we plan it properly rather than bolting it on.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Deliberately not building</h2>
+  <p>Every one of these is cheaper to buy, and each would cost you a phase to build badly.</p>
+  <ul>
+    <li><strong>A transcoding pipeline, for now.</strong> Launch on the embed adapter. Your own transcoder lands behind the interface when it is ready — that ordering is what makes it a feature and not a blocker.</li>
+    <li><strong>WebRTC.</strong> Jitsi, BBB or Zoom behind an adapter.</li>
+    <li><strong>Microservices.</strong> Modular monolith until a module proves it needs to scale separately.</li>
+    <li><strong>A plugin marketplace.</strong> Moodle's 2,000 plugins are also Moodle's biggest support cost. Webhooks and a clean API cover the real need.</li>
+    <li><strong>Your own payment rails.</strong> Adapters over licensed gateways — the one place paying is unavoidable.</li>
+    <li><strong>A page builder.</strong> Themeable templates until someone pays you to make it configurable.</li>
+    <li><strong>Kubernetes.</strong> A Go binary on a VM with a load balancer will carry you to a revenue number worth celebrating.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>What will actually hurt</h2>
+  <dl class="stack">
+    <div class="row"><dt>Bidi retrofit</dt><dd>The single most expensive mistake available — it touches every stylesheet, every input and every string concatenation. Logical properties from the first rule, and a mixed-script screenshot test in CI.</dd></div>
+    <div class="row"><dt>Certificate PDFs</dt><dd>The one place bidi genuinely bites. Most Go PDF libraries do no text shaping, so Arabic renders as disconnected backwards letters and Bangla conjuncts fall apart — and nobody notices until a student downloads one.</dd></div>
+    <div class="row"><dt>Tenant leakage</dt><dd>One query missing a tenant filter ends the company. RLS in the database, plus an automated cross-tenant probe in the test suite.</dd></div>
+    <div class="row"><dt>Payment reconciliation</dt><dd>Local gateways have flaky webhooks and inconsistent idempotency. Every payment gets a state machine and a manual reconcile screen from day one.</dd></div>
+    <div class="row"><dt>Offline sync conflicts</dt><dd>Decide the rules before you write the code: quiz attempts are append-only, progress takes the max, submissions are last-write-wins with an audit trail.</dd></div>
+    <div class="row"><dt>Video cost</dt><dd>Egress is the bill that ends video products. The embed adapter defers it entirely at launch; when your transcoder arrives, cap renditions, cache hard at Caddy, and meter bandwidth per tenant — a column you add in the first migration, not the fortieth.</dd></div>
+    <div class="row"><dt>Self-hosting everything</dt><dd>Free software is not free to operate. MinIO, BBB, Postal and a Whisper GPU box are four things that can page you. Sequence them: nothing self-hosted lands before the phase that needs it, and each ships with a backup and a restore you have actually run.</dd></div>
+    <div class="row"><dt>Email deliverability</dt><dd>Self-hosted SMTP on a fresh IP goes straight to spam. Warm the IP, set SPF, DKIM and DMARC on day one, and keep a paid relay adapter ready — for these markets SMS and WhatsApp carry the important messages anyway.</dd></div>
+    <div class="row"><dt>EzyCourse already bundles a white-label app</dt><dd>On its $199+ tiers you get branded iOS and Android for free — so "we have a mobile app" is not a wedge in BD. Yours has to win on <em>offline</em> and <em>low bandwidth</em>, which theirs does not do.</dd></div>
+    <div class="row"><dt>The $60 script anchor</dt><dd>CodeCanyon LMS scripts sell once for under $100 and shape what a BD buyer thinks software costs. Do not compete there — sell the term running without a spreadsheet, and price per active learner so the number stays small.</dd></div>
+    <div class="row"><dt>Scope, three ways</dt><dd>Serving three buyer types is the strategy and also the risk. The rule: a feature lands in core only if two of the three need it. Otherwise it's a tenant-type module.</dd></div>
+  </dl>
+</section>
+
+<section>
+  <h2>Next</h2>
+  <p>Say the word and I'll scaffold Phase 0: repo layout, <code>docker-compose</code>, the first migration with tenancy and RLS, the OpenAPI skeleton and codegen, and the cross-tenant isolation test. That's the smallest thing that proves the architecture, and everything else stacks on it.</p>
+</section>
+
+<section>
+  <h2>Sources</h2>
+  <ul class="src">
+    <li><a href="https://www.talentlms.com/blog/best-learning-management-systems/">TalentLMS — Best Learning Management Systems of 2026</a></li>
+    <li><a href="https://www.docebo.com/learning-network/blog/moodle-alternatives/">Docebo — Top Moodle alternatives and competitors</a></li>
+    <li><a href="https://www.ruzuku.com/learn/research/course-platform-satisfaction-2026">Ruzuku — 2026 Course Platform Satisfaction Report</a></li>
+    <li><a href="https://www.softwareadvice.com/lms/moodle-profile/">Software Advice — Moodle reviews and pricing</a></li>
+    <li><a href="https://ezycourse.com/pricing">EzyCourse — pricing</a> · <a href="https://www.capterra.com/p/275388/EzyCourse/">Capterra profile</a></li>
+    <li><a href="https://www.softwareadvice.com/lms/tutor-lms-profile/">Software Advice — Tutor LMS</a> · <a href="https://elearningindustry.com/directory/elearning-software/tutor-lms/pricing">Tutor LMS pricing</a></li>
+    <li><a href="https://pathshalasoft.com/best-school-management-system-in-bangladesh/">School management software in Bangladesh — ClassTune, ZoomIT, Fedena</a></li>
+    <li><a href="https://ilmify.app/blog/madrasa-management-software-bangladesh-2026/">Ilmify — Madrasa management software in Bangladesh</a> · <a href="https://theummah.io/blog/islamic-school-management-software/">theummah.io — Islamic school software</a></li>
+    <li><a href="https://www.cbinsights.com/company/shikho/alternatives-competitors">CB Insights — Shikho and 10 Minute School competitors</a></li>
+  </ul>
+</section>
+
+</div>

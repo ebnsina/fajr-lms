@@ -1,0 +1,32 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fajr
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fajr"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      FAJR_ENV: development
+      FAJR_DATABASE_URL: postgres://fajr_app:fajr@localhost:5432/fajr?sslmode=disable
+      ADMIN_DATABASE_URL: postgres://postgres:postgres@localhost:5432/fajr?sslmode=disable
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with: { go-version: '1.27', cache: true }
+      - run: psql "$ADMIN_DATABASE_URL" -f db/init/01-app-role.sql
+      - run: gofmt -l . | tee /dev/stderr | (! read)
+      - run: go vet ./...
+      - run: go run ./cmd/migrate up
+      - run: go test ./... -race -count=1

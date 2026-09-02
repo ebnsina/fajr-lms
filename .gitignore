@@ -1,0 +1,8 @@
+/bin/
+/tmp/
+.env
+.env.local
+*.test
+coverage.out
+node_modules/
+.DS_Store
