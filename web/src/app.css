@@ -1,14 +1,33 @@
 @import 'tailwindcss';
 
-/* Nohemi is one variable file covering every weight, so the whole interface
-   costs a single 39 KB download. It carries no Arabic or Bengali, and the
-   stack falls through per character to faces that do. */
+/* Self-hosted so there is no third party round trip on a slow connection, and
+   subset to Latin: a unicode-range keeps the browser from fetching these for
+   Arabic or Bengali, which fall through to Noto instead. */
 @font-face {
-	font-family: 'Nohemi';
-	src: url('/fonts/nohemi-variable.woff2') format('woff2-variations');
-	font-weight: 100 900;
+	font-family: 'Cabin';
+	src: url('/fonts/cabin-latin-ext.woff2') format('woff2');
+	font-weight: 400 700;
 	font-style: normal;
 	font-display: swap;
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+	font-family: 'Cabin';
+	src: url('/fonts/cabin-latin.woff2') format('woff2');
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: 'Geist Mono';
+	src: url('/fonts/geist-mono-latin.woff2') format('woff2');
+	font-weight: 300 600;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @theme {
@@ -37,8 +56,8 @@
 
 	--color-focus-line: #e2e8f0;
 
-	--font-sans: 'Nohemi', 'Noto Sans Arabic', 'Noto Sans Bengali', system-ui, sans-serif;
-	--font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+	--font-sans: 'Cabin', 'Noto Sans Arabic', 'Noto Sans Bengali', system-ui, sans-serif;
+	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
 
 	--radius-control: 0.75rem;
 	--radius-card: 1.5rem;
@@ -116,6 +135,22 @@
 		font-weight: 600;
 		letter-spacing: -0.015em;
 		text-wrap: balance;
+	}
+
+	/* Placeholders are the machine talking, not the person, so they are set in
+	   the mono face and sit back from the value the field will hold. */
+	::placeholder {
+		font-family: var(--font-mono);
+		font-size: 0.9em;
+		color: var(--color-ink-faint);
+		opacity: 1;
+	}
+
+	code,
+	kbd,
+	samp,
+	pre {
+		font-family: var(--font-mono);
 	}
 
 	/* One focus treatment everywhere: the border settles to a neutral and the

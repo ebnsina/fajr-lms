@@ -5,6 +5,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Sign in and choosing a school are now full pages, with the form on one side and
+  a plain statement of what Fajr does on the other.
+
+### Changed
+- Typeface is now Cabin, with Geist Mono for codes, numbers and placeholders.
 - A light and a dark appearance, and a control to choose between them or follow
   the device. The choice is remembered and applied before the page paints, so
   there is no flash of the wrong one.

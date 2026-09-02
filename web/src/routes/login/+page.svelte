@@ -1,96 +1,88 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import AuthLayout from '$lib/components/AuthLayout.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 	let sending = $state(false);
+
+	let submitting = () => {
+		sending = true;
+		return async ({ update }: { update: (o?: { reset?: boolean }) => Promise<void> }) => {
+			await update({ reset: false });
+			sending = false;
+		};
+	};
 </script>
 
 <svelte:head><title>Sign in · Fajr</title></svelte:head>
 
-<div class="mx-auto max-w-sm pt-10">
-	<div class="mb-6 flex justify-end">
-		<ThemeToggle theme={data.theme} />
-	</div>
+<AuthLayout
+	theme={data.theme}
+	heading={form?.sent ? 'Check your messages' : 'Sign in to Fajr'}
+	subheading={form?.sent
+		? 'We sent a six digit code. It is good for ten minutes.'
+		: 'One code by SMS. No password to remember, and none to lose.'}
+>
+	{#if form?.message}
+		<p class="banner-bad mb-5 text-sm" dir="auto">{form.message}</p>
+	{/if}
 
-	<h1 class="mb-1 text-2xl font-bold tracking-tight">Sign in to Fajr</h1>
-	<p class="mb-6 text-sm text-ink-soft">
-		We send a six digit code. No password to remember or lose.
-	</p>
+	{#if form?.sent}
+		<form method="POST" action="?/verify" use:enhance={submitting} class="space-y-5">
+			<input type="hidden" name="destination" value={form.destination} />
 
-	<div class="card">
-		{#if form?.message}
-			<p class="banner-bad mb-4 text-sm">{form.message}</p>
-		{/if}
+			<p class="banner text-sm" dir="auto">
+				Sent to <span class="font-mono" dir="ltr">{form.destination}</span>
+			</p>
 
-		{#if form?.sent}
-			<form
-				method="POST"
-				action="?/verify"
-				use:enhance={() => {
-					sending = true;
-					return async ({ update }) => {
-						await update();
-						sending = false;
-					};
-				}}
-			>
-				<input type="hidden" name="destination" value={form.destination} />
-
-				<p class="banner mb-4 text-sm">
-					Code sent to <span dir="auto" class="font-semibold">{form.destination}</span>
-				</p>
-
-				<label class="mb-1 block font-semibold" for="code">Six digit code</label>
+			<div>
+				<label class="mb-1.5 block text-sm font-medium" for="code">Six digit code</label>
 				<input
-					class="field mb-4 text-center font-mono text-xl tracking-[0.4em]"
+					class="field text-center font-mono text-xl tracking-[0.5em]"
 					id="code"
 					name="code"
 					inputmode="numeric"
 					autocomplete="one-time-code"
 					maxlength="6"
+					placeholder="000000"
 					required
 					dir="ltr"
 				/>
+			</div>
 
-				<label class="mb-1 block font-semibold" for="full_name">Your name</label>
+			<div>
+				<label class="mb-1.5 block text-sm font-medium" for="full_name">Your name</label>
 				<input
-					class="field mb-1"
+					class="field"
 					id="full_name"
 					name="full_name"
 					dir="auto"
 					autocomplete="name"
-					placeholder="Only needed the first time"
+					placeholder="only the first time"
 				/>
-				<p class="mb-4 text-sm text-ink-soft">Write it as you want it on your certificate.</p>
+				<p class="mt-1.5 text-sm text-ink-soft" dir="auto">
+					Write it as it should appear on your certificate.
+				</p>
+			</div>
 
-				<button class="btn w-full" type="submit" disabled={sending}>
-					{sending ? 'Checking…' : 'Continue'}
-				</button>
-			</form>
+			<button class="btn w-full" type="submit" disabled={sending}>
+				{sending ? 'Checking…' : 'Continue'}
+			</button>
+		</form>
 
-			<form method="POST" action="?/request" use:enhance class="mt-3">
-				<input type="hidden" name="destination" value={form.destination} />
-				<button class="btn btn-quiet w-full text-sm" type="submit">
-					Send another code
-				</button>
-			</form>
-		{:else}
-			<form
-				method="POST"
-				action="?/request"
-				use:enhance={() => {
-					sending = true;
-					return async ({ update }) => {
-						await update();
-						sending = false;
-					};
-				}}
-			>
-				<label class="mb-1 block font-semibold" for="destination">Phone number or email</label>
+		<form method="POST" action="?/request" use:enhance class="mt-3">
+			<input type="hidden" name="destination" value={form.destination} />
+			<button class="btn btn-quiet w-full text-sm" type="submit">Send another code</button>
+		</form>
+	{:else}
+		<form method="POST" action="?/request" use:enhance={submitting} class="space-y-5">
+			<div>
+				<label class="mb-1.5 block text-sm font-medium" for="destination">
+					Phone number or email
+				</label>
 				<input
-					class="field mb-1"
+					class="field font-mono"
 					id="destination"
 					name="destination"
 					value={form?.destination ?? ''}
@@ -99,12 +91,16 @@
 					placeholder="+8801XXXXXXXXX"
 					required
 				/>
-				<p class="mb-4 text-sm text-ink-soft">Include the country code.</p>
+				<p class="mt-1.5 text-sm text-ink-soft" dir="auto">Include the country code.</p>
+			</div>
 
-				<button class="btn w-full" type="submit" disabled={sending}>
-					{sending ? 'Sending…' : 'Send code'}
-				</button>
-			</form>
-		{/if}
-	</div>
-</div>
+			<button class="btn w-full" type="submit" disabled={sending}>
+				{sending ? 'Sending…' : 'Send code'}
+			</button>
+		</form>
+	{/if}
+
+	{#snippet footer()}
+		New here? Signing in with a number your school has on file creates your account.
+	{/snippet}
+</AuthLayout>
