@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ShaderGradient from '$lib/components/marketing/ShaderGradient.svelte';
 	import RollingWords from '$lib/components/marketing/RollingWords.svelte';
-	import { reveal, parallax, stepper } from '$lib/actions/motion';
+	import { reveal, stepper } from '$lib/actions/motion';
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
 	import Globe from '@lucide/svelte/icons/globe';
@@ -238,7 +238,7 @@
 	</div>
 </section>
 
-<section id="why" class="patterned scroll-mt-24 px-6 py-24">
+<section id="why" class="scroll-mt-24 px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 	<div class="mb-14 max-w-2xl" use:reveal>
 		<span class="eyebrow mb-3">Why Fajr</span>
@@ -314,43 +314,62 @@
 </section>
 
 <!-- Bento: tiles of different weight, drifting at different speeds. -->
-<section id="website" class="patterned scroll-mt-24 px-6 py-24">
+<section id="website" class="scroll-mt-24 px-6 py-24">
 	<div class="mx-auto max-w-6xl">
-	<div class="mb-14 max-w-2xl" use:reveal>
-		<span class="eyebrow mb-3">Your website</span>
-		<h2 class="font-display text-3xl font-bold sm:text-4xl">
-			Your website, without a web developer
-		</h2>
-		<p class="mt-3 mb-0 text-lg text-ink-soft">
-			Every school gets a public site built from sections you fill in, in the language it teaches
-			in.
-		</p>
-	</div>
+		<div class="mb-14 max-w-2xl" use:reveal>
+			<span class="eyebrow mb-3">Your website</span>
+			<h2 class="font-display text-3xl font-bold sm:text-4xl">
+				Your website, without a web developer
+			</h2>
+			<p class="mt-3 mb-0 text-lg text-ink-soft">
+				Every school gets a public site built from sections you fill in, in the language it teaches
+				in.
+			</p>
+		</div>
 
-	<div class="grid gap-5 lg:grid-cols-3">
-		<article
-			class="card border-brand-line bg-brand-soft p-0 lg:col-span-2 lg:row-span-2"
-			use:parallax={26}
-		>
-			<div class="p-6 sm:p-8">
-				<span class="icon-tile mb-4 bg-surface">
-					<Layout size={24} aria-hidden="true" />
-				</span>
-				<h3 class="mb-2 font-display text-2xl font-bold">Eight templates, written for you</h3>
-				<p class="mb-5 max-w-lg text-ink-soft">
+		<div class="grid items-center gap-14 lg:grid-cols-2">
+			<div use:reveal>
+				<h3 class="font-display text-2xl font-bold">Eight templates, written for you</h3>
+				<p class="mt-3 text-ink-soft">
 					A school, a college, a madrasah or a university — each written twice, once for Bangladesh
-					and once for the Gulf, in the language it teaches in.
+					and once for the Gulf, with the sections these institutions actually publish.
 				</p>
-				<div class="flex flex-wrap gap-2">
+
+				<div class="mt-5 mb-8 flex flex-wrap gap-2">
 					{#each ['School', 'College', 'Madrasah', 'University'] as kind (kind)}
-						<span class="chip bg-surface">{kind}</span>
+						<span class="chip">{kind}</span>
 					{/each}
+					<span class="chip chip-brand">Bangladesh</span>
+					<span class="chip chip-brand">The Gulf</span>
 				</div>
+
+				<ul class="flex flex-col gap-6">
+					<li class="flex gap-4">
+						<span class="icon-tile shrink-0"><Globe size={22} aria-hidden="true" /></span>
+						<div>
+							<h4 class="mb-1 font-medium">Dressed for where you teach</h4>
+							<p class="mb-0 text-sm text-ink-soft">
+								The Gulf setting reads right to left and sets Arabic a size larger; the Bengal
+								setting sets Bengali and runs a little tighter.
+							</p>
+						</div>
+					</li>
+					<li class="flex gap-4">
+						<span class="icon-tile shrink-0"><ShieldCheck size={22} aria-hidden="true" /></span>
+						<div>
+							<h4 class="mb-1 font-medium">Nothing can smuggle script in</h4>
+							<p class="mb-0 text-sm text-ink-soft">
+								Every section is plain text checked on the server. A page cannot carry markup, so a
+								page cannot carry an attack.
+							</p>
+						</div>
+					</li>
+				</ul>
 			</div>
 
 			<!-- A page as the builder makes it: the chrome and the sections, drawn
 			     rather than screenshotted, so it never goes stale. -->
-			<div class="mockup" aria-hidden="true">
+			<div class="mockup" aria-hidden="true" use:reveal={{ y: 32 }}>
 				<div class="chrome">
 					<span class="dot"></span><span class="dot"></span><span class="dot"></span>
 					<span class="url font-mono">/site/greenfield</span>
@@ -374,49 +393,28 @@
 					</div>
 				</div>
 			</div>
-		</article>
+		</div>
 
-		<article class="card self-start" use:parallax={52}>
-			<span class="icon-tile mb-4"><Globe size={22} aria-hidden="true" /></span>
-			<h3 class="mb-2 text-lg font-medium">Dressed for where you teach</h3>
-			<p class="mb-0 text-sm text-ink-soft">
-				The Gulf setting reads right to left and sets Arabic a size larger. The Bengal setting sets
-				Bengali and runs a little tighter.
-			</p>
-		</article>
-
-		<article class="card self-start" use:parallax={68}>
-			<span class="icon-tile mb-4"><ShieldCheck size={22} aria-hidden="true" /></span>
-			<h3 class="mb-2 text-lg font-medium">Nothing can smuggle script in</h3>
-			<p class="mb-0 text-sm text-ink-soft">
-				Every section is plain text checked on the server. A page cannot carry markup, so a page
-				cannot carry an attack.
-			</p>
-		</article>
-
-		{#each audiences as audience, index (audience.title)}
-			<article
-				class="card flex scroll-mt-24 flex-col transition-colors hover:border-brand-line"
-				id={index === 0 ? 'who' : undefined}
-				use:parallax={34}
-			>
-				<span class="icon-tile mb-4">
-					<audience.icon size={22} aria-hidden="true" />
-				</span>
-				<h3 class="mb-2 text-lg font-medium">{audience.title}</h3>
-				<p class="mb-5 flex-1 text-sm text-ink-soft">{audience.body}</p>
-				<div class="flex flex-wrap gap-1.5">
-					{#each audience.tags as tag (tag)}
-						<span class="chip">{tag}</span>
-					{/each}
-				</div>
-			</article>
-		{/each}
-	</div>
+		<div id="who" class="mt-20 grid scroll-mt-24 gap-5 lg:grid-cols-3" use:reveal={{ stagger: 'article' }}>
+			{#each audiences as audience (audience.title)}
+				<article class="card flex flex-col transition-colors hover:border-brand-line">
+					<span class="icon-tile mb-4">
+						<audience.icon size={22} aria-hidden="true" />
+					</span>
+					<h3 class="mb-2 text-lg font-medium">{audience.title}</h3>
+					<p class="mb-5 flex-1 text-sm text-ink-soft">{audience.body}</p>
+					<div class="flex flex-wrap gap-1.5">
+						{#each audience.tags as tag (tag)}
+							<span class="chip">{tag}</span>
+						{/each}
+					</div>
+				</article>
+			{/each}
+		</div>
 	</div>
 </section>
 
-<section id="compare" class="patterned scroll-mt-24 border-y border-line px-6 py-24">
+<section id="compare" class="scroll-mt-24 border-y border-line px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 		<div class="mb-12 max-w-2xl" use:reveal>
 			<span class="eyebrow mb-3">Compare</span>
@@ -460,7 +458,7 @@
 	</div>
 </section>
 
-<section id="features" class="patterned scroll-mt-24 px-6 py-24">
+<section id="features" class="scroll-mt-24 px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 	<div class="mb-14 max-w-2xl" use:reveal>
 		<span class="eyebrow mb-3">What you get</span>
@@ -491,7 +489,7 @@
 	</div>
 </section>
 
-<section id="faq" class="patterned scroll-mt-24 border-t border-line px-6 py-24">
+<section id="faq" class="scroll-mt-24 border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
 		<div class="mb-12 text-center" use:reveal>
 			<span class="eyebrow mb-3">Questions</span>
@@ -554,8 +552,7 @@
 	/* The drawn page preview: every part is a block, tinted from the same tokens
 	   as the real thing. */
 	.mockup {
-		margin: 0 1.5rem 1.5rem;
-		border: 1px solid var(--color-brand-line);
+		border: 1px solid var(--color-line-strong);
 		border-radius: 1rem;
 		background: var(--color-surface);
 		overflow: hidden;

@@ -9,8 +9,8 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   actually does, from lessons and quizzes through to the website builder.
 
 ### Changed
-- The sections below the hero are marked by a fine grid rather than another
-  wash of colour, so the gradient stays the hero's own.
+- The website section is two plain columns — what the templates are on one
+  side, the page they make on the other — rather than tiles of three sizes.
 - The four steps scroll normally again: the heading and its rail stay put, and
   nothing holds the page still.
 

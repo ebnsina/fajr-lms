@@ -261,26 +261,6 @@
 	word-spacing: 0.08em;
 }
 
-/* Sections below the hero are marked by a fine grid rather than another wash
-   of colour: the gradient belongs to the hero and the closing panel alone. */
-@utility patterned {
-	position: relative;
-	isolation: isolate;
-
-	&::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		z-index: -1;
-		background-image:
-			linear-gradient(to right, var(--color-line) 1px, transparent 1px),
-			linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
-		background-size: 4.5rem 4.5rem;
-		mask-image: radial-gradient(80% 60% at 50% 0%, #000 0%, transparent 75%);
-		opacity: 0.7;
-	}
-}
-
 @utility icon-tile {
 	display: inline-flex;
 	align-items: center;

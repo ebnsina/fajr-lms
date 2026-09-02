@@ -47,25 +47,6 @@ export function reveal(node: HTMLElement, options: RevealOptions = {}) {
 	};
 }
 
-/** Drifts an element against the scroll. The distance is small on purpose: a
-    bento tile that wanders too far stops looking like a grid. */
-export function parallax(node: HTMLElement, distance = 40) {
-	if (!ready()) return {};
-
-	const tween = gsap.to(node, {
-		y: -distance,
-		ease: 'none',
-		scrollTrigger: { trigger: node, start: 'top bottom', end: 'bottom top', scrub: 0.6 }
-	});
-
-	return {
-		destroy() {
-			tween.scrollTrigger?.kill();
-			tween.kill();
-		}
-	};
-}
-
 /** Reports which step is on screen, so a rail can follow along. Nothing is
     pinned: the page keeps scrolling normally, and each step is tall enough to
     hold the screen on its own. */
