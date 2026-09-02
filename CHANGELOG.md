@@ -5,6 +5,15 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Changed
+- The landing menu carries the whole page — why, how it works, the website,
+  the comparison, pricing, questions — and one button: Get started. The calls to
+  action no longer say "open a school", since a teacher on their own is welcome
+  too.
+- The hero is lit by slow aurora bands rather than a wash of colour, with the
+  middle left quiet so the headline sits on flat ground.
+- The footer is a raised panel with four columns of links, what the product
+  actually does, and a bottom line carrying the year, the theme switch, and
+  Fajr Labs.
 - The brand color is emerald green, on every screen and in both themes.
 - The landing pages are set in Clash Display and Excon.
 

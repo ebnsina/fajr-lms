@@ -153,13 +153,13 @@
 		</p>
 		<div class="mt-10 flex flex-wrap justify-center gap-3" use:reveal={{ delay: 0.2 }}>
 			<a class="btn" href="/start">
-				Open a school
+				Get started free
 				<ArrowRight size={17} aria-hidden="true" />
 			</a>
 			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
 		</div>
 		<p class="mt-5 text-sm text-ink-soft" use:reveal={{ delay: 0.3 }}>
-			Free while you set it up. No card to begin.
+			Free for your first fifty learners. No card to begin.
 		</p>
 	</div>
 </section>
@@ -185,7 +185,7 @@
 	</dl>
 </section>
 
-<section class="mx-auto max-w-6xl px-6 py-24">
+<section id="why" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">
 	<div class="mb-14 max-w-2xl" use:reveal>
 		<h2 class="font-display text-3xl font-bold sm:text-4xl">
 			Why schools here choose it
@@ -205,7 +205,7 @@
 	</div>
 </section>
 
-<section class="border-y border-line bg-raised px-6 py-24">
+<section id="how" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 		<div class="mb-14 max-w-2xl" use:reveal>
 			<h2 class="font-display text-3xl font-bold sm:text-4xl">
@@ -230,7 +230,7 @@
 </section>
 
 <!-- Bento: tiles of different weight, drifting at different speeds. -->
-<section class="mx-auto max-w-6xl px-6 py-24">
+<section id="website" class="scroll-mt-24 mx-auto max-w-6xl px-6 py-24">
 	<div class="mb-14 max-w-2xl" use:reveal>
 		<h2 class="font-display text-3xl font-bold sm:text-4xl">
 			Your website, without a web developer
@@ -287,8 +287,12 @@
 			</p>
 		</article>
 
-		{#each audiences as audience (audience.title)}
-			<article class="card flex flex-col" use:parallax={34}>
+		{#each audiences as audience, index (audience.title)}
+			<article
+				class="card flex flex-col scroll-mt-24"
+				id={index === 0 ? 'who' : undefined}
+				use:parallax={34}
+			>
 				<h3 class="mb-2 text-lg font-medium">{audience.title}</h3>
 				<p class="mb-5 flex-1 text-sm text-ink-soft">{audience.body}</p>
 				<p class="mb-0 font-mono text-xs text-ink-faint">{audience.line}</p>
@@ -297,7 +301,7 @@
 	</div>
 </section>
 
-<section class="border-y border-line bg-raised px-6 py-24">
+<section id="compare" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
 	<div class="mx-auto max-w-4xl">
 		<div class="mb-12 max-w-2xl" use:reveal>
 			<h2 class="font-display text-3xl font-bold sm:text-4xl">
@@ -363,7 +367,7 @@
 	</div>
 </section>
 
-<section class="border-t border-line px-6 py-24">
+<section id="faq" class="scroll-mt-24 border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
 		<h2 class="mb-10 font-display text-3xl font-bold sm:text-4xl" use:reveal>
 			Questions we are asked
@@ -390,7 +394,7 @@
 		</p>
 		<div class="mt-9 flex flex-wrap justify-center gap-3">
 			<a class="btn" href="/start">
-				Open a school
+				Get started free
 				<ArrowRight size={17} aria-hidden="true" />
 			</a>
 			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
