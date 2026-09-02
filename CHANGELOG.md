@@ -5,6 +5,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Gradebook grid: every learner against every graded item, with the course
+  percentage worked out for you. Type in a box to enter or correct a score, and
+  empty it to go back to the marked one.
+- Add your own graded items, such as an oral exam, and give them their own weight.
+
 - Open an attempt from the marking queue and mark it: the learner's answer, the
   correct answer and the points available are on one row, and written answers
   get a score and a comment.

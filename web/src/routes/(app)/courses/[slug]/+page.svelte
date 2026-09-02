@@ -5,11 +5,15 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Check from '@lucide/svelte/icons/check';
+	import Table from '@lucide/svelte/icons/table';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
 	let course = $derived(data.outline.course);
+	let staff = $derived(
+		['owner', 'admin', 'instructor', 'assistant'].includes(data.session?.tenant?.role ?? '')
+	);
 	let locale = $derived(data.session?.tenant?.locale ?? 'en');
 
 	// One lookup, so a long outline does not scan the list per lesson.
@@ -46,6 +50,12 @@
 	<h1 class="text-2xl font-bold tracking-tight" dir={dirOf(course.dir)}>{course.title}</h1>
 	{#if course.summary}
 		<p class="mt-1 max-w-prose text-ink-soft" dir={dirOf(course.dir)}>{course.summary}</p>
+	{/if}
+	{#if staff}
+		<a class="btn btn-sm btn-quiet mt-3" href="/courses/{course.slug}/gradebook">
+			<Table size={15} aria-hidden="true" />
+			Gradebook
+		</a>
 	{/if}
 </header>
 
