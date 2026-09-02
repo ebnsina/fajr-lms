@@ -187,6 +187,48 @@ func (ns NullEnrollmentStatus) Value() (driver.Value, error) {
 	return string(ns.EnrollmentStatus), nil
 }
 
+type GradeSource string
+
+const (
+	GradeSourceQuiz   GradeSource = "quiz"
+	GradeSourceManual GradeSource = "manual"
+)
+
+func (e *GradeSource) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = GradeSource(s)
+	case string:
+		*e = GradeSource(s)
+	default:
+		return fmt.Errorf("unsupported scan type for GradeSource: %T", src)
+	}
+	return nil
+}
+
+type NullGradeSource struct {
+	GradeSource GradeSource `json:"grade_source"`
+	Valid       bool        `json:"valid"` // Valid is true if GradeSource is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGradeSource) Scan(value interface{}) error {
+	if value == nil {
+		ns.GradeSource, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.GradeSource.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGradeSource) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.GradeSource), nil
+}
+
 type LessonKind string
 
 const (
@@ -755,6 +797,31 @@ type Enrollment struct {
 	CompletedAt pgtype.Timestamptz `json:"completed_at"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type GradeItem struct {
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	CourseID       uuid.UUID          `json:"course_id"`
+	QuizID         uuid.NullUUID      `json:"quiz_id"`
+	Source         GradeSource        `json:"source"`
+	Title          string             `json:"title"`
+	Category       string             `json:"category"`
+	PointsPossible int32              `json:"points_possible"`
+	Weight         int32              `json:"weight"`
+	Position       float64            `json:"position"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type GradeOverride struct {
+	GradeItemID  uuid.UUID          `json:"grade_item_id"`
+	EnrollmentID uuid.UUID          `json:"enrollment_id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	Points       int32              `json:"points"`
+	Note         string             `json:"note"`
+	SetBy        uuid.NullUUID      `json:"set_by"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Lesson struct {

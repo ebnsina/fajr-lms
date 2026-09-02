@@ -5,6 +5,17 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Gradebook showing every learner against every graded item, with a weighted
+  course percentage.
+- Quizzes appear in the gradebook automatically and stay worth whatever their
+  questions add up to.
+- Teachers can add their own graded items, such as an oral exam, and give them
+  more or less weight than a quiz.
+- A teacher's score always wins over a computed one, and removing it restores
+  the quiz result.
+- An item nobody has sat yet is left blank rather than counted as a zero, so a
+  course average is never wrong halfway through a term.
+- Learners see their own grades; only staff see the class.
 - Marking queue showing every attempt waiting on a teacher, who wrote it and how
   many answers are outstanding.
 - Marking view with the learner's answer, the correct answer and the points

@@ -64,6 +64,19 @@ func (s *Server) createQuiz(w http.ResponseWriter, r *http.Request) error {
 			TimeLimitS: body.TimeLimitS, MaxAttempts: body.MaxAttempts,
 			PassPercent: body.PassPercent, Shuffle: body.Shuffle, RevealAnswers: reveal,
 		})
+		if err != nil {
+			return err
+		}
+
+		courseID, err := q.LessonCourse(r.Context(), lessonID)
+		if err != nil {
+			return err
+		}
+		_, err = q.CreateGradeItem(r.Context(), database.CreateGradeItemParams{
+			TenantID: tenant.ID, CourseID: courseID, Source: database.GradeSourceQuiz,
+			QuizID: uuid.NullUUID{UUID: quiz.ID, Valid: true}, Title: title,
+			Category: "quiz", PointsPossible: 1, Weight: 100,
+		})
 		return err
 	})
 	if isUniqueViolation(err) {
@@ -151,7 +164,8 @@ func (s *Server) addQuestion(w http.ResponseWriter, r *http.Request) error {
 			}
 			options = append(options, created)
 		}
-		return nil
+		// Keep the gradebook column worth what the paper is worth.
+		return q.SyncQuizItemPoints(r.Context(), quizID)
 	})
 	if isForeignKeyViolation(err) {
 		return httpx.ErrNotFound
