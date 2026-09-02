@@ -7,6 +7,7 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Table from '@lucide/svelte/icons/table';
 	import CalendarCheck from '@lucide/svelte/icons/calendar-check';
+	import PencilLine from '@lucide/svelte/icons/pencil-line';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -54,6 +55,10 @@
 	{/if}
 	{#if staff}
 		<span class="mt-3 flex flex-wrap gap-2">
+			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/edit">
+				<PencilLine size={15} aria-hidden="true" />
+				Build
+			</a>
 			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/gradebook">
 				<Table size={15} aria-hidden="true" />
 				Gradebook

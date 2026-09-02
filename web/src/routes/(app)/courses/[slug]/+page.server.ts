@@ -27,5 +27,6 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 		progress = null;
 	}
 
-	return { outline, progress };
+	const role = session.tenant.role;
+	return { outline, progress, teaches: ['owner', 'admin', 'instructor'].includes(role) };
 };

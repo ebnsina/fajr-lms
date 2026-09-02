@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { dirOf, money } from '$lib/api';
 	import Library from '@lucide/svelte/icons/library';
+	import Plus from '@lucide/svelte/icons/plus';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
+	let adding = $state(false);
 	let locale = $derived(data.session?.tenant?.locale ?? 'en');
 
 	const filters = [
@@ -15,13 +18,71 @@
 
 <svelte:head><title>Courses · Fajr LMS</title></svelte:head>
 
-<header class="mb-6">
-	<h1 class="text-2xl font-semibold tracking-tight" dir="auto">Courses</h1>
-	<p class="mt-1 text-sm text-ink-soft" dir="auto">
-		{data.total}
-		{data.total === 1 ? 'course' : 'courses'} in this school.
-	</p>
+<header class="mb-6 flex flex-wrap items-start justify-between gap-3">
+	<div>
+		<h1 class="text-2xl font-semibold tracking-tight" dir="auto">Courses</h1>
+		<p class="mt-1 mb-0 text-sm text-ink-soft" dir="auto">
+			{data.total}
+			{data.total === 1 ? 'course' : 'courses'} in this school.
+		</p>
+	</div>
+	{#if data.teaches}
+		<button class="btn btn-sm" type="button" onclick={() => (adding = !adding)}>
+			<Plus size={16} aria-hidden="true" /> New course
+		</button>
+	{/if}
 </header>
+
+{#if form?.message}
+	<p class="banner banner-bad mb-4" role="alert">{form.message}</p>
+{/if}
+
+{#if adding}
+	<form class="card mb-6 grid gap-4 sm:grid-cols-2" method="POST" action="?/create" use:enhance>
+		<div class="sm:col-span-2">
+			<label class="mb-1.5 block text-sm font-medium" for="title">Title</label>
+			<input class="field" id="title" name="title" dir="auto" required />
+		</div>
+		<div class="sm:col-span-2">
+			<label class="mb-1.5 block text-sm font-medium" for="summary">
+				Summary <span class="font-normal text-ink-soft">· a line for the catalog</span>
+			</label>
+			<input class="field" id="summary" name="summary" dir="auto" />
+		</div>
+		<div>
+			<label class="mb-1.5 block text-sm font-medium" for="price">
+				Fee <span class="font-normal text-ink-soft">· 0 is free</span>
+			</label>
+			<input
+				class="field font-mono"
+				id="price"
+				name="price"
+				type="number"
+				min="0"
+				step="1"
+				value="0"
+				dir="ltr"
+			/>
+		</div>
+		<div>
+			<span class="mb-1.5 block text-sm font-medium">Who may see it</span>
+			<div class="flex flex-wrap gap-4 py-2.5">
+				<label class="flex items-center gap-2 text-sm">
+					<input class="choice choice-round" type="radio" name="visibility" value="private" checked />
+					Only this school
+				</label>
+				<label class="flex items-center gap-2 text-sm">
+					<input class="choice choice-round" type="radio" name="visibility" value="public" />
+					Anyone
+				</label>
+			</div>
+		</div>
+		<input type="hidden" name="dir" value="auto" />
+		<div class="flex justify-end sm:col-span-2">
+			<button class="btn" type="submit">Create the course</button>
+		</div>
+	</form>
+{/if}
 
 <div class="mb-5 flex flex-wrap gap-2">
 	{#each filters as filter (filter.label)}
