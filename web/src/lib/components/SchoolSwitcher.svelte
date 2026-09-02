@@ -26,7 +26,7 @@
 	});
 </script>
 
-<div class="relative">
+<div class="relative w-full">
 	<button
 		bind:this={trigger}
 		class="flex w-full items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-start transition-colors hover:border-line-strong hover:bg-raised"

@@ -47,7 +47,7 @@
 		<Sidebar role={session?.tenant?.role} onNavigate={() => (open = false)} />
 
 		{#if session?.user}
-			<div class="shrink-0 border-t border-line p-3">
+			<div class="shrink-0 p-3">
 				<AccountMenu fullName={session.user.full_name} onNavigate={() => (open = false)} />
 			</div>
 		{/if}

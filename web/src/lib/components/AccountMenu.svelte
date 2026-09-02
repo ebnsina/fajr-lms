@@ -38,10 +38,10 @@
 	});
 </script>
 
-<div class="relative">
+<div class="relative w-full">
 	<button
 		bind:this={trigger}
-		class="flex w-full items-center gap-2.5 rounded-xl p-2 text-start text-sm transition-colors hover:bg-sunken"
+		class="flex w-full items-center gap-2.5 rounded-xl border border-line bg-surface px-3 py-2 text-start text-sm transition-colors hover:border-line-strong hover:bg-raised"
 		type="button"
 		aria-haspopup="menu"
 		aria-expanded={open}
