@@ -5,6 +5,17 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Sell a course: a learner starts an order and gets a payment reference plus
+  the bank or wallet details to send money to.
+- Pay by bank transfer or mobile wallet, upload the deposit slip, and have a
+  member of staff approve it. Approval enrols the learner immediately.
+- Staff review queue showing who paid, for what, with the slip attached.
+- Tapping buy twice returns the order already in progress instead of creating a
+  second one.
+- A rejected payment lets the learner try again; an approved one cannot be
+  reviewed, cancelled or re-submitted.
+- Payment methods are pluggable, so bKash, SSLCommerz, Tap and Stripe fit
+  behind the same flow.
 - Upload files straight to storage: the API signs a one-time upload URL and the
   file goes from the browser to the bucket without passing through the server.
 - Uploads are confirmed before a lesson can use them, so a half-finished upload

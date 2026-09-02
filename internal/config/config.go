@@ -17,6 +17,7 @@ type Config struct {
 	LogLevel        slog.Level
 	MediaHosts      []string
 	S3              S3Config
+	Bank            BankConfig
 	ShutdownTimeout time.Duration
 }
 
@@ -63,6 +64,13 @@ func Load() (Config, error) {
 		}
 	}
 
+	c.Bank = BankConfig{
+		AccountName:   env("FAJR_BANK_ACCOUNT_NAME", ""),
+		AccountNumber: env("FAJR_BANK_ACCOUNT_NUMBER", ""),
+		BankName:      env("FAJR_BANK_NAME", ""),
+		BranchName:    env("FAJR_BANK_BRANCH", ""),
+	}
+
 	lvl := env("FAJR_LOG_LEVEL", "info")
 	if err := c.LogLevel.UnmarshalText([]byte(lvl)); err != nil {
 		return Config{}, fmt.Errorf("config: invalid FAJR_LOG_LEVEL %q: %w", lvl, err)
@@ -89,6 +97,14 @@ type S3Config struct {
 }
 
 func (s S3Config) Enabled() bool { return s.Endpoint != "" }
+
+// BankConfig is the account a manual transfer is paid into.
+type BankConfig struct {
+	AccountName   string
+	AccountNumber string
+	BankName      string
+	BranchName    string
+}
 
 func (c Config) IsProduction() bool { return c.Env == "production" }
 

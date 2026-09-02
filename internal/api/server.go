@@ -7,6 +7,7 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 	"github.com/ebnsina/fajr-lms/internal/identity"
 	"github.com/ebnsina/fajr-lms/internal/media"
+	"github.com/ebnsina/fajr-lms/internal/payment"
 )
 
 // Server holds the dependencies every endpoint shares.
@@ -14,10 +15,11 @@ type Server struct {
 	store    *database.Store
 	identity *identity.Service
 	media    *media.Registry
+	payments *payment.Registry
 }
 
-func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry) *Server {
-	return &Server{store: store, identity: ident, media: registry}
+func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry, payments *payment.Registry) *Server {
+	return &Server{store: store, identity: ident, media: registry, payments: payments}
 }
 
 // Routes returns the full API surface, health probes included.
@@ -69,6 +71,14 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/enrollments", inTenant(httpx.Handler(s.listMyEnrollments)))
 	mux.Handle("DELETE /v1/enrollments/{id}", teaches(s.cancelEnrollment))
 	mux.Handle("PUT /v1/lessons/{id}/progress", inTenant(httpx.Handler(s.recordProgress)))
+
+	mux.Handle("GET /v1/payment/providers", inTenant(httpx.Handler(s.paymentProviders)))
+	mux.Handle("POST /v1/courses/{id}/orders", inTenant(httpx.Handler(s.createOrder)))
+	mux.Handle("GET /v1/orders", inTenant(httpx.Handler(s.listMyOrders)))
+	mux.Handle("POST /v1/orders/{id}/proof", inTenant(httpx.Handler(s.submitProof)))
+	mux.Handle("DELETE /v1/orders/{id}", inTenant(httpx.Handler(s.cancelOrder)))
+	mux.Handle("GET /v1/orders/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.listReviewQueue))))
+	mux.Handle("POST /v1/orders/{id}/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.reviewOrder))))
 
 	return mux
 }

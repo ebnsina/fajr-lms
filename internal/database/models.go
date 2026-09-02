@@ -324,6 +324,52 @@ func (ns NullMemberStatus) Value() (driver.Value, error) {
 	return string(ns.MemberStatus), nil
 }
 
+type OrderStatus string
+
+const (
+	OrderStatusPending        OrderStatus = "pending"
+	OrderStatusAwaitingReview OrderStatus = "awaiting_review"
+	OrderStatusPaid           OrderStatus = "paid"
+	OrderStatusRejected       OrderStatus = "rejected"
+	OrderStatusCancelled      OrderStatus = "cancelled"
+	OrderStatusRefunded       OrderStatus = "refunded"
+)
+
+func (e *OrderStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrderStatus(s)
+	case string:
+		*e = OrderStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrderStatus: %T", src)
+	}
+	return nil
+}
+
+type NullOrderStatus struct {
+	OrderStatus OrderStatus `json:"order_status"`
+	Valid       bool        `json:"valid"` // Valid is true if OrderStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrderStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrderStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrderStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrderStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrderStatus), nil
+}
+
 type OtpPurpose string
 
 const (
@@ -689,6 +735,26 @@ type Module struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Order struct {
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	UserID       uuid.UUID          `json:"user_id"`
+	CourseID     uuid.UUID          `json:"course_id"`
+	Provider     string             `json:"provider"`
+	AmountMinor  int64              `json:"amount_minor"`
+	Currency     string             `json:"currency"`
+	Status       OrderStatus        `json:"status"`
+	Reference    string             `json:"reference"`
+	ProviderRef  string             `json:"provider_ref"`
+	Note         string             `json:"note"`
+	ProofMediaID uuid.NullUUID      `json:"proof_media_id"`
+	ReviewedBy   uuid.NullUUID      `json:"reviewed_by"`
+	ReviewedAt   pgtype.Timestamptz `json:"reviewed_at"`
+	PaidAt       pgtype.Timestamptz `json:"paid_at"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
 type OtpChallenge struct {
 	ID          uuid.UUID          `json:"id"`
 	Destination string             `json:"destination"`
@@ -698,6 +764,17 @@ type OtpChallenge struct {
 	ConsumedAt  pgtype.Timestamptz `json:"consumed_at"`
 	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type PaymentEvent struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	OrderID   uuid.NullUUID      `json:"order_id"`
+	Provider  string             `json:"provider"`
+	EventID   string             `json:"event_id"`
+	Kind      string             `json:"kind"`
+	Payload   []byte             `json:"payload"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Session struct {

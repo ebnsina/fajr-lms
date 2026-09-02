@@ -17,6 +17,7 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/identity"
 	"github.com/ebnsina/fajr-lms/internal/media"
 	"github.com/ebnsina/fajr-lms/internal/notify"
+	"github.com/ebnsina/fajr-lms/internal/payment"
 )
 
 func main() {
@@ -58,7 +59,15 @@ func run() error {
 		return err
 	}
 
-	server := api.NewServer(store, identity.New(store, notify.LogChannel{}), registry)
+	payments, err := payment.NewRegistry("bank_transfer", payment.BankTransfer{
+		AccountName: cfg.Bank.AccountName, AccountNumber: cfg.Bank.AccountNumber,
+		BankName: cfg.Bank.BankName, BranchName: cfg.Bank.BranchName,
+	})
+	if err != nil {
+		return err
+	}
+
+	server := api.NewServer(store, identity.New(store, notify.LogChannel{}), registry, payments)
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,
