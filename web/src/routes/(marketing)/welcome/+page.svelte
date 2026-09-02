@@ -357,7 +357,7 @@
 					{/each}
 				</ul>
 
-				<ul class="flex flex-col gap-6 border-t border-line pt-8">
+				<ul class="flex flex-col gap-6">
 					<li class="flex gap-3">
 						<BadgeCheck class="mt-0.5 shrink-0 text-brand-text" size={20} aria-hidden="true" />
 						<div>
@@ -417,7 +417,7 @@
 					</span>
 					<h3 class="mb-2 text-lg font-medium">{audience.title}</h3>
 					<p class="mb-5 flex-1 text-sm text-ink-soft">{audience.body}</p>
-					<ul class="flex flex-col gap-2 border-t border-line pt-4">
+					<ul class="flex flex-col gap-2">
 						{#each audience.tags as tag (tag)}
 							<li class="flex items-center gap-2.5 text-sm text-ink-soft">
 								<BadgeCheck class="shrink-0 text-brand-text" size={17} aria-hidden="true" />
