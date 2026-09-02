@@ -48,11 +48,13 @@ func TestLiveClassLinks(t *testing.T) {
 	})
 
 	t.Run("Meet and Zoom links are recognised", func(t *testing.T) {
-		cases := map[string]string{
-			"https://meet.google.com/abc-defg-hij": "google_meet",
-			"https://us05web.zoom.us/j/123456789":  "zoom",
+		// A slice, not a map: the last link set decides what the next subtest sees.
+		cases := []struct{ link, provider string }{
+			{"https://meet.google.com/abc-defg-hij", "google_meet"},
+			{"https://us05web.zoom.us/j/123456789", "zoom"},
 		}
-		for link, provider := range cases {
+		for _, c := range cases {
+			link, provider := c.link, c.provider
 			rec := do(t, h, "PUT", "/v1/sessions/"+now+"/link", owner.token, owner.slug,
 				map[string]any{"join_url": link})
 			if rec.Code != http.StatusOK {
