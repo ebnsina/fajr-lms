@@ -1,27 +1,28 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
+	let { light = '#eaf3ee', dark = '#12211c' }: { light?: string; dark?: string } = $props();
+
 	let canvas = $state<HTMLCanvasElement | null>(null);
 	let failed = $state(false);
 
+	// Two triangles and a fragment shader: cheaper than an animated image and it
+	// never blocks the text above it.
 	const vertex = `
 		attribute vec2 position;
 		void main() { gl_Position = vec4(position, 0.0, 1.0); }
 	`;
 
-	// Aurora: a few wide bands of light bending across the frame, with grain over
-	// the top so the gradient never bands on a cheap screen.
 	const fragment = `
 		precision mediump float;
 		uniform vec2 size;
 		uniform float time;
 		uniform vec3 base;
-		uniform vec3 glow;
-		uniform vec3 deep;
-		uniform float grain;
+		uniform vec3 warm;
+		uniform vec3 cool;
 
+		// Cheap value noise: enough to make the bands drift without looking like a loop.
 		float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-
 		float noise(vec2 p) {
 			vec2 i = floor(p), f = fract(p);
 			vec2 u = f * f * (3.0 - 2.0 * f);
@@ -29,35 +30,16 @@
 			           mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
 		}
 
-		// One ribbon: a soft line that waves across the frame and fades at the edges.
-		float ribbon(vec2 uv, float offset, float speed, float thickness) {
-			float t = time * speed;
-			float wave = sin(uv.x * 2.1 + t) * 0.11
-			           + sin(uv.x * 3.7 - t * 1.3) * 0.06
-			           + noise(vec2(uv.x * 1.5, t * 0.35)) * 0.10;
-			float d = abs(uv.y - (offset + wave));
-			return smoothstep(thickness, 0.0, d);
-		}
-
 		void main() {
 			vec2 uv = gl_FragCoord.xy / size;
-			float aspect = size.x / size.y;
-			vec2 p = vec2(uv.x * aspect, uv.y);
-
-			vec3 color = mix(base, deep, smoothstep(0.1, 1.6, uv.y) * 0.5);
-
-			// The bands sweep the top and the floor; the middle stays quiet so the
-			// headline sits on nearly flat colour.
-			color = mix(color, glow, ribbon(uv, 0.93, 0.09, 0.10) * 0.55);
-			color = mix(color, deep, ribbon(uv, 1.02, 0.06, 0.09) * 0.45);
-			color = mix(color, glow, ribbon(uv, 0.02, 0.12, 0.09) * 0.40);
-
-			// A wide, low pool of light behind the middle of the text.
-			// One corner catches the light, the way a low sun would.
-			float corner = smoothstep(0.55, 0.0, length(p - vec2(aspect * 0.9, 0.92)));
-			color = mix(color, glow, corner * 0.35);
-
-			color += (hash(gl_FragCoord.xy * 0.7) - 0.5) * grain;
+			float t = time * 0.06;
+			float n = noise(uv * 2.2 + vec2(t, t * 0.6));
+			n += 0.5 * noise(uv * 4.5 - vec2(t * 0.8, t));
+			float band = smoothstep(0.2, 1.1, n + uv.y * 0.5);
+			vec3 color = mix(base, cool, band);
+			color = mix(color, warm, smoothstep(0.55, 1.25, n * uv.x + 0.25));
+			// Fade out at the bottom so the section below joins without a seam.
+			color = mix(color, base, smoothstep(0.55, 1.0, uv.y * -1.0 + 1.0) * 0.35);
 			gl_FragColor = vec4(color, 1.0);
 		}
 	`;
@@ -112,9 +94,8 @@
 		const uSize = gl.getUniformLocation(program, 'size');
 		const uTime = gl.getUniformLocation(program, 'time');
 		const uBase = gl.getUniformLocation(program, 'base');
-		const uGlow = gl.getUniformLocation(program, 'glow');
-		const uDeep = gl.getUniformLocation(program, 'deep');
-		const uGrain = gl.getUniformLocation(program, 'grain');
+		const uWarm = gl.getUniformLocation(program, 'warm');
+		const uCool = gl.getUniformLocation(program, 'cool');
 
 		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -122,10 +103,9 @@
 		function palette() {
 			const stamped = document.documentElement.dataset.theme;
 			const isDark = stamped === 'dark' || (stamped !== 'light' && media.matches);
-			gl.uniform3fv(uBase, rgb(isDark ? '#0f1113' : '#f6f7f8'));
-			gl.uniform3fv(uGlow, rgb(isDark ? '#0d6e4f' : '#8fd8b8'));
-			gl.uniform3fv(uDeep, rgb(isDark ? '#12233a' : '#ccdcea'));
-			gl.uniform1f(uGrain, isDark ? 0.05 : 0.035);
+			gl.uniform3fv(uBase, rgb(isDark ? dark : light));
+			gl.uniform3fv(uWarm, rgb(isDark ? '#3a2f1d' : '#ffeed6'));
+			gl.uniform3fv(uCool, rgb(isDark ? '#0f3a2c' : '#c9ecdc'));
 		}
 
 		function resize() {
@@ -139,7 +119,7 @@
 		let frame = 0;
 		const start = performance.now();
 		function draw() {
-			gl.uniform1f(uTime, still ? 6 : (performance.now() - start) / 1000);
+			gl.uniform1f(uTime, still ? 8 : (performance.now() - start) / 1000);
 			gl.drawArrays(gl.TRIANGLES, 0, 3);
 			if (!still) frame = requestAnimationFrame(draw);
 		}
@@ -167,10 +147,10 @@
 	});
 </script>
 
-<canvas class="aurora" class:hidden={failed} bind:this={canvas} aria-hidden="true"></canvas>
+<canvas class="gradient" class:hidden={failed} bind:this={canvas} aria-hidden="true"></canvas>
 
 <style>
-	.aurora {
+	.gradient {
 		position: absolute;
 		inset: 0;
 		inline-size: 100%;
