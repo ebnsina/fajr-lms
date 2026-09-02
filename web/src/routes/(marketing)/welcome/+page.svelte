@@ -1,7 +1,8 @@
 <script lang="ts">
 	import ShaderGradient from '$lib/components/marketing/ShaderGradient.svelte';
 	import RollingWords from '$lib/components/marketing/RollingWords.svelte';
-	import { reveal, stepper } from '$lib/actions/motion';
+	import { reveal } from '$lib/actions/motion';
+	import FluidOrb from '$lib/components/marketing/FluidOrb.svelte';
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
 	import Globe from '@lucide/svelte/icons/globe';
@@ -29,9 +30,6 @@
 
 	// The first question is open, so the section never reads as a wall of bars.
 	let open = $state(0);
-
-	// Which of the four steps is on screen, for the rail beside them.
-	let active = $state(0);
 
 	const institutions = ['school', 'madrasah', 'college', 'academy', 'university'];
 
@@ -265,56 +263,49 @@
 </section>
 
 <section id="how" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
-	<div class="mx-auto grid max-w-6xl items-start gap-14 lg:grid-cols-[2fr_3fr]">
-		<!-- The heading and the rail stay put while the steps come past them. -->
-		<div class="lg:sticky lg:top-28" use:reveal>
+	<div class="mx-auto max-w-6xl">
+		<div class="mx-auto mb-14 max-w-2xl text-center" use:reveal>
 			<span class="eyebrow mb-3">How it works</span>
 			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				From nothing to teaching, in four steps
 			</h2>
-			<p class="mt-3 mb-8 text-ink-soft">
+			<p class="mt-3 mb-0 text-lg text-ink-soft">
 				Each one is a screen, not a project. Nobody has to call us to get through them.
 			</p>
-
-			<ol class="mb-8 flex flex-col gap-3 border-s border-line ps-5">
-				{#each steps as step, index (step.title)}
-					<li
-						class="text-sm transition-colors duration-300"
-						class:text-ink={index === active}
-						class:font-medium={index === active}
-						class:text-ink-faint={index !== active}
-						aria-current={index === active ? 'step' : undefined}
-					>
-						<span class="font-mono">{String(index + 1).padStart(2, '0')}</span>
-						· {step.title}
-					</li>
-				{/each}
-			</ol>
-
-			<a class="btn btn-quiet btn-sm" href="/start">
-				Get started free
-				<ArrowRight size={15} aria-hidden="true" />
-			</a>
 		</div>
 
-		<ol class="flex flex-col gap-6" use:stepper={(index) => (active = index)}>
-			{#each steps as step, index (step.title)}
-				<li class="card flex min-h-[22rem] flex-col justify-center p-8 sm:p-12" data-step>
-					<span
-						class="font-display text-6xl font-bold text-brand-line sm:text-7xl"
-						aria-hidden="true"
-					>
-						{String(index + 1).padStart(2, '0')}
-					</span>
-					<h3 class="mt-6 font-display text-2xl font-bold sm:text-3xl">{step.title}</h3>
-					<p class="mt-3 mb-0 max-w-xl text-lg text-ink-soft">{step.body}</p>
-				</li>
-			{/each}
-		</ol>
+		<!-- The four steps sit on a screen, because that is where they happen. -->
+		<div class="laptop mx-auto" use:reveal={{ y: 32 }}>
+			<div class="lid">
+				<span class="notch" aria-hidden="true"></span>
+				<div class="screen">
+					<ol class="grid gap-x-8 gap-y-7 sm:grid-cols-2">
+						{#each steps as step, index (step.title)}
+							<li class="flex gap-4">
+								<span class="icon-tile shrink-0 font-mono text-sm">
+									{String(index + 1).padStart(2, '0')}
+								</span>
+								<div class="min-w-0">
+									<h3 class="mb-1.5 font-medium">{step.title}</h3>
+									<p class="mb-0 text-sm text-ink-soft">{step.body}</p>
+								</div>
+							</li>
+						{/each}
+					</ol>
+				</div>
+			</div>
+			<div class="base" aria-hidden="true"><span class="lip"></span></div>
+		</div>
+
+		<div class="mt-12 flex justify-center" use:reveal>
+			<a class="btn" href="/start">
+				Get started free
+				<ArrowRight size={17} aria-hidden="true" />
+			</a>
+		</div>
 	</div>
 </section>
 
-<!-- Bento: tiles of different weight, drifting at different speeds. -->
 <section id="website" class="scroll-mt-24 px-6 py-24">
 	<div class="mx-auto max-w-6xl">
 		<div class="mb-14 max-w-2xl" use:reveal>
@@ -472,6 +463,25 @@
 	</div>
 </section>
 
+<!-- The one quiet section on the page: what the name means, and why. -->
+<section class="relative isolate overflow-hidden border-t border-line bg-sunken px-6 py-28">
+	<div class="mx-auto flex max-w-4xl flex-col items-center gap-12 text-center">
+		<FluidOrb size={300} label="A slowly drifting orb of green and first light" />
+
+		<div use:reveal>
+			<span class="eyebrow mb-4">The name</span>
+			<h2 class="font-display text-3xl font-bold text-balance sm:text-4xl">
+				Fajr is the hour before the light
+			</h2>
+			<p class="mx-auto mt-4 max-w-xl text-lg text-ink-soft">
+				The prayer before sunrise, and the part of the day a teacher is already awake for. We named
+				the thing after the hour the work actually starts — not after a feature, and not after a
+				word that means nothing in the places we built it for.
+			</p>
+		</div>
+	</div>
+</section>
+
 <section id="faq" class="scroll-mt-24 border-t border-line px-6 py-24">
 	<div class="mx-auto max-w-3xl">
 		<div class="mb-12 text-center" use:reveal>
@@ -534,6 +544,60 @@
 <style>
 	/* The drawn page preview: every part is a block, tinted from the same tokens
 	   as the real thing. */
+	/* A MacBook Pro, drawn: a lid with a notch, a screen, and a base that
+	   tapers under it. */
+	.laptop {
+		max-inline-size: 56rem;
+	}
+
+	.lid {
+		position: relative;
+		padding: 0.65rem;
+		border-radius: 1.25rem;
+		background: var(--color-line-strong);
+		box-shadow: inset 0 0 0 1px var(--color-line);
+	}
+
+	.notch {
+		position: absolute;
+		inset-block-start: 0.65rem;
+		inset-inline: 0;
+		margin-inline: auto;
+		inline-size: 6rem;
+		block-size: 0.7rem;
+		border-end-start-radius: 0.4rem;
+		border-end-end-radius: 0.4rem;
+		background: var(--color-line-strong);
+		z-index: 1;
+	}
+
+	.screen {
+		border-radius: 0.75rem;
+		background: var(--color-surface);
+		padding: 3rem 2rem 2.5rem;
+	}
+
+	.base {
+		position: relative;
+		block-size: 0.75rem;
+		margin-inline: -6%;
+		border-end-start-radius: 0.6rem;
+		border-end-end-radius: 0.6rem;
+		background: var(--color-line-strong);
+	}
+
+	.lip {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline: 0;
+		margin-inline: auto;
+		inline-size: 7rem;
+		block-size: 0.35rem;
+		border-end-start-radius: 0.35rem;
+		border-end-end-radius: 0.35rem;
+		background: var(--color-line);
+	}
+
 	/* The frame crops the photograph, so it reads as a preview of something
 	   bigger rather than a picture that has been placed. */
 	.preview {

@@ -5,6 +5,8 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- A quiet section on the landing page saying what the name means, lit by a
+  slowly drifting orb.
 - A features section on the landing page saying what each part of the product
   actually does, from lessons and quizzes through to the website builder.
 
