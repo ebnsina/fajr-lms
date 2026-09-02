@@ -100,6 +100,13 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("PUT /v1/assignments/{id}/submission", inTenant(httpx.Handler(s.submitWork)))
 	mux.Handle("GET /v1/submissions", teaches(s.submissionQueue))
 	mux.Handle("POST /v1/submissions/{id}/grade", teaches(s.gradeWork))
+	// Public: anyone holding a serial can check a certificate.
+	mux.Handle("GET /verify/{serial}", httpx.Handler(s.verifyCertificate))
+
+	mux.Handle("POST /v1/courses/{id}/certificates", inTenant(httpx.Handler(s.issueCertificate)))
+	mux.Handle("GET /v1/certificates", inTenant(httpx.Handler(s.listMyCertificates)))
+	mux.Handle("POST /v1/certificates/{id}/revoke", teaches(s.revokeCertificate))
+
 	mux.Handle("POST /v1/courses/{id}/sessions", teaches(s.createClassSession))
 	mux.Handle("GET /v1/courses/{id}/sessions", inTenant(httpx.Handler(s.listClassSessions)))
 	mux.Handle("GET /v1/sessions/{id}/roll", teaches(s.sessionRoll))

@@ -928,6 +928,34 @@ type Attendance struct {
 	MarkedAt     pgtype.Timestamptz `json:"marked_at"`
 }
 
+type Certificate struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	CourseID      uuid.UUID          `json:"course_id"`
+	EnrollmentID  uuid.UUID          `json:"enrollment_id"`
+	UserID        uuid.UUID          `json:"user_id"`
+	Serial        string             `json:"serial"`
+	RecipientName string             `json:"recipient_name"`
+	CourseTitle   string             `json:"course_title"`
+	IssuerName    string             `json:"issuer_name"`
+	GradePercent  *int16             `json:"grade_percent"`
+	IssuedAt      pgtype.Timestamptz `json:"issued_at"`
+	RevokedAt     pgtype.Timestamptz `json:"revoked_at"`
+	RevokedReason string             `json:"revoked_reason"`
+	IssuedBy      uuid.NullUUID      `json:"issued_by"`
+}
+
+type CertificateVerification struct {
+	Serial        string             `json:"serial"`
+	RecipientName string             `json:"recipient_name"`
+	CourseTitle   string             `json:"course_title"`
+	IssuerName    string             `json:"issuer_name"`
+	GradePercent  *int16             `json:"grade_percent"`
+	IssuedAt      pgtype.Timestamptz `json:"issued_at"`
+	RevokedAt     pgtype.Timestamptz `json:"revoked_at"`
+	TenantDir     TextDir            `json:"tenant_dir"`
+}
+
 type ClassSession struct {
 	ID        uuid.UUID          `json:"id"`
 	TenantID  uuid.UUID          `json:"tenant_id"`

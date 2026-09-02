@@ -5,6 +5,13 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Certificates for finished courses, each with a number anyone can check at a
+  public address without signing in.
+- The verification page prints cleanly and shows Arabic and Bengali names
+  correctly, so a certificate can be handed to an employer or a board.
+- Certificates can be revoked, and the public page then says so plainly.
+- A certificate keeps the names it was issued with, so renaming a course later
+  does not rewrite what was awarded.
 - Attendance: schedule class sessions and call the register for a whole class in
   one go, marking learners present, late, absent or excused.
 - Parents and guardians can be linked to a learner and are told the same day
