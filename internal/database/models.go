@@ -57,6 +57,50 @@ func (ns NullAttemptState) Value() (driver.Value, error) {
 	return string(ns.AttemptState), nil
 }
 
+type AttendanceStatus string
+
+const (
+	AttendanceStatusPresent AttendanceStatus = "present"
+	AttendanceStatusLate    AttendanceStatus = "late"
+	AttendanceStatusAbsent  AttendanceStatus = "absent"
+	AttendanceStatusExcused AttendanceStatus = "excused"
+)
+
+func (e *AttendanceStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AttendanceStatus(s)
+	case string:
+		*e = AttendanceStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AttendanceStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAttendanceStatus struct {
+	AttendanceStatus AttendanceStatus `json:"attendance_status"`
+	Valid            bool             `json:"valid"` // Valid is true if AttendanceStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAttendanceStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AttendanceStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AttendanceStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAttendanceStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AttendanceStatus), nil
+}
+
 type CourseVisibility string
 
 const (
@@ -874,6 +918,29 @@ type AttemptAnswer struct {
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Attendance struct {
+	SessionID    uuid.UUID          `json:"session_id"`
+	EnrollmentID uuid.UUID          `json:"enrollment_id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	Status       AttendanceStatus   `json:"status"`
+	Note         string             `json:"note"`
+	MarkedBy     uuid.NullUUID      `json:"marked_by"`
+	MarkedAt     pgtype.Timestamptz `json:"marked_at"`
+}
+
+type ClassSession struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	CourseID  uuid.UUID          `json:"course_id"`
+	Title     string             `json:"title"`
+	Location  string             `json:"location"`
+	StartsAt  pgtype.Timestamptz `json:"starts_at"`
+	EndsAt    pgtype.Timestamptz `json:"ends_at"`
+	CreatedBy uuid.NullUUID      `json:"created_by"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Course struct {
 	ID          uuid.UUID          `json:"id"`
 	TenantID    uuid.UUID          `json:"tenant_id"`
@@ -927,6 +994,14 @@ type GradeOverride struct {
 	Note         string             `json:"note"`
 	SetBy        uuid.NullUUID      `json:"set_by"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Guardianship struct {
+	TenantID   uuid.UUID          `json:"tenant_id"`
+	GuardianID uuid.UUID          `json:"guardian_id"`
+	StudentID  uuid.UUID          `json:"student_id"`
+	Relation   string             `json:"relation"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type Lesson struct {

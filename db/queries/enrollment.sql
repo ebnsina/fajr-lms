@@ -64,3 +64,6 @@ RETURNING *;
 
 -- name: LessonCourse :one
 SELECT m.course_id FROM lessons l JOIN modules m ON m.id = l.module_id WHERE l.id = @lesson_id;
+
+-- name: GetEnrollmentByID :one
+SELECT * FROM enrollments WHERE id = @id;

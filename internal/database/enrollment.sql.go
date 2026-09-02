@@ -133,6 +133,27 @@ func (q *Queries) GetEnrollment(ctx context.Context, arg GetEnrollmentParams) (E
 	return i, err
 }
 
+const getEnrollmentByID = `-- name: GetEnrollmentByID :one
+SELECT id, tenant_id, course_id, user_id, status, source, completed_at, created_at, updated_at FROM enrollments WHERE id = $1
+`
+
+func (q *Queries) GetEnrollmentByID(ctx context.Context, id uuid.UUID) (Enrollment, error) {
+	row := q.db.QueryRow(ctx, getEnrollmentByID, id)
+	var i Enrollment
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.CourseID,
+		&i.UserID,
+		&i.Status,
+		&i.Source,
+		&i.CompletedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const lessonCourse = `-- name: LessonCourse :one
 SELECT m.course_id FROM lessons l JOIN modules m ON m.id = l.module_id WHERE l.id = $1
 `

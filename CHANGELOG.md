@@ -5,6 +5,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Attendance: schedule class sessions and call the register for a whole class in
+  one go, marking learners present, late, absent or excused.
+- Parents and guardians can be linked to a learner and are told the same day
+  when that learner is marked absent.
+- Learners see their own attendance record and rate. A late arrival still counts
+  as attended, and authorised leave does not damage the rate.
 - Notifications: learners are told when a payment is approved or rejected, when
   a quiz result is released and when their work has been marked.
 - An in-app inbox with an unread count, per notification and mark-all-read.
