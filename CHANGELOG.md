@@ -5,6 +5,13 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Sit a quiz: multiple choice, multiple answer, true or false and written
+  answers, with a countdown when there is a time limit.
+- Answers save as you go, so a dropped connection loses nothing, and reopening
+  the page brings back what you had already chosen.
+- After handing in, you see what each question scored and why. Written answers
+  say plainly that they are with a teacher and the score may still go up.
+
 - A proper dashboard: a grouped menu down the side for learning, teaching and
   administration, with the work sitting on its own panel.
 - New pages behind it: all courses, my grades, notifications, marking,

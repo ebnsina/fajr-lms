@@ -89,6 +89,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/quizzes/{id}/questions", teaches(s.addQuestion))
 	mux.Handle("GET /v1/lessons/{id}/quiz", inTenant(httpx.Handler(s.quizForLearner)))
 	mux.Handle("POST /v1/quizzes/{id}/attempts", inTenant(httpx.Handler(s.startAttempt)))
+	mux.Handle("GET /v1/attempts/{id}", inTenant(httpx.Handler(s.myAttempt)))
 	mux.Handle("PUT /v1/attempts/{id}/answers", inTenant(httpx.Handler(s.saveAnswer)))
 	mux.Handle("POST /v1/attempts/{id}/submit", inTenant(httpx.Handler(s.submitAttempt)))
 	mux.Handle("GET /v1/courses/{id}/gradebook", teaches(s.gradebook))

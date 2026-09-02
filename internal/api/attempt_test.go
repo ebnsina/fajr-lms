@@ -254,3 +254,52 @@ func TestWrittenAnswersWaitForMarking(t *testing.T) {
 		t.Errorf("auto-graded points = %d, want 2", got.Attempt.PointsAwarded)
 	}
 }
+
+func TestResumeReadsBackOwnAnswers(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enrol(t, h, ch, store, "owner")
+	student := enrolIn(t, h, ch, store, owner.slug, "student")
+	_, quizID := seedQuiz(t, h, owner, student, 2)
+
+	attempt := startAttempt(t, h, student, quizID)
+	chosen := labelled(t, attempt, 0, "خمسة")
+	if rec := do(t, h, "PUT", "/v1/attempts/"+attempt.Attempt.ID+"/answers", student.token, owner.slug,
+		map[string]any{"question_id": attempt.Questions[0].ID, "option_ids": chosen}); rec.Code != http.StatusOK {
+		t.Fatalf("answer: got %d: %s", rec.Code, rec.Body)
+	}
+
+	rec := do(t, h, "GET", "/v1/attempts/"+attempt.Attempt.ID, student.token, owner.slug, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d: %s", rec.Code, rec.Body)
+	}
+	// The answer key must not travel with a learner's own attempt either.
+	for _, leak := range []string{"is_correct", "explanation", "correct_option_ids"} {
+		if stringsContains(rec.Body.String(), leak) {
+			t.Errorf("resuming exposed %q", leak)
+		}
+	}
+
+	var got struct {
+		Answers []struct {
+			QuestionID string   `json:"question_id"`
+			OptionIDs  []string `json:"option_ids"`
+		} `json:"answers"`
+		Questions []json.RawMessage `json:"questions"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(got.Questions) != 2 || len(got.Answers) != 1 {
+		t.Fatalf("got %d questions and %d answers, want 2 and 1", len(got.Questions), len(got.Answers))
+	}
+	if got.Answers[0].OptionIDs[0] != chosen[0] {
+		t.Errorf("saved answer did not come back: %+v", got.Answers[0])
+	}
+
+	t.Run("another learner cannot read it", func(t *testing.T) {
+		other := enrolIn(t, h, ch, store, owner.slug, "student")
+		if rec := do(t, h, "GET", "/v1/attempts/"+attempt.Attempt.ID, other.token, owner.slug, nil); rec.Code != http.StatusNotFound {
+			t.Errorf("got %d, want 404", rec.Code)
+		}
+	})
+}

@@ -11,6 +11,60 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 )
 
+// myAttempt lets a learner resume: their own answers, never the answer key.
+func (s *Server) myAttempt(w http.ResponseWriter, r *http.Request) error {
+	attemptID, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+
+	userID := Authenticated(r.Context()).UserID
+	var out attemptResponse
+	var saved []savedAnswer
+
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		attempt, err := q.GetAttempt(r.Context(), attemptID)
+		if err != nil {
+			return err
+		}
+		if attempt.UserID != userID {
+			return httpx.ErrNotFound
+		}
+		out.Attempt = attempt
+
+		if err := s.fillPaper(r, q, attempt.QuizID, &out); err != nil {
+			return err
+		}
+		rows, err := q.ListAnswers(r.Context(), attemptID)
+		if err != nil {
+			return err
+		}
+		saved = make([]savedAnswer, 0, len(rows))
+		for _, row := range rows {
+			saved = append(saved, savedAnswer{
+				QuestionID: row.QuestionID, OptionIDs: orEmpty(row.OptionIds), Text: row.TextAnswer,
+			})
+		}
+		return nil
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{
+		"attempt": out.Attempt, "questions": out.Questions,
+		"expires_in_s": out.ExpiresIn, "answers": saved,
+	})
+}
+
+type savedAnswer struct {
+	QuestionID uuid.UUID   `json:"question_id"`
+	OptionIDs  []uuid.UUID `json:"option_ids"`
+	Text       string      `json:"text"`
+}
+
 type answerRequest struct {
 	QuestionID string   `json:"question_id"`
 	OptionIDs  []string `json:"option_ids"`

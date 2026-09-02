@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* Declared rather than left to automatic detection: a directory created after
+   the dev server started was silently missed, so classes used only there were
+   never generated. */
+@source './';
+
 /* Self-hosted so there is no third party round trip on a slow connection, and
    subset to Latin: a unicode-range keeps the browser from fetching these for
    Arabic or Bengali, which fall through to Noto instead. */
