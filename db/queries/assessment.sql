@@ -87,6 +87,48 @@ SELECT * FROM attempt_answers WHERE attempt_id = @attempt_id;
 UPDATE attempt_answers SET points_awarded = @points_awarded, needs_grading = @needs_grading
 WHERE attempt_id = @attempt_id AND question_id = @question_id;
 
+-- name: MarkAnswer :one
+UPDATE attempt_answers SET
+  points_awarded = @points_awarded,
+  feedback       = @feedback,
+  graded_by      = @graded_by,
+  needs_grading  = false
+WHERE attempt_id = @attempt_id AND question_id = @question_id
+RETURNING *;
+
+-- name: ListAttemptsForMarking :many
+SELECT sqlc.embed(a), u.full_name, q.title AS quiz_title, l.title AS lesson_title,
+       count(ans.question_id) FILTER (WHERE ans.needs_grading) AS pending
+FROM quiz_attempts a
+JOIN users u ON u.id = a.user_id
+JOIN quizzes q ON q.id = a.quiz_id
+JOIN lessons l ON l.id = q.lesson_id
+LEFT JOIN attempt_answers ans ON ans.attempt_id = a.id
+WHERE a.state = 'submitted'
+GROUP BY a.id, u.full_name, q.title, l.title
+HAVING count(ans.question_id) FILTER (WHERE ans.needs_grading) > 0
+ORDER BY a.submitted_at
+LIMIT @page_limit OFFSET @page_offset;
+
+-- Everything a marker needs for one attempt, answer key included.
+-- name: AttemptSheet :many
+SELECT sqlc.embed(q), ans.option_ids, ans.text_answer, ans.points_awarded,
+       ans.needs_grading, ans.feedback
+FROM questions q
+LEFT JOIN attempt_answers ans ON ans.question_id = q.id AND ans.attempt_id = @attempt_id
+WHERE q.quiz_id = @quiz_id
+ORDER BY q.position;
+
+-- name: SumAwardedPoints :one
+SELECT coalesce(sum(points_awarded), 0)::integer AS total,
+       count(*) FILTER (WHERE needs_grading) AS pending
+FROM attempt_answers WHERE attempt_id = @attempt_id;
+
+-- name: FinalizeAttempt :one
+UPDATE quiz_attempts SET state = 'graded', graded_at = now(), points_awarded = @points_awarded
+WHERE id = @id AND state = 'submitted'
+RETURNING *;
+
 -- name: FinishAttempt :one
 UPDATE quiz_attempts SET
   state = @state,

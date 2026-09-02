@@ -84,6 +84,10 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/quizzes/{id}/attempts", inTenant(httpx.Handler(s.startAttempt)))
 	mux.Handle("PUT /v1/attempts/{id}/answers", inTenant(httpx.Handler(s.saveAnswer)))
 	mux.Handle("POST /v1/attempts/{id}/submit", inTenant(httpx.Handler(s.submitAttempt)))
+	mux.Handle("GET /v1/marking", teaches(s.markingQueue))
+	mux.Handle("GET /v1/attempts/{id}/sheet", teaches(s.attemptSheet))
+	mux.Handle("PUT /v1/attempts/{id}/questions/{questionId}/mark", teaches(s.markAnswer))
+	mux.Handle("POST /v1/attempts/{id}/release", teaches(s.releaseAttempt))
 
 	mux.Handle("GET /v1/payment/providers", inTenant(httpx.Handler(s.paymentProviders)))
 	mux.Handle("POST /v1/courses/{id}/orders", inTenant(httpx.Handler(s.createOrder)))

@@ -5,6 +5,13 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Marking queue showing every attempt waiting on a teacher, who wrote it and how
+  many answers are outstanding.
+- Marking view with the learner's answer, the correct answer and the points
+  available, plus written feedback per question.
+- Results are released deliberately: an attempt cannot be released while any
+  answer is still unmarked, and once released it cannot be changed.
+- A mark can never exceed what a question is worth.
 - Quizzes on any lesson: multiple choice, multiple answer, true or false, short
   answer and essay, with a time limit, an attempt limit and a pass mark.
 - Choice questions are marked the moment a learner submits; written answers wait

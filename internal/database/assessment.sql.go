@@ -11,6 +11,67 @@ import (
 	"github.com/google/uuid"
 )
 
+const attemptSheet = `-- name: AttemptSheet :many
+SELECT q.id, q.tenant_id, q.quiz_id, q.kind, q.prompt, q.dir, q.points, q.explanation, q.position, q.created_at, q.updated_at, ans.option_ids, ans.text_answer, ans.points_awarded,
+       ans.needs_grading, ans.feedback
+FROM questions q
+LEFT JOIN attempt_answers ans ON ans.question_id = q.id AND ans.attempt_id = $1
+WHERE q.quiz_id = $2
+ORDER BY q.position
+`
+
+type AttemptSheetParams struct {
+	AttemptID uuid.UUID `json:"attempt_id"`
+	QuizID    uuid.UUID `json:"quiz_id"`
+}
+
+type AttemptSheetRow struct {
+	Question      Question    `json:"question"`
+	OptionIds     []uuid.UUID `json:"option_ids"`
+	TextAnswer    *string     `json:"text_answer"`
+	PointsAwarded *int32      `json:"points_awarded"`
+	NeedsGrading  *bool       `json:"needs_grading"`
+	Feedback      *string     `json:"feedback"`
+}
+
+// Everything a marker needs for one attempt, answer key included.
+func (q *Queries) AttemptSheet(ctx context.Context, arg AttemptSheetParams) ([]AttemptSheetRow, error) {
+	rows, err := q.db.Query(ctx, attemptSheet, arg.AttemptID, arg.QuizID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AttemptSheetRow{}
+	for rows.Next() {
+		var i AttemptSheetRow
+		if err := rows.Scan(
+			&i.Question.ID,
+			&i.Question.TenantID,
+			&i.Question.QuizID,
+			&i.Question.Kind,
+			&i.Question.Prompt,
+			&i.Question.Dir,
+			&i.Question.Points,
+			&i.Question.Explanation,
+			&i.Question.Position,
+			&i.Question.CreatedAt,
+			&i.Question.UpdatedAt,
+			&i.OptionIds,
+			&i.TextAnswer,
+			&i.PointsAwarded,
+			&i.NeedsGrading,
+			&i.Feedback,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countAttempts = `-- name: CountAttempts :one
 SELECT count(*) FROM quiz_attempts WHERE quiz_id = $1 AND user_id = $2
 `
@@ -175,6 +236,38 @@ RETURNING id, tenant_id, quiz_id, enrollment_id, user_id, attempt_no, state, sta
 
 func (q *Queries) ExpireAttempt(ctx context.Context, id uuid.UUID) (QuizAttempt, error) {
 	row := q.db.QueryRow(ctx, expireAttempt, id)
+	var i QuizAttempt
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.QuizID,
+		&i.EnrollmentID,
+		&i.UserID,
+		&i.AttemptNo,
+		&i.State,
+		&i.StartedAt,
+		&i.ExpiresAt,
+		&i.SubmittedAt,
+		&i.GradedAt,
+		&i.PointsAwarded,
+		&i.PointsPossible,
+	)
+	return i, err
+}
+
+const finalizeAttempt = `-- name: FinalizeAttempt :one
+UPDATE quiz_attempts SET state = 'graded', graded_at = now(), points_awarded = $1
+WHERE id = $2 AND state = 'submitted'
+RETURNING id, tenant_id, quiz_id, enrollment_id, user_id, attempt_no, state, started_at, expires_at, submitted_at, graded_at, points_awarded, points_possible
+`
+
+type FinalizeAttemptParams struct {
+	PointsAwarded int32     `json:"points_awarded"`
+	ID            uuid.UUID `json:"id"`
+}
+
+func (q *Queries) FinalizeAttempt(ctx context.Context, arg FinalizeAttemptParams) (QuizAttempt, error) {
+	row := q.db.QueryRow(ctx, finalizeAttempt, arg.PointsAwarded, arg.ID)
 	var i QuizAttempt
 	err := row.Scan(
 		&i.ID,
@@ -386,6 +479,72 @@ func (q *Queries) ListAnswers(ctx context.Context, attemptID uuid.UUID) ([]Attem
 	return items, nil
 }
 
+const listAttemptsForMarking = `-- name: ListAttemptsForMarking :many
+SELECT a.id, a.tenant_id, a.quiz_id, a.enrollment_id, a.user_id, a.attempt_no, a.state, a.started_at, a.expires_at, a.submitted_at, a.graded_at, a.points_awarded, a.points_possible, u.full_name, q.title AS quiz_title, l.title AS lesson_title,
+       count(ans.question_id) FILTER (WHERE ans.needs_grading) AS pending
+FROM quiz_attempts a
+JOIN users u ON u.id = a.user_id
+JOIN quizzes q ON q.id = a.quiz_id
+JOIN lessons l ON l.id = q.lesson_id
+LEFT JOIN attempt_answers ans ON ans.attempt_id = a.id
+WHERE a.state = 'submitted'
+GROUP BY a.id, u.full_name, q.title, l.title
+HAVING count(ans.question_id) FILTER (WHERE ans.needs_grading) > 0
+ORDER BY a.submitted_at
+LIMIT $2 OFFSET $1
+`
+
+type ListAttemptsForMarkingParams struct {
+	PageOffset int32 `json:"page_offset"`
+	PageLimit  int32 `json:"page_limit"`
+}
+
+type ListAttemptsForMarkingRow struct {
+	QuizAttempt QuizAttempt `json:"quiz_attempt"`
+	FullName    string      `json:"full_name"`
+	QuizTitle   string      `json:"quiz_title"`
+	LessonTitle string      `json:"lesson_title"`
+	Pending     int64       `json:"pending"`
+}
+
+func (q *Queries) ListAttemptsForMarking(ctx context.Context, arg ListAttemptsForMarkingParams) ([]ListAttemptsForMarkingRow, error) {
+	rows, err := q.db.Query(ctx, listAttemptsForMarking, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAttemptsForMarkingRow{}
+	for rows.Next() {
+		var i ListAttemptsForMarkingRow
+		if err := rows.Scan(
+			&i.QuizAttempt.ID,
+			&i.QuizAttempt.TenantID,
+			&i.QuizAttempt.QuizID,
+			&i.QuizAttempt.EnrollmentID,
+			&i.QuizAttempt.UserID,
+			&i.QuizAttempt.AttemptNo,
+			&i.QuizAttempt.State,
+			&i.QuizAttempt.StartedAt,
+			&i.QuizAttempt.ExpiresAt,
+			&i.QuizAttempt.SubmittedAt,
+			&i.QuizAttempt.GradedAt,
+			&i.QuizAttempt.PointsAwarded,
+			&i.QuizAttempt.PointsPossible,
+			&i.FullName,
+			&i.QuizTitle,
+			&i.LessonTitle,
+			&i.Pending,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMyAttempts = `-- name: ListMyAttempts :many
 SELECT id, tenant_id, quiz_id, enrollment_id, user_id, attempt_no, state, started_at, expires_at, submitted_at, graded_at, points_awarded, points_possible FROM quiz_attempts WHERE quiz_id = $1 AND user_id = $2 ORDER BY attempt_no
 `
@@ -496,6 +655,48 @@ func (q *Queries) ListQuestions(ctx context.Context, quizID uuid.UUID) ([]Questi
 		return nil, err
 	}
 	return items, nil
+}
+
+const markAnswer = `-- name: MarkAnswer :one
+UPDATE attempt_answers SET
+  points_awarded = $1,
+  feedback       = $2,
+  graded_by      = $3,
+  needs_grading  = false
+WHERE attempt_id = $4 AND question_id = $5
+RETURNING attempt_id, question_id, tenant_id, option_ids, text_answer, points_awarded, needs_grading, feedback, graded_by, updated_at
+`
+
+type MarkAnswerParams struct {
+	PointsAwarded *int32        `json:"points_awarded"`
+	Feedback      string        `json:"feedback"`
+	GradedBy      uuid.NullUUID `json:"graded_by"`
+	AttemptID     uuid.UUID     `json:"attempt_id"`
+	QuestionID    uuid.UUID     `json:"question_id"`
+}
+
+func (q *Queries) MarkAnswer(ctx context.Context, arg MarkAnswerParams) (AttemptAnswer, error) {
+	row := q.db.QueryRow(ctx, markAnswer,
+		arg.PointsAwarded,
+		arg.Feedback,
+		arg.GradedBy,
+		arg.AttemptID,
+		arg.QuestionID,
+	)
+	var i AttemptAnswer
+	err := row.Scan(
+		&i.AttemptID,
+		&i.QuestionID,
+		&i.TenantID,
+		&i.OptionIds,
+		&i.TextAnswer,
+		&i.PointsAwarded,
+		&i.NeedsGrading,
+		&i.Feedback,
+		&i.GradedBy,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const openAttempt = `-- name: OpenAttempt :one
@@ -627,6 +828,24 @@ func (q *Queries) StartAttempt(ctx context.Context, arg StartAttemptParams) (Qui
 		&i.PointsAwarded,
 		&i.PointsPossible,
 	)
+	return i, err
+}
+
+const sumAwardedPoints = `-- name: SumAwardedPoints :one
+SELECT coalesce(sum(points_awarded), 0)::integer AS total,
+       count(*) FILTER (WHERE needs_grading) AS pending
+FROM attempt_answers WHERE attempt_id = $1
+`
+
+type SumAwardedPointsRow struct {
+	Total   int32 `json:"total"`
+	Pending int64 `json:"pending"`
+}
+
+func (q *Queries) SumAwardedPoints(ctx context.Context, attemptID uuid.UUID) (SumAwardedPointsRow, error) {
+	row := q.db.QueryRow(ctx, sumAwardedPoints, attemptID)
+	var i SumAwardedPointsRow
+	err := row.Scan(&i.Total, &i.Pending)
 	return i, err
 }
 
