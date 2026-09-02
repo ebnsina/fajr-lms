@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ebnsina/fajr-lms/internal/config"
+	"github.com/ebnsina/fajr-lms/internal/database"
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 )
 
@@ -32,9 +33,21 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	store, err := database.Open(ctx, cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
 	mux := http.NewServeMux()
 	mux.Handle("GET /healthz", httpx.Handler(func(w http.ResponseWriter, r *http.Request) error {
 		return httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	}))
+	mux.Handle("GET /readyz", httpx.Handler(func(w http.ResponseWriter, r *http.Request) error {
+		if err := store.Health(r.Context()); err != nil {
+			return httpx.Errorf(http.StatusServiceUnavailable, "database_unavailable", "Database is not reachable.")
+		}
+		return httpx.JSON(w, http.StatusOK, map[string]string{"status": "ready"})
 	}))
 
 	srv := &http.Server{
