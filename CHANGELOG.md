@@ -56,6 +56,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   a plain statement of what Fajr does on the other.
 
 ### Changed
+- The quiz timer is now a proper clock face, and turns amber then red as the
+  time runs down.
+- The page frame stays put while the content inside it scrolls.
+
 - New brand colour: a deep indigo, with a warm amber used only for progress.
 
 - Every button and input is the same height, so a stack of them lines up.

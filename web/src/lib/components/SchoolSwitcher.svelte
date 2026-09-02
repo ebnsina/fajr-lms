@@ -29,7 +29,7 @@
 <div class="relative">
 	<button
 		bind:this={trigger}
-		class="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-start transition-colors hover:bg-sunken"
+		class="flex w-full items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-start transition-colors hover:border-line-strong hover:bg-raised"
 		type="button"
 		aria-haspopup="menu"
 		aria-expanded={open}
@@ -54,7 +54,7 @@
 		<div
 			bind:this={menu}
 			id="school-menu"
-			class="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-line bg-surface p-1"
+			class="absolute inset-x-0 top-full z-50 mt-1.5 overflow-hidden rounded-xl border border-line-strong bg-surface p-1"
 			role="menu"
 			aria-label="Your schools"
 			use:dismissible={close}
@@ -64,7 +64,7 @@
 				<form method="POST" action="/tenant" use:enhance={() => () => close(false)}>
 					<input type="hidden" name="slug" value={school.slug} />
 					<button
-						class="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-start text-sm transition-colors hover:bg-sunken"
+						class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-start text-sm transition-colors hover:bg-sunken"
 						type="submit"
 						role="menuitemradio"
 						aria-checked={isCurrent}

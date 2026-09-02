@@ -23,7 +23,7 @@
 	});
 </script>
 
-<div class="min-h-dvh bg-ground">
+<div class="flex h-dvh overflow-hidden bg-ground">
 	{#if open}
 		<button
 			class="fixed inset-0 z-30 bg-black/40 transition-opacity motion-reduce:transition-none lg:hidden"
@@ -36,7 +36,7 @@
 	<!-- The sidebar is always position: fixed, so it never scrolls with the
 	     content column; only its mobile visibility is toggled by translate. -->
 	<aside
-		class="fixed inset-y-0 start-0 z-40 flex w-64 shrink-0 flex-col border-e border-line bg-ground transition-transform duration-200 motion-reduce:transition-none"
+		class="fixed inset-y-0 start-0 z-40 flex w-64 shrink-0 flex-col bg-ground transition-transform duration-200 motion-reduce:transition-none"
 		class:max-lg:-translate-x-full={!open}
 		class:max-lg:rtl:translate-x-full={!open}
 	>
@@ -53,8 +53,8 @@
 		{/if}
 	</aside>
 
-	<div class="flex min-h-dvh min-w-0 flex-col p-3 lg:ms-64 lg:ps-0">
-		<div class="card flex min-w-0 flex-1 flex-col overflow-hidden p-0">
+	<div class="flex min-w-0 flex-1 flex-col p-2 lg:ms-64 lg:ps-0">
+		<div class="card flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-0">
 		<header
 			class="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-surface px-4 sm:px-6"
 		>
