@@ -309,3 +309,44 @@ func TestSubmissionSheet(t *testing.T) {
 		}
 	})
 }
+
+func TestUpdateAssignment(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+	_, assignmentID, _ := assignmentCourse(t, h, owner, student, map[string]any{
+		"title": "Essay on the isnad", "points": 20, "late_penalty": 10,
+	})
+
+	rec := do(t, h, "PATCH", "/v1/assignments/"+assignmentID, owner.token, owner.slug,
+		map[string]any{"late_penalty": 25})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("update: got %d: %s", rec.Code, rec.Body)
+	}
+	var updated struct {
+		Title       string `json:"title"`
+		LatePenalty int    `json:"late_penalty"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &updated); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if updated.LatePenalty != 25 || updated.Title == "" {
+		t.Errorf("update lost fields: %+v", updated)
+	}
+
+	t.Run("a student cannot change the brief", func(t *testing.T) {
+		rec := do(t, h, "PATCH", "/v1/assignments/"+assignmentID, student.token, owner.slug,
+			map[string]any{"title": "No homework"})
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("got %d, want 403: %s", rec.Code, rec.Body)
+		}
+	})
+
+	t.Run("a penalty over 100 is refused", func(t *testing.T) {
+		rec := do(t, h, "PATCH", "/v1/assignments/"+assignmentID, owner.token, owner.slug,
+			map[string]any{"late_penalty": 150})
+		if rec.Code != http.StatusUnprocessableEntity {
+			t.Fatalf("got %d, want 422: %s", rec.Code, rec.Body)
+		}
+	})
+}

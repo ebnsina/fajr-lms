@@ -163,3 +163,65 @@ func stringsContains(s, sub string) bool {
 	}
 	return false
 }
+
+func TestQuizSheetIsStaffOnly(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+	_, quizID := seedQuiz(t, h, owner, student, 2)
+
+	rec := do(t, h, "GET", "/v1/quizzes/"+quizID, owner.token, owner.slug, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("read sheet: got %d: %s", rec.Code, rec.Body)
+	}
+	var sheet struct {
+		Questions []struct {
+			Prompt  string `json:"prompt"`
+			Options []struct {
+				Label     string `json:"label"`
+				IsCorrect bool   `json:"is_correct"`
+			} `json:"options"`
+		} `json:"questions"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &sheet); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(sheet.Questions) != 2 {
+		t.Fatalf("want 2 questions, got %d", len(sheet.Questions))
+	}
+	correct := 0
+	for _, option := range sheet.Questions[0].Options {
+		if option.IsCorrect {
+			correct++
+		}
+	}
+	if correct != 1 {
+		t.Errorf("the answer key did not come back: %+v", sheet.Questions[0].Options)
+	}
+
+	t.Run("a student cannot read the answer key", func(t *testing.T) {
+		if rec := do(t, h, "GET", "/v1/quizzes/"+quizID, student.token, owner.slug, nil); rec.Code != http.StatusForbidden {
+			t.Fatalf("got %d, want 403: %s", rec.Code, rec.Body)
+		}
+	})
+
+	t.Run("a question can be removed", func(t *testing.T) {
+		questionID := ""
+		rec := do(t, h, "GET", "/v1/quizzes/"+quizID, owner.token, owner.slug, nil)
+		var listed struct {
+			Questions []struct {
+				ID string `json:"id"`
+			} `json:"questions"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &listed); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		questionID = listed.Questions[1].ID
+		if rec := do(t, h, "DELETE", "/v1/questions/"+questionID, owner.token, owner.slug, nil); rec.Code != http.StatusNoContent {
+			t.Fatalf("delete: got %d: %s", rec.Code, rec.Body)
+		}
+		if rec := do(t, h, "DELETE", "/v1/questions/"+questionID, owner.token, owner.slug, nil); rec.Code != http.StatusNotFound {
+			t.Fatalf("second delete: got %d, want 404: %s", rec.Code, rec.Body)
+		}
+	})
+}

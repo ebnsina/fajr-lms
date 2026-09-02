@@ -88,6 +88,8 @@ func (s *Server) Routes() http.Handler {
 
 	mux.Handle("POST /v1/lessons/{id}/quiz", teaches(s.createQuiz))
 	mux.Handle("POST /v1/quizzes/{id}/questions", teaches(s.addQuestion))
+	mux.Handle("GET /v1/quizzes/{id}", teaches(s.quizSheet))
+	mux.Handle("DELETE /v1/questions/{id}", teaches(s.deleteQuestion))
 	mux.Handle("GET /v1/lessons/{id}/quiz", inTenant(httpx.Handler(s.quizForLearner)))
 	mux.Handle("POST /v1/quizzes/{id}/attempts", inTenant(httpx.Handler(s.startAttempt)))
 	mux.Handle("GET /v1/attempts/{id}", inTenant(httpx.Handler(s.myAttempt)))
@@ -100,6 +102,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("DELETE /v1/grade-items/{id}/learners/{enrollmentId}", teaches(s.clearGrade))
 	mux.Handle("POST /v1/lessons/{id}/assignment", teaches(s.createAssignment))
 	mux.Handle("GET /v1/lessons/{id}/assignment", inTenant(httpx.Handler(s.assignmentForLearner)))
+	mux.Handle("PATCH /v1/assignments/{id}", teaches(s.updateAssignment))
 	mux.Handle("PUT /v1/assignments/{id}/submission", inTenant(httpx.Handler(s.submitWork)))
 	mux.Handle("GET /v1/submissions", teaches(s.submissionQueue))
 	mux.Handle("GET /v1/submissions/{id}", teaches(s.submissionSheet))

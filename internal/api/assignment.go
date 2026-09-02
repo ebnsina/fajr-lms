@@ -98,6 +98,56 @@ func (s *Server) createAssignment(w http.ResponseWriter, r *http.Request) error 
 }
 
 // assignmentForLearner returns the brief together with the learner's own work.
+// updateAssignment applies only the fields present, so a teacher can move a
+// due date without restating the brief.
+func (s *Server) updateAssignment(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var body assignmentRequest
+	if err := httpx.DecodeJSON(w, r, &body); err != nil {
+		return err
+	}
+
+	params := database.UpdateAssignmentParams{ID: id}
+	if raw := strings.TrimSpace(body.Title); raw != "" {
+		title, err := requireText("title", raw, 200)
+		if err != nil {
+			return err
+		}
+		params.Title = &title
+	}
+	if body.Instructions != "" {
+		instructions := strings.TrimSpace(body.Instructions)
+		params.Instructions = &instructions
+	}
+	if body.DueAt != nil {
+		params.DueAt = pgtype.Timestamptz{Time: *body.DueAt, Valid: true}
+	}
+	if body.AllowLate != nil {
+		params.AllowLate = body.AllowLate
+	}
+	if body.LatePenalty < 0 || body.LatePenalty > 100 {
+		return invalid("late_penalty", "A penalty is between 0 and 100 percent.")
+	}
+	params.LatePenalty = &body.LatePenalty
+
+	var assignment database.Assignment
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		assignment, err = q.UpdateAssignment(r.Context(), params)
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, assignment)
+}
+
 func (s *Server) assignmentForLearner(w http.ResponseWriter, r *http.Request) error {
 	lessonID, err := pathUUID(r, "id")
 	if err != nil {

@@ -5,6 +5,9 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Set a quiz from the app: write questions of any kind, tick the right choices,
+  and see the answer key laid out. Set an assignment the same way, and change
+  its due date or late penalty afterwards.
 - Build a course from the app rather than the API: create it, add sections and
   lessons, paste a video or audio link to attach it, and publish a lesson or the
   whole course when it is ready.

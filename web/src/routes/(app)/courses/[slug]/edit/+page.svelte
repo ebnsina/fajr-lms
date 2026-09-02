@@ -79,6 +79,14 @@
 						<li class="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-4 py-3">
 							<span class="min-w-40 flex-1 font-medium" dir={lesson.dir}>{lesson.title}</span>
 							<span class="chip">{kindName(lesson.kind)}</span>
+							{#if lesson.kind === 'quiz' || lesson.kind === 'assignment'}
+								<a
+									class="btn btn-sm btn-quiet"
+									href="/courses/{data.slug}/lessons/{lesson.id}/edit"
+								>
+									Set the {lesson.kind}
+								</a>
+							{/if}
 							<form method="POST" action="?/setLessonStatus" use:enhance>
 								<input type="hidden" name="lesson_id" value={lesson.id} />
 								<input

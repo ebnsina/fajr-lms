@@ -266,6 +266,86 @@ func (s *Server) quizForLearner(w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
+// quizSheet is the staff view of a quiz: the same paper with the answer key,
+// which the learner endpoint deliberately withholds.
+func (s *Server) quizSheet(w http.ResponseWriter, r *http.Request) error {
+	quizID, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+
+	type option struct {
+		ID        uuid.UUID `json:"id"`
+		Label     string    `json:"label"`
+		IsCorrect bool      `json:"is_correct"`
+	}
+	type question struct {
+		database.Question
+		Options []option `json:"options"`
+	}
+
+	var (
+		quiz      database.Quiz
+		questions []question
+	)
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		if quiz, err = q.GetQuiz(r.Context(), quizID); err != nil {
+			return err
+		}
+		rows, err := q.ListQuestions(r.Context(), quizID)
+		if err != nil {
+			return err
+		}
+		options, err := q.ListOptionsForQuiz(r.Context(), quizID)
+		if err != nil {
+			return err
+		}
+		byQuestion := make(map[uuid.UUID][]option, len(rows))
+		for _, o := range options {
+			byQuestion[o.QuestionID] = append(byQuestion[o.QuestionID],
+				option{ID: o.ID, Label: o.Label, IsCorrect: o.IsCorrect})
+		}
+		questions = make([]question, 0, len(rows))
+		for _, row := range rows {
+			opts := byQuestion[row.ID]
+			if opts == nil {
+				opts = []option{}
+			}
+			questions = append(questions, question{Question: row, Options: opts})
+		}
+		return nil
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{"quiz": quiz, "questions": questions})
+}
+
+func (s *Server) deleteQuestion(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var rows int64
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		rows, err = q.DeleteQuestion(r.Context(), id)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return httpx.ErrNotFound
+	}
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
 func (s *Server) learnerPaper(r *http.Request, q *database.Queries, quizID uuid.UUID) ([]learnerQuestion, error) {
 	rows, err := q.ListQuestions(r.Context(), quizID)
 	if err != nil {
