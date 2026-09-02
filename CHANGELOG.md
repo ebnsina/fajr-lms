@@ -5,6 +5,16 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Quizzes on any lesson: multiple choice, multiple answer, true or false, short
+  answer and essay, with a time limit, an attempt limit and a pass mark.
+- Choice questions are marked the moment a learner submits; written answers wait
+  for a teacher and the attempt is held rather than reported as passed.
+- Learners never receive the answer key. Correct options and explanations are
+  withheld until the attempt is submitted.
+- An interrupted attempt resumes where it left off instead of burning one of the
+  learner's tries.
+- Questions that could never be marked, such as a choice question with no
+  correct option, are refused when they are written rather than when they are sat.
 - Pay with bKash directly, without going through a card gateway.
 - Returning from a payment now lands the payer on a readable page instead of
   raw JSON.

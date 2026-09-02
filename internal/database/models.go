@@ -13,6 +13,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AttemptState string
+
+const (
+	AttemptStateInProgress AttemptState = "in_progress"
+	AttemptStateSubmitted  AttemptState = "submitted"
+	AttemptStateGraded     AttemptState = "graded"
+	AttemptStateExpired    AttemptState = "expired"
+)
+
+func (e *AttemptState) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AttemptState(s)
+	case string:
+		*e = AttemptState(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AttemptState: %T", src)
+	}
+	return nil
+}
+
+type NullAttemptState struct {
+	AttemptState AttemptState `json:"attempt_state"`
+	Valid        bool         `json:"valid"` // Valid is true if AttemptState is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAttemptState) Scan(value interface{}) error {
+	if value == nil {
+		ns.AttemptState, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AttemptState.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAttemptState) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AttemptState), nil
+}
+
 type CourseVisibility string
 
 const (
@@ -498,6 +542,51 @@ func (ns NullPublishStatus) Value() (driver.Value, error) {
 	return string(ns.PublishStatus), nil
 }
 
+type QuestionKind string
+
+const (
+	QuestionKindMcqSingle   QuestionKind = "mcq_single"
+	QuestionKindMcqMulti    QuestionKind = "mcq_multi"
+	QuestionKindTrueFalse   QuestionKind = "true_false"
+	QuestionKindShortAnswer QuestionKind = "short_answer"
+	QuestionKindEssay       QuestionKind = "essay"
+)
+
+func (e *QuestionKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = QuestionKind(s)
+	case string:
+		*e = QuestionKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for QuestionKind: %T", src)
+	}
+	return nil
+}
+
+type NullQuestionKind struct {
+	QuestionKind QuestionKind `json:"question_kind"`
+	Valid        bool         `json:"valid"` // Valid is true if QuestionKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullQuestionKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.QuestionKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.QuestionKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullQuestionKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.QuestionKind), nil
+}
+
 type TenantKind string
 
 const (
@@ -624,6 +713,19 @@ func (ns NullTextDir) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.TextDir), nil
+}
+
+type AttemptAnswer struct {
+	AttemptID     uuid.UUID          `json:"attempt_id"`
+	QuestionID    uuid.UUID          `json:"question_id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	OptionIds     []uuid.UUID        `json:"option_ids"`
+	TextAnswer    string             `json:"text_answer"`
+	PointsAwarded *int32             `json:"points_awarded"`
+	NeedsGrading  bool               `json:"needs_grading"`
+	Feedback      string             `json:"feedback"`
+	GradedBy      uuid.NullUUID      `json:"graded_by"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Course struct {
@@ -775,6 +877,61 @@ type PaymentEvent struct {
 	Kind      string             `json:"kind"`
 	Payload   []byte             `json:"payload"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type Question struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	QuizID      uuid.UUID          `json:"quiz_id"`
+	Kind        QuestionKind       `json:"kind"`
+	Prompt      string             `json:"prompt"`
+	Dir         TextDir            `json:"dir"`
+	Points      int32              `json:"points"`
+	Explanation string             `json:"explanation"`
+	Position    float64            `json:"position"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type QuestionOption struct {
+	ID         uuid.UUID `json:"id"`
+	TenantID   uuid.UUID `json:"tenant_id"`
+	QuestionID uuid.UUID `json:"question_id"`
+	Label      string    `json:"label"`
+	IsCorrect  bool      `json:"is_correct"`
+	Position   float64   `json:"position"`
+}
+
+type Quiz struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	LessonID      uuid.UUID          `json:"lesson_id"`
+	Title         string             `json:"title"`
+	Instructions  string             `json:"instructions"`
+	Dir           TextDir            `json:"dir"`
+	TimeLimitS    int32              `json:"time_limit_s"`
+	MaxAttempts   int16              `json:"max_attempts"`
+	PassPercent   int16              `json:"pass_percent"`
+	Shuffle       bool               `json:"shuffle"`
+	RevealAnswers bool               `json:"reveal_answers"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+type QuizAttempt struct {
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	QuizID         uuid.UUID          `json:"quiz_id"`
+	EnrollmentID   uuid.UUID          `json:"enrollment_id"`
+	UserID         uuid.UUID          `json:"user_id"`
+	AttemptNo      int16              `json:"attempt_no"`
+	State          AttemptState       `json:"state"`
+	StartedAt      pgtype.Timestamptz `json:"started_at"`
+	ExpiresAt      pgtype.Timestamptz `json:"expires_at"`
+	SubmittedAt    pgtype.Timestamptz `json:"submitted_at"`
+	GradedAt       pgtype.Timestamptz `json:"graded_at"`
+	PointsAwarded  int32              `json:"points_awarded"`
+	PointsPossible int32              `json:"points_possible"`
 }
 
 type Session struct {

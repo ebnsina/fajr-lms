@@ -78,6 +78,13 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/payment/{tenant}/{provider}/callback", httpx.Handler(s.paymentCallback))
 	mux.Handle("GET /v1/payment/{tenant}/{provider}/callback", httpx.Handler(s.paymentCallback))
 
+	mux.Handle("POST /v1/lessons/{id}/quiz", teaches(s.createQuiz))
+	mux.Handle("POST /v1/quizzes/{id}/questions", teaches(s.addQuestion))
+	mux.Handle("GET /v1/lessons/{id}/quiz", inTenant(httpx.Handler(s.quizForLearner)))
+	mux.Handle("POST /v1/quizzes/{id}/attempts", inTenant(httpx.Handler(s.startAttempt)))
+	mux.Handle("PUT /v1/attempts/{id}/answers", inTenant(httpx.Handler(s.saveAnswer)))
+	mux.Handle("POST /v1/attempts/{id}/submit", inTenant(httpx.Handler(s.submitAttempt)))
+
 	mux.Handle("GET /v1/payment/providers", inTenant(httpx.Handler(s.paymentProviders)))
 	mux.Handle("POST /v1/courses/{id}/orders", inTenant(httpx.Handler(s.createOrder)))
 	mux.Handle("GET /v1/orders", inTenant(httpx.Handler(s.listMyOrders)))
