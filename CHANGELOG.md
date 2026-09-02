@@ -5,6 +5,16 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Enrolment: learners join a free public course themselves, staff enrol anyone,
+  and enrolling twice is harmless.
+- Progress tracking with a resume point per lesson, a completion percentage per
+  course, and automatic course completion on the last lesson.
+- Progress reports merge safely across devices: a resume point only moves
+  forward and a finished lesson never reverts, so a phone that was offline for
+  a week cannot undo work done since.
+- `GET /v1/courses/{id}/roster` shows every learner's completion in one query.
+- `PATCH /v1/lessons/{id}` edits a lesson and publishes it.
+- Requests that legitimately carry no body are no longer rejected.
 - Media is pluggable: one provider interface with an embed adapter shipping
   first, so video costs nothing at launch. A transcoder drops in behind the
   same interface without changing anything above it.

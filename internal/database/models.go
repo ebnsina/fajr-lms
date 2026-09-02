@@ -56,6 +56,93 @@ func (ns NullCourseVisibility) Value() (driver.Value, error) {
 	return string(ns.CourseVisibility), nil
 }
 
+type EnrollmentSource string
+
+const (
+	EnrollmentSourceSelf     EnrollmentSource = "self"
+	EnrollmentSourceStaff    EnrollmentSource = "staff"
+	EnrollmentSourcePurchase EnrollmentSource = "purchase"
+	EnrollmentSourceImport   EnrollmentSource = "import"
+)
+
+func (e *EnrollmentSource) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = EnrollmentSource(s)
+	case string:
+		*e = EnrollmentSource(s)
+	default:
+		return fmt.Errorf("unsupported scan type for EnrollmentSource: %T", src)
+	}
+	return nil
+}
+
+type NullEnrollmentSource struct {
+	EnrollmentSource EnrollmentSource `json:"enrollment_source"`
+	Valid            bool             `json:"valid"` // Valid is true if EnrollmentSource is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEnrollmentSource) Scan(value interface{}) error {
+	if value == nil {
+		ns.EnrollmentSource, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.EnrollmentSource.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEnrollmentSource) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.EnrollmentSource), nil
+}
+
+type EnrollmentStatus string
+
+const (
+	EnrollmentStatusActive    EnrollmentStatus = "active"
+	EnrollmentStatusCompleted EnrollmentStatus = "completed"
+	EnrollmentStatusCancelled EnrollmentStatus = "cancelled"
+)
+
+func (e *EnrollmentStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = EnrollmentStatus(s)
+	case string:
+		*e = EnrollmentStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for EnrollmentStatus: %T", src)
+	}
+	return nil
+}
+
+type NullEnrollmentStatus struct {
+	EnrollmentStatus EnrollmentStatus `json:"enrollment_status"`
+	Valid            bool             `json:"valid"` // Valid is true if EnrollmentStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEnrollmentStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.EnrollmentStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.EnrollmentStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEnrollmentStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.EnrollmentStatus), nil
+}
+
 type LessonKind string
 
 const (
@@ -279,6 +366,49 @@ func (ns NullOtpPurpose) Value() (driver.Value, error) {
 	return string(ns.OtpPurpose), nil
 }
 
+type ProgressState string
+
+const (
+	ProgressStateNotStarted ProgressState = "not_started"
+	ProgressStateInProgress ProgressState = "in_progress"
+	ProgressStateCompleted  ProgressState = "completed"
+)
+
+func (e *ProgressState) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ProgressState(s)
+	case string:
+		*e = ProgressState(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ProgressState: %T", src)
+	}
+	return nil
+}
+
+type NullProgressState struct {
+	ProgressState ProgressState `json:"progress_state"`
+	Valid         bool          `json:"valid"` // Valid is true if ProgressState is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullProgressState) Scan(value interface{}) error {
+	if value == nil {
+		ns.ProgressState, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ProgressState.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullProgressState) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ProgressState), nil
+}
+
 type PublishStatus string
 
 const (
@@ -467,6 +597,18 @@ type Course struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Enrollment struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	CourseID    uuid.UUID          `json:"course_id"`
+	UserID      uuid.UUID          `json:"user_id"`
+	Status      EnrollmentStatus   `json:"status"`
+	Source      EnrollmentSource   `json:"source"`
+	CompletedAt pgtype.Timestamptz `json:"completed_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Lesson struct {
 	ID        uuid.UUID          `json:"id"`
 	TenantID  uuid.UUID          `json:"tenant_id"`
@@ -482,6 +624,16 @@ type Lesson struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 	MediaID   uuid.NullUUID      `json:"media_id"`
+}
+
+type LessonProgress struct {
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	EnrollmentID uuid.UUID          `json:"enrollment_id"`
+	LessonID     uuid.UUID          `json:"lesson_id"`
+	State        ProgressState      `json:"state"`
+	PositionS    int32              `json:"position_s"`
+	CompletedAt  pgtype.Timestamptz `json:"completed_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LiveSession struct {

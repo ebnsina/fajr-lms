@@ -52,6 +52,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("PUT /v1/courses/{id}/status", teaches(s.setCourseStatus))
 	mux.Handle("POST /v1/courses/{id}/modules", teaches(s.createModule))
 	mux.Handle("POST /v1/modules/{id}/lessons", teaches(s.createLesson))
+	mux.Handle("PATCH /v1/lessons/{id}", teaches(s.updateLesson))
 	mux.Handle("PUT /v1/lessons/{id}/position", teaches(s.moveLesson))
 	mux.Handle("DELETE /v1/lessons/{id}", teaches(s.deleteLesson))
 
@@ -60,6 +61,13 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/media", teaches(s.ingestMedia))
 	mux.Handle("PUT /v1/lessons/{id}/media", teaches(s.attachMedia))
 	mux.Handle("GET /v1/media/usage", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.mediaUsage))))
+
+	mux.Handle("POST /v1/courses/{id}/enrollments", inTenant(httpx.Handler(s.enroll)))
+	mux.Handle("GET /v1/courses/{id}/roster", teaches(s.courseRoster))
+	mux.Handle("GET /v1/courses/{id}/progress", inTenant(httpx.Handler(s.myCourseProgress)))
+	mux.Handle("GET /v1/enrollments", inTenant(httpx.Handler(s.listMyEnrollments)))
+	mux.Handle("DELETE /v1/enrollments/{id}", teaches(s.cancelEnrollment))
+	mux.Handle("PUT /v1/lessons/{id}/progress", inTenant(httpx.Handler(s.recordProgress)))
 
 	return mux
 }

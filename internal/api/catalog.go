@@ -428,3 +428,72 @@ func pgErrCode(err error) string {
 	}
 	return ""
 }
+
+type updateLessonRequest struct {
+	Title     *string `json:"title"`
+	Body      *string `json:"body"`
+	Kind      *string `json:"kind"`
+	Dir       *string `json:"dir"`
+	DurationS *int32  `json:"duration_s"`
+	IsPreview *bool   `json:"is_preview"`
+	Status    *string `json:"status"`
+}
+
+// updateLesson applies only the fields present in the body.
+func (s *Server) updateLesson(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var body updateLessonRequest
+	if err := httpx.DecodeJSON(w, r, &body); err != nil {
+		return err
+	}
+
+	params := database.UpdateLessonParams{ID: id, Body: body.Body, DurationS: body.DurationS, IsPreview: body.IsPreview}
+	if body.Title != nil {
+		title, err := requireText("title", *body.Title, 200)
+		if err != nil {
+			return err
+		}
+		params.Title = &title
+	}
+	if body.Kind != nil {
+		kind, err := parseLessonKind(*body.Kind)
+		if err != nil {
+			return err
+		}
+		params.Kind = &kind
+	}
+	if body.Dir != nil {
+		dir, err := parseDir(*body.Dir)
+		if err != nil {
+			return err
+		}
+		params.Dir = &dir
+	}
+	if body.Status != nil {
+		status, err := parseStatus(*body.Status)
+		if err != nil {
+			return err
+		}
+		params.Status = &status
+	}
+	if params.DurationS != nil && *params.DurationS < 0 {
+		return invalid("duration_s", "Duration cannot be negative.")
+	}
+
+	var lesson database.Lesson
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		lesson, err = q.UpdateLesson(r.Context(), params)
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, lesson)
+}

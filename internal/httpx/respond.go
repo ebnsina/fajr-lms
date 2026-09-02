@@ -4,6 +4,7 @@ package httpx
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 )
@@ -79,7 +80,8 @@ func DecodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	dec := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20))
 	dec.DisallowUnknownFields()
 
-	if err := dec.Decode(dst); err != nil {
+	// An absent body means no fields were supplied; required-field checks still run.
+	if err := dec.Decode(dst); err != nil && !errors.Is(err, io.EOF) {
 		var maxErr *http.MaxBytesError
 		if errors.As(err, &maxErr) {
 			return Errorf(http.StatusRequestEntityTooLarge, "body_too_large", "Request body must be under 1 MB.")
