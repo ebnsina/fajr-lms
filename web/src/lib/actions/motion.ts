@@ -67,9 +67,9 @@ export function parallax(node: HTMLElement, distance = 40) {
 }
 
 /** Pins a section and shows its steps one at a time as the reader scrolls
-    through it. Without motion the steps stay a plain list, so nothing is
-    hidden behind an animation that never runs. */
-export function stepper(node: HTMLElement) {
+    through it, reporting which one is showing. Without motion the steps stay a
+    plain list, so nothing is hidden behind an animation that never runs. */
+export function stepper(node: HTMLElement, onStep?: (index: number) => void) {
 	if (!ready()) return {};
 
 	const cards = Array.from(node.querySelectorAll<HTMLElement>('[data-step]'));
@@ -85,7 +85,11 @@ export function stepper(node: HTMLElement) {
 			start: 'top top',
 			end: `+=${cards.length * 55}%`,
 			pin: true,
-			scrub: 0.4
+			scrub: true,
+			onUpdate: ({ progress }) => {
+				const index = Math.min(cards.length - 1, Math.floor(progress * cards.length));
+				onStep?.(index);
+			}
 		}
 	});
 

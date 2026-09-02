@@ -26,6 +26,9 @@
 	// The first question is open, so the section never reads as a wall of bars.
 	let open = $state(0);
 
+	// Which of the four steps is on screen, for the rail beside them.
+	let active = $state(0);
+
 	const institutions = ['school', 'madrasah', 'college', 'academy', 'university'];
 
 	const reasons = [
@@ -255,32 +258,49 @@
 </section>
 
 <section id="how" class="scroll-mt-24 border-y border-line bg-raised px-6 py-24">
-	<div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[minmax(0,20rem)_1fr]">
-		<!-- The heading stays put while the steps come past it. -->
-		<div class="lg:sticky lg:top-24 lg:self-start" use:reveal>
+	<div class="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,22rem)_1fr]">
+		<!-- The heading and the rail stay put while the steps come past them. -->
+		<div use:reveal>
 			<span class="eyebrow mb-3">How it works</span>
 			<h2 class="font-display text-3xl font-bold sm:text-4xl">
 				From nothing to teaching, in four steps
 			</h2>
-			<p class="mt-3 mb-6 text-ink-soft">
+			<p class="mt-3 mb-8 text-ink-soft">
 				Each one is a screen, not a project. Nobody has to call us to get through them.
 			</p>
+
+			<ol class="mb-8 flex flex-col gap-3 border-s border-line ps-5">
+				{#each steps as step, index (step.title)}
+					<li
+						class="text-sm transition-colors duration-300"
+						class:text-ink={index === active}
+						class:font-medium={index === active}
+						class:text-ink-faint={index !== active}
+						aria-current={index === active ? 'step' : undefined}
+					>
+						<span class="font-mono">{String(index + 1).padStart(2, '0')}</span>
+						· {step.title}
+					</li>
+				{/each}
+			</ol>
+
 			<a class="btn btn-quiet btn-sm" href="/start">
 				Get started free
 				<ArrowRight size={15} aria-hidden="true" />
 			</a>
 		</div>
 
-		<ol class="steps flex flex-col gap-4" use:stepper>
+		<ol class="steps flex flex-col gap-4" use:stepper={(index) => (active = index)}>
 			{#each steps as step, index (step.title)}
-				<li class="card flex flex-wrap items-start gap-5 sm:flex-nowrap" data-step>
-					<span class="icon-tile font-mono text-sm">
+				<li class="card flex min-h-80 flex-col justify-center p-8 sm:p-12" data-step>
+					<span
+						class="font-display text-6xl font-bold text-brand-line sm:text-7xl"
+						aria-hidden="true"
+					>
 						{String(index + 1).padStart(2, '0')}
 					</span>
-					<div class="min-w-0 flex-1">
-						<h3 class="mb-2 text-lg font-medium">{step.title}</h3>
-						<p class="mb-0 text-ink-soft">{step.body}</p>
-					</div>
+					<h3 class="mt-6 font-display text-2xl font-bold sm:text-3xl">{step.title}</h3>
+					<p class="mt-3 mb-0 max-w-xl text-lg text-ink-soft">{step.body}</p>
 				</li>
 			{/each}
 		</ol>
@@ -501,7 +521,7 @@
 	/* Once the stepper takes over, the cards share one place and only the
 	   current one is visible. */
 	.steps {
-		min-block-size: 11rem;
+		min-block-size: 20rem;
 	}
 
 	.steps:global(.stacked) {
