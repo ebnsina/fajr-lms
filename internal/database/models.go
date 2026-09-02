@@ -190,8 +190,9 @@ func (ns NullEnrollmentStatus) Value() (driver.Value, error) {
 type GradeSource string
 
 const (
-	GradeSourceQuiz   GradeSource = "quiz"
-	GradeSourceManual GradeSource = "manual"
+	GradeSourceQuiz       GradeSource = "quiz"
+	GradeSourceManual     GradeSource = "manual"
+	GradeSourceAssignment GradeSource = "assignment"
 )
 
 func (e *GradeSource) Scan(src interface{}) error {
@@ -629,6 +630,49 @@ func (ns NullQuestionKind) Value() (driver.Value, error) {
 	return string(ns.QuestionKind), nil
 }
 
+type SubmissionState string
+
+const (
+	SubmissionStateDraft     SubmissionState = "draft"
+	SubmissionStateSubmitted SubmissionState = "submitted"
+	SubmissionStateReturned  SubmissionState = "returned"
+)
+
+func (e *SubmissionState) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SubmissionState(s)
+	case string:
+		*e = SubmissionState(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SubmissionState: %T", src)
+	}
+	return nil
+}
+
+type NullSubmissionState struct {
+	SubmissionState SubmissionState `json:"submission_state"`
+	Valid           bool            `json:"valid"` // Valid is true if SubmissionState is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSubmissionState) Scan(value interface{}) error {
+	if value == nil {
+		ns.SubmissionState, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SubmissionState.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSubmissionState) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SubmissionState), nil
+}
+
 type TenantKind string
 
 const (
@@ -757,6 +801,22 @@ func (ns NullTextDir) Value() (driver.Value, error) {
 	return string(ns.TextDir), nil
 }
 
+type Assignment struct {
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	LessonID     uuid.UUID          `json:"lesson_id"`
+	Title        string             `json:"title"`
+	Instructions string             `json:"instructions"`
+	Dir          TextDir            `json:"dir"`
+	Points       int32              `json:"points"`
+	DueAt        pgtype.Timestamptz `json:"due_at"`
+	AllowLate    bool               `json:"allow_late"`
+	LatePenalty  int16              `json:"late_penalty"`
+	MaxFiles     int16              `json:"max_files"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
 type AttemptAnswer struct {
 	AttemptID     uuid.UUID          `json:"attempt_id"`
 	QuestionID    uuid.UUID          `json:"question_id"`
@@ -812,6 +872,7 @@ type GradeItem struct {
 	Position       float64            `json:"position"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	AssignmentID   uuid.NullUUID      `json:"assignment_id"`
 }
 
 type GradeOverride struct {
@@ -1011,6 +1072,25 @@ type Session struct {
 	RevokedAt  pgtype.Timestamptz `json:"revoked_at"`
 	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type Submission struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	AssignmentID  uuid.UUID          `json:"assignment_id"`
+	EnrollmentID  uuid.UUID          `json:"enrollment_id"`
+	UserID        uuid.UUID          `json:"user_id"`
+	State         SubmissionState    `json:"state"`
+	Body          string             `json:"body"`
+	MediaIds      []uuid.UUID        `json:"media_ids"`
+	IsLate        bool               `json:"is_late"`
+	SubmittedAt   pgtype.Timestamptz `json:"submitted_at"`
+	PointsAwarded *int32             `json:"points_awarded"`
+	Feedback      string             `json:"feedback"`
+	GradedBy      uuid.NullUUID      `json:"graded_by"`
+	GradedAt      pgtype.Timestamptz `json:"graded_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Tenant struct {

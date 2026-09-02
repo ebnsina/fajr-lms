@@ -5,6 +5,16 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Assignments on any lesson, with a due date, a points value, an attachment
+  limit and an optional late penalty.
+- Learners save drafts as they work and hand in when ready; attachments reuse
+  the same upload path as lesson media.
+- Late work is flagged by the server clock, not the learner's device, and the
+  penalty is applied once at marking so the learner sees a single mark.
+- A deadline can be closed to late work entirely, though a draft can still be
+  saved so nothing already typed is lost.
+- Marked work cannot be resubmitted or marked twice, and marks appear in the
+  gradebook alongside quiz results.
 - Gradebook showing every learner against every graded item, with a weighted
   course percentage.
 - Quizzes appear in the gradebook automatically and stay worth whatever their

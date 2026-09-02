@@ -2,14 +2,15 @@ package assessment
 
 import "github.com/google/uuid"
 
-// Item is one graded thing in a course.
+// Item is one graded thing in a course. Exactly one source id is set.
 type Item struct {
-	ID       uuid.UUID
-	QuizID   uuid.UUID
-	Title    string
-	Category string
-	Possible int32
-	Weight   int32
+	ID           uuid.UUID
+	QuizID       uuid.UUID
+	AssignmentID uuid.UUID
+	Title        string
+	Category     string
+	Possible     int32
+	Weight       int32
 }
 
 // Score is one learner's result for one item.
@@ -40,9 +41,10 @@ type Override struct {
 	Note         string
 }
 
-// QuizScore is a learner's best graded attempt at a quiz.
-type QuizScore struct {
-	QuizID       uuid.UUID
+// SourceScore is a score computed elsewhere: a quiz attempt or a marked
+// submission. The source id matches the item that owns it.
+type SourceScore struct {
+	SourceID     uuid.UUID
 	EnrollmentID uuid.UUID
 	Points       int32
 }
@@ -56,14 +58,14 @@ type Learner struct {
 // BuildGradebook assembles one row per learner. A teacher's override always
 // wins over the quiz result, and an item nobody has sat is left ungraded
 // rather than counted as a zero.
-func BuildGradebook(items []Item, learners []Learner, quizzes []QuizScore, overrides []Override) []Report {
+func BuildGradebook(items []Item, learners []Learner, computed []SourceScore, overrides []Override) []Report {
 	byOverride := make(map[key]Override, len(overrides))
 	for _, o := range overrides {
 		byOverride[key{o.ItemID, o.EnrollmentID}] = o
 	}
-	byQuiz := make(map[key]QuizScore, len(quizzes))
-	for _, s := range quizzes {
-		byQuiz[key{s.QuizID, s.EnrollmentID}] = s
+	bySource := make(map[key]SourceScore, len(computed))
+	for _, s := range computed {
+		bySource[key{s.SourceID, s.EnrollmentID}] = s
 	}
 
 	reports := make([]Report, 0, len(learners))
@@ -80,9 +82,11 @@ func BuildGradebook(items []Item, learners []Learner, quizzes []QuizScore, overr
 			if o, ok := byOverride[key{item.ID, learner.EnrollmentID}]; ok {
 				points := o.Points
 				score.Points, score.Overridden, score.Note = &points, true, o.Note
-			} else if q, ok := byQuiz[key{item.QuizID, learner.EnrollmentID}]; ok && item.QuizID != uuid.Nil {
-				points := q.Points
-				score.Points = &points
+			} else if source := item.sourceID(); source != uuid.Nil {
+				if computed, ok := bySource[key{source, learner.EnrollmentID}]; ok {
+					points := computed.Points
+					score.Points = &points
+				}
 			}
 
 			if score.Points != nil {
@@ -103,7 +107,28 @@ func BuildGradebook(items []Item, learners []Learner, quizzes []QuizScore, overr
 	return reports
 }
 
+// sourceID is whichever of the two source columns this item carries.
+func (i Item) sourceID() uuid.UUID {
+	if i.QuizID != uuid.Nil {
+		return i.QuizID
+	}
+	return i.AssignmentID
+}
+
 type key struct {
 	item   uuid.UUID
 	member uuid.UUID
+}
+
+// LatePenalty removes a percentage from a mark, never below zero. It is applied
+// once, when the work is graded, so the learner sees one number.
+func LatePenalty(points int32, penaltyPercent int) int32 {
+	if penaltyPercent <= 0 || points <= 0 {
+		return points
+	}
+	if penaltyPercent >= 100 {
+		return 0
+	}
+	kept := int64(points) * int64(100-penaltyPercent)
+	return int32(kept / 100)
 }

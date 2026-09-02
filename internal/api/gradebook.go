@@ -145,7 +145,11 @@ func (s *Server) buildGradebook(r *http.Request, q *database.Queries, courseID u
 	if err != nil {
 		return nil, nil, err
 	}
-	scores, err := q.BestQuizScores(r.Context(), courseID)
+	quizScores, err := q.BestQuizScores(r.Context(), courseID)
+	if err != nil {
+		return nil, nil, err
+	}
+	workScores, err := q.BestAssignmentScores(r.Context(), courseID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -153,8 +157,9 @@ func (s *Server) buildGradebook(r *http.Request, q *database.Queries, courseID u
 	if err != nil {
 		return nil, nil, err
 	}
+	computed := append(toQuizScores(quizScores), toAssignmentScores(workScores)...)
 	return items, assessment.BuildGradebook(
-		toItems(items), toLearners(learners), toQuizScores(scores), toOverrides(overrides),
+		toItems(items), toLearners(learners), computed, toOverrides(overrides),
 	), nil
 }
 
@@ -245,7 +250,7 @@ func toItems(rows []database.GradeItem) []assessment.Item {
 	out := make([]assessment.Item, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, assessment.Item{
-			ID: row.ID, QuizID: row.QuizID.UUID, Title: row.Title,
+			ID: row.ID, QuizID: row.QuizID.UUID, AssignmentID: row.AssignmentID.UUID, Title: row.Title,
 			Category: row.Category, Possible: row.PointsPossible, Weight: row.Weight,
 		})
 	}
@@ -260,11 +265,24 @@ func toLearners(rows []database.ListCourseEnrollmentsRow) []assessment.Learner {
 	return out
 }
 
-func toQuizScores(rows []database.BestQuizScoresRow) []assessment.QuizScore {
-	out := make([]assessment.QuizScore, 0, len(rows))
+func toQuizScores(rows []database.BestQuizScoresRow) []assessment.SourceScore {
+	out := make([]assessment.SourceScore, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, assessment.QuizScore{
-			QuizID: row.QuizID, EnrollmentID: row.EnrollmentID, Points: row.PointsAwarded,
+		out = append(out, assessment.SourceScore{
+			SourceID: row.QuizID, EnrollmentID: row.EnrollmentID, Points: row.PointsAwarded,
+		})
+	}
+	return out
+}
+
+func toAssignmentScores(rows []database.BestAssignmentScoresRow) []assessment.SourceScore {
+	out := make([]assessment.SourceScore, 0, len(rows))
+	for _, row := range rows {
+		if row.PointsAwarded == nil {
+			continue
+		}
+		out = append(out, assessment.SourceScore{
+			SourceID: row.AssignmentID, EnrollmentID: row.EnrollmentID, Points: *row.PointsAwarded,
 		})
 	}
 	return out

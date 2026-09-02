@@ -1,6 +1,6 @@
 -- name: CreateGradeItem :one
-INSERT INTO grade_items (tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position)
-VALUES (@tenant_id, @course_id, @quiz_id, @source, @title, @category, @points_possible, @weight,
+INSERT INTO grade_items (tenant_id, course_id, quiz_id, assignment_id, source, title, category, points_possible, weight, position)
+VALUES (@tenant_id, @course_id, @quiz_id, @assignment_id, @source, @title, @category, @points_possible, @weight,
         coalesce((SELECT max(position) + 1024 FROM grade_items WHERE course_id = @course_id), 1024))
 RETURNING *;
 
@@ -57,3 +57,9 @@ ORDER BY u.full_name;
 UPDATE grade_items i
 SET points_possible = GREATEST(1, (SELECT coalesce(sum(q.points), 0)::integer FROM questions q WHERE q.quiz_id = @target_quiz))
 WHERE i.quiz_id = @target_quiz;
+
+-- name: SyncAssignmentItem :exec
+UPDATE grade_items i
+SET points_possible = (SELECT a.points FROM assignments a WHERE a.id = @target_assignment),
+    title = (SELECT a.title FROM assignments a WHERE a.id = @target_assignment)
+WHERE i.assignment_id = @target_assignment;

@@ -18,8 +18,8 @@ func TestBuildGradebook(t *testing.T) {
 	yusuf := assessment.Learner{EnrollmentID: uuid.New(), FullName: "يوسف"}
 	learners := []assessment.Learner{amina, yusuf}
 
-	quizzes := []assessment.QuizScore{
-		{QuizID: quizID, EnrollmentID: amina.EnrollmentID, Points: 8},
+	quizzes := []assessment.SourceScore{
+		{SourceID: quizID, EnrollmentID: amina.EnrollmentID, Points: 8},
 	}
 	overrides := []assessment.Override{
 		{ItemID: examItem.ID, EnrollmentID: amina.EnrollmentID, Points: 40, Note: "well argued"},
@@ -93,4 +93,38 @@ func TestBuildGradebook(t *testing.T) {
 			t.Errorf("got %+v", row)
 		}
 	})
+}
+
+func TestLatePenalty(t *testing.T) {
+	cases := []struct {
+		points  int32
+		percent int
+		want    int32
+	}{
+		{100, 0, 100}, {100, 10, 90}, {100, 50, 50}, {100, 100, 0},
+		{7, 10, 6}, {0, 50, 0}, {100, -5, 100}, {100, 200, 0},
+	}
+	for _, c := range cases {
+		if got := assessment.LatePenalty(c.points, c.percent); got != c.want {
+			t.Errorf("LatePenalty(%d, %d) = %d, want %d", c.points, c.percent, got, c.want)
+		}
+	}
+}
+
+func TestGradebookMixesQuizzesAndAssignments(t *testing.T) {
+	quizID, assignmentID := uuid.New(), uuid.New()
+	items := []assessment.Item{
+		{ID: uuid.New(), QuizID: quizID, Possible: 10, Weight: 100},
+		{ID: uuid.New(), AssignmentID: assignmentID, Possible: 100, Weight: 100},
+	}
+	learner := assessment.Learner{EnrollmentID: uuid.New(), FullName: "Fatima"}
+
+	got := assessment.BuildGradebook(items, []assessment.Learner{learner}, []assessment.SourceScore{
+		{SourceID: quizID, EnrollmentID: learner.EnrollmentID, Points: 10},
+		{SourceID: assignmentID, EnrollmentID: learner.EnrollmentID, Points: 60},
+	}, nil)[0]
+
+	if got.Graded != 2 || got.Percent != 80 {
+		t.Fatalf("got %+v, want both graded at 80 percent", got)
+	}
 }

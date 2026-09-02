@@ -76,16 +76,17 @@ func (q *Queries) ClearGradeOverride(ctx context.Context, arg ClearGradeOverride
 }
 
 const createGradeItem = `-- name: CreateGradeItem :one
-INSERT INTO grade_items (tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
+INSERT INTO grade_items (tenant_id, course_id, quiz_id, assignment_id, source, title, category, points_possible, weight, position)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
         coalesce((SELECT max(position) + 1024 FROM grade_items WHERE course_id = $2), 1024))
-RETURNING id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at
+RETURNING id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at, assignment_id
 `
 
 type CreateGradeItemParams struct {
 	TenantID       uuid.UUID     `json:"tenant_id"`
 	CourseID       uuid.UUID     `json:"course_id"`
 	QuizID         uuid.NullUUID `json:"quiz_id"`
+	AssignmentID   uuid.NullUUID `json:"assignment_id"`
 	Source         GradeSource   `json:"source"`
 	Title          string        `json:"title"`
 	Category       string        `json:"category"`
@@ -98,6 +99,7 @@ func (q *Queries) CreateGradeItem(ctx context.Context, arg CreateGradeItemParams
 		arg.TenantID,
 		arg.CourseID,
 		arg.QuizID,
+		arg.AssignmentID,
 		arg.Source,
 		arg.Title,
 		arg.Category,
@@ -118,6 +120,7 @@ func (q *Queries) CreateGradeItem(ctx context.Context, arg CreateGradeItemParams
 		&i.Position,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AssignmentID,
 	)
 	return i, err
 }
@@ -135,7 +138,7 @@ func (q *Queries) DeleteGradeItem(ctx context.Context, id uuid.UUID) (int64, err
 }
 
 const getGradeItem = `-- name: GetGradeItem :one
-SELECT id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at FROM grade_items WHERE id = $1
+SELECT id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at, assignment_id FROM grade_items WHERE id = $1
 `
 
 func (q *Queries) GetGradeItem(ctx context.Context, id uuid.UUID) (GradeItem, error) {
@@ -154,6 +157,7 @@ func (q *Queries) GetGradeItem(ctx context.Context, id uuid.UUID) (GradeItem, er
 		&i.Position,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AssignmentID,
 	)
 	return i, err
 }
@@ -225,7 +229,7 @@ func (q *Queries) ListCourseOverrides(ctx context.Context, courseID uuid.UUID) (
 }
 
 const listGradeItems = `-- name: ListGradeItems :many
-SELECT id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at FROM grade_items WHERE course_id = $1 ORDER BY position, created_at
+SELECT id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at, assignment_id FROM grade_items WHERE course_id = $1 ORDER BY position, created_at
 `
 
 func (q *Queries) ListGradeItems(ctx context.Context, courseID uuid.UUID) ([]GradeItem, error) {
@@ -250,6 +254,7 @@ func (q *Queries) ListGradeItems(ctx context.Context, courseID uuid.UUID) ([]Gra
 			&i.Position,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.AssignmentID,
 		); err != nil {
 			return nil, err
 		}
@@ -300,6 +305,18 @@ func (q *Queries) SetGradeOverride(ctx context.Context, arg SetGradeOverridePara
 	return i, err
 }
 
+const syncAssignmentItem = `-- name: SyncAssignmentItem :exec
+UPDATE grade_items i
+SET points_possible = (SELECT a.points FROM assignments a WHERE a.id = $1),
+    title = (SELECT a.title FROM assignments a WHERE a.id = $1)
+WHERE i.assignment_id = $1
+`
+
+func (q *Queries) SyncAssignmentItem(ctx context.Context, targetAssignment uuid.UUID) error {
+	_, err := q.db.Exec(ctx, syncAssignmentItem, targetAssignment)
+	return err
+}
+
 const syncQuizItemPoints = `-- name: SyncQuizItemPoints :exec
 UPDATE grade_items i
 SET points_possible = GREATEST(1, (SELECT coalesce(sum(q.points), 0)::integer FROM questions q WHERE q.quiz_id = $1))
@@ -318,7 +335,7 @@ UPDATE grade_items SET
   category = coalesce($2, category),
   weight   = coalesce($3, weight)
 WHERE id = $4
-RETURNING id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at
+RETURNING id, tenant_id, course_id, quiz_id, source, title, category, points_possible, weight, position, created_at, updated_at, assignment_id
 `
 
 type UpdateGradeItemParams struct {
@@ -349,6 +366,7 @@ func (q *Queries) UpdateGradeItem(ctx context.Context, arg UpdateGradeItemParams
 		&i.Position,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AssignmentID,
 	)
 	return i, err
 }
