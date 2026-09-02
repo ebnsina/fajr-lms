@@ -242,6 +242,16 @@ func (s *Server) reviewOrder(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+
+	if status == database.OrderStatusPaid {
+		s.notifyUser(r.Context(), tenant.ID, order.UserID, "payment.approved",
+			"Payment confirmed", "Your payment was approved and you are now enrolled.",
+			map[string]any{"order_id": order.ID, "reference": order.Reference})
+	} else {
+		s.notifyUser(r.Context(), tenant.ID, order.UserID, "payment.rejected",
+			"Payment not accepted", "Your payment could not be verified. Please contact the office.",
+			map[string]any{"order_id": order.ID, "reference": order.Reference})
+	}
 	return httpx.JSON(w, http.StatusOK, order)
 }
 

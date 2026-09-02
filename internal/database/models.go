@@ -100,6 +100,50 @@ func (ns NullCourseVisibility) Value() (driver.Value, error) {
 	return string(ns.CourseVisibility), nil
 }
 
+type DeliveryState string
+
+const (
+	DeliveryStateQueued  DeliveryState = "queued"
+	DeliveryStateSent    DeliveryState = "sent"
+	DeliveryStateFailed  DeliveryState = "failed"
+	DeliveryStateSkipped DeliveryState = "skipped"
+)
+
+func (e *DeliveryState) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DeliveryState(s)
+	case string:
+		*e = DeliveryState(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DeliveryState: %T", src)
+	}
+	return nil
+}
+
+type NullDeliveryState struct {
+	DeliveryState DeliveryState `json:"delivery_state"`
+	Valid         bool          `json:"valid"` // Valid is true if DeliveryState is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDeliveryState) Scan(value interface{}) error {
+	if value == nil {
+		ns.DeliveryState, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DeliveryState.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDeliveryState) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DeliveryState), nil
+}
+
 type EnrollmentSource string
 
 const (
@@ -963,6 +1007,33 @@ type Module struct {
 	Position  float64            `json:"position"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Notification struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	Kind      string             `json:"kind"`
+	Title     string             `json:"title"`
+	Body      string             `json:"body"`
+	Data      []byte             `json:"data"`
+	ReadAt    pgtype.Timestamptz `json:"read_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type NotificationDelivery struct {
+	ID             uuid.UUID          `json:"id"`
+	NotificationID uuid.UUID          `json:"notification_id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	Channel        string             `json:"channel"`
+	Destination    string             `json:"destination"`
+	Body           string             `json:"body"`
+	State          DeliveryState      `json:"state"`
+	Attempts       int16              `json:"attempts"`
+	Error          string             `json:"error"`
+	RunAfter       pgtype.Timestamptz `json:"run_after"`
+	SentAt         pgtype.Timestamptz `json:"sent_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 type Order struct {

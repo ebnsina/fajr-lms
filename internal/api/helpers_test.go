@@ -3,10 +3,12 @@ package api_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -135,3 +137,7 @@ func createdID(t *testing.T, rec *httptest.ResponseRecorder) string {
 	}
 	return got.ID
 }
+
+var errBroken = errors.New("gateway unreachable")
+
+func osGetenv(key string) string { return os.Getenv(key) }

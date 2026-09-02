@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -226,6 +227,11 @@ func (s *Server) releaseAttempt(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+
+	s.notifyUser(r.Context(), CurrentTenant(r.Context()).ID, out.Attempt.UserID, "quiz.result",
+		"Your quiz result is ready",
+		fmt.Sprintf("You scored %d%%.", out.Percent),
+		map[string]any{"attempt_id": out.Attempt.ID, "percent": out.Percent, "passed": out.Passed})
 	return httpx.JSON(w, http.StatusOK, out)
 }
 

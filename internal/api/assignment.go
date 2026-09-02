@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -312,7 +313,19 @@ func (s *Server) gradeWork(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+
+	s.notifyUser(r.Context(), CurrentTenant(r.Context()).ID, out.UserID, "assignment.marked",
+		"Your work has been marked",
+		fmt.Sprintf("You scored %d.", derefInt(out.PointsAwarded)),
+		map[string]any{"submission_id": out.ID, "points": out.PointsAwarded})
 	return httpx.JSON(w, http.StatusOK, out)
+}
+
+func derefInt(v *int32) int32 {
+	if v == nil {
+		return 0
+	}
+	return *v
 }
 
 func timestamp(t *time.Time) pgtype.Timestamptz {

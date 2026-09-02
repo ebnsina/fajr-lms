@@ -88,7 +88,22 @@ func run() error {
 		return err
 	}
 
-	server := api.NewServer(store, identity.New(store, notify.LogChannel{}), registry, payments, cfg.PublicURL)
+	// The same channel carries login codes and announcements.
+	primary := notify.Channel(notify.LogChannel{})
+	if cfg.SMS.Enabled() {
+		primary = notify.HTTPChannel{
+			ChannelName: "sms", Method: cfg.SMS.Method, URL: cfg.SMS.URL, Body: cfg.SMS.Body,
+			Sender: cfg.SMS.Sender, Encoding: cfg.SMS.Encoding, SuccessContains: cfg.SMS.SuccessContains,
+			Headers: cfg.SMS.Headers,
+		}
+		slog.Info("sms channel enabled", "url", cfg.SMS.URL)
+	}
+
+	server := api.NewServer(store, identity.New(store, primary), registry, payments, cfg.PublicURL)
+	server.UseNotifier(notify.NewService(server, primary.Name()))
+
+	dispatcher := notify.NewDispatcher(server, primary)
+	go dispatcher.Run(ctx)
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,

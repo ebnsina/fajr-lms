@@ -54,6 +54,29 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 	return i, err
 }
 
+const getUserContact = `-- name: GetUserContact :one
+SELECT id, full_name, phone, email FROM auth_find_user_by_id($1)
+`
+
+type GetUserContactRow struct {
+	ID       uuid.UUID `json:"id"`
+	FullName string    `json:"full_name"`
+	Phone    *string   `json:"phone"`
+	Email    *string   `json:"email"`
+}
+
+func (q *Queries) GetUserContact(ctx context.Context, userID uuid.UUID) (GetUserContactRow, error) {
+	row := q.db.QueryRow(ctx, getUserContact, userID)
+	var i GetUserContactRow
+	err := row.Scan(
+		&i.ID,
+		&i.FullName,
+		&i.Phone,
+		&i.Email,
+	)
+	return i, err
+}
+
 const listUserMemberships = `-- name: ListUserMemberships :many
 SELECT id, tenant_id, user_id, role, status, created_at, updated_at FROM auth_memberships($1)
 `

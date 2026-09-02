@@ -9,3 +9,6 @@ SELECT * FROM auth_find_user(@phone, @email);
 
 -- name: ListUserMemberships :many
 SELECT * FROM auth_memberships(@user_id);
+
+-- name: GetUserContact :one
+SELECT id, full_name, phone, email FROM auth_find_user_by_id(@user_id);

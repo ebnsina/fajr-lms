@@ -7,6 +7,7 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 	"github.com/ebnsina/fajr-lms/internal/identity"
 	"github.com/ebnsina/fajr-lms/internal/media"
+	"github.com/ebnsina/fajr-lms/internal/notify"
 	"github.com/ebnsina/fajr-lms/internal/payment"
 )
 
@@ -16,8 +17,13 @@ type Server struct {
 	identity  *identity.Service
 	media     *media.Registry
 	payments  *payment.Registry
+	notifier  *notify.Service
 	publicURL string
 }
+
+// UseNotifier wires the notification service after construction, since the
+// service records through the server itself.
+func (s *Server) UseNotifier(n *notify.Service) { s.notifier = n }
 
 func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry,
 	payments *payment.Registry, publicURL string) *Server {
@@ -94,6 +100,9 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("PUT /v1/assignments/{id}/submission", inTenant(httpx.Handler(s.submitWork)))
 	mux.Handle("GET /v1/submissions", teaches(s.submissionQueue))
 	mux.Handle("POST /v1/submissions/{id}/grade", teaches(s.gradeWork))
+	mux.Handle("GET /v1/notifications", inTenant(httpx.Handler(s.inbox)))
+	mux.Handle("POST /v1/notifications/read", inTenant(httpx.Handler(s.markAllRead)))
+	mux.Handle("POST /v1/notifications/{id}/read", inTenant(httpx.Handler(s.markNotificationRead)))
 	mux.Handle("GET /v1/marking", teaches(s.markingQueue))
 	mux.Handle("GET /v1/attempts/{id}/sheet", teaches(s.attemptSheet))
 	mux.Handle("PUT /v1/attempts/{id}/questions/{questionId}/mark", teaches(s.markAnswer))

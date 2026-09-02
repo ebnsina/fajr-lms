@@ -18,6 +18,7 @@ type Config struct {
 	MediaHosts      []string
 	S3              S3Config
 	Bank            BankConfig
+	SMS             SMSConfig
 	SSLCommerz      SSLCommerzConfig
 	BKash           BKashConfig
 	PublicURL       string
@@ -89,6 +90,22 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("config: FAJR_BKASH_APP_KEY needs a username, password and app secret")
 	}
 
+	c.SMS = SMSConfig{
+		URL:             env("FAJR_SMS_URL", ""),
+		Method:          env("FAJR_SMS_METHOD", "POST"),
+		Body:            env("FAJR_SMS_BODY", "msisdn={to}&sms={message}&sender={sender}"),
+		Encoding:        env("FAJR_SMS_ENCODING", "form"),
+		Sender:          env("FAJR_SMS_SENDER", "FAJR"),
+		SuccessContains: env("FAJR_SMS_SUCCESS_CONTAINS", ""),
+	}
+	if token := env("FAJR_SMS_AUTH_HEADER", ""); token != "" {
+		name, value, found := strings.Cut(token, ":")
+		if !found {
+			return Config{}, fmt.Errorf("config: FAJR_SMS_AUTH_HEADER must look like Name:value")
+		}
+		c.SMS.Headers = map[string]string{strings.TrimSpace(name): strings.TrimSpace(value)}
+	}
+
 	c.Bank = BankConfig{
 		AccountName:   env("FAJR_BANK_ACCOUNT_NAME", ""),
 		AccountNumber: env("FAJR_BANK_ACCOUNT_NUMBER", ""),
@@ -142,6 +159,20 @@ type BKashConfig struct {
 }
 
 func (b BKashConfig) Enabled() bool { return b.AppKey != "" }
+
+// SMSConfig points the SMS channel at any gateway that speaks HTTP. Local
+// providers differ only in field names, so one template covers them.
+type SMSConfig struct {
+	URL             string
+	Method          string
+	Body            string
+	Encoding        string
+	Sender          string
+	SuccessContains string
+	Headers         map[string]string
+}
+
+func (s SMSConfig) Enabled() bool { return s.URL != "" }
 
 // BankConfig is the account a manual transfer is paid into.
 type BankConfig struct {

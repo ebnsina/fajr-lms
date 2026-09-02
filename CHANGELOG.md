@@ -5,6 +5,13 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- Notifications: learners are told when a payment is approved or rejected, when
+  a quiz result is released and when their work has been marked.
+- An in-app inbox with an unread count, per notification and mark-all-read.
+- Messages go out by SMS as well, through a channel that can be pointed at any
+  local gateway by configuration rather than code.
+- A gateway that is down does not lose a message: delivery is retried with a
+  growing wait and given up on only after five attempts.
 - Assignments on any lesson, with a due date, a points value, an attachment
   limit and an optional late penalty.
 - Learners save drafts as they work and hand in when ready; attachments reuse
