@@ -28,7 +28,7 @@
 <svelte:head><title>{course.title} · Fajr</title></svelte:head>
 
 <nav class="mb-4 text-sm">
-	<a class="text-brand underline-offset-4 hover:underline" href="/">Back to your courses</a>
+	<a class="text-brand-text underline-offset-4 hover:underline" href="/">Back to your courses</a>
 </nav>
 
 <header class="mb-6">

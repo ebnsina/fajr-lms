@@ -45,10 +45,11 @@
 	--color-ink-soft: #676f7b;
 	--color-ink-faint: #9aa1ac;
 
-	--color-brand: #1b6b57;
+	--color-brand: #166534;
 	--color-brand-ink: #ffffff;
-	--color-brand-soft: #ecf5f2;
-	--color-brand-line: #cfe4dd;
+	--color-brand-text: #15603a;
+	--color-brand-soft: #eef6f0;
+	--color-brand-line: #cfe5d7;
 
 	--color-danger: #a03528;
 	--color-danger-soft: #fdf0ee;
@@ -79,10 +80,11 @@
 	--color-ink: #e8eaed;
 	--color-ink-soft: #9aa2ad;
 	--color-ink-faint: #6d7681;
-	--color-brand: #5fbfa0;
-	--color-brand-ink: #10241e;
-	--color-brand-soft: #172622;
-	--color-brand-line: #294038;
+	--color-brand: #15803d;
+	--color-brand-ink: #ffffff;
+	--color-brand-text: #5ec27f;
+	--color-brand-soft: #16241b;
+	--color-brand-line: #27412f;
 	--color-danger: #e0857a;
 	--color-danger-soft: #2a1b18;
 	--color-danger-line: #472c27;
@@ -100,10 +102,11 @@
 	--color-ink: #e8eaed;
 	--color-ink-soft: #9aa2ad;
 	--color-ink-faint: #6d7681;
-	--color-brand: #5fbfa0;
-	--color-brand-ink: #10241e;
-	--color-brand-soft: #172622;
-	--color-brand-line: #294038;
+	--color-brand: #15803d;
+	--color-brand-ink: #ffffff;
+	--color-brand-text: #5ec27f;
+	--color-brand-soft: #16241b;
+	--color-brand-line: #27412f;
 	--color-danger: #e0857a;
 	--color-danger-soft: #2a1b18;
 	--color-danger-line: #472c27;
@@ -235,7 +238,7 @@
 }
 
 @utility chip-brand {
-	color: var(--color-brand);
+	color: var(--color-brand-text);
 	background: var(--color-brand-soft);
 	border-color: var(--color-brand-line);
 }

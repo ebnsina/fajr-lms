@@ -17,7 +17,7 @@
 			{/if}
 			<span class="ms-auto text-sm text-ink-soft" dir="auto">{session.user.full_name}</span>
 			{#if session.memberships.length > 1}
-				<a class="text-sm text-brand underline-offset-4 hover:underline" href="/tenant">Switch</a>
+				<a class="text-sm text-brand-text underline-offset-4 hover:underline" href="/tenant">Switch</a>
 			{/if}
 			<ThemeToggle theme={data.theme} />
 			<form method="POST" action="/login?/logout" use:enhance>

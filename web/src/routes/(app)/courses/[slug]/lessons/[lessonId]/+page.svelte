@@ -14,7 +14,7 @@
 <svelte:head><title>{data.lesson.title} · Fajr</title></svelte:head>
 
 <nav class="mb-4 text-sm">
-	<a class="text-brand underline-offset-4 hover:underline" href="/courses/{data.course.slug}">
+	<a class="text-brand-text underline-offset-4 hover:underline" href="/courses/{data.course.slug}">
 		<span dir={dirOf(data.course.dir)}>{data.course.title}</span>
 	</a>
 </nav>
@@ -25,7 +25,7 @@
 	</h1>
 	<p class="mt-1 text-sm text-ink-soft" dir="auto">
 		{meta(data.lesson.kind, data.lesson.duration_s && duration(data.lesson.duration_s, locale))}
-		{#if done}<span class="text-brand"> · Completed</span>{/if}
+		{#if done}<span class="text-brand-text"> · Completed</span>{/if}
 	</p>
 </header>
 

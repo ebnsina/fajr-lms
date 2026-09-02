@@ -9,6 +9,7 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   a plain statement of what Fajr does on the other.
 
 ### Changed
+- Primary buttons are forest green with white text, in both appearances.
 - Typeface is now Cabin, with Geist Mono for codes, numbers and placeholders.
 - A light and a dark appearance, and a control to choose between them or follow
   the device. The choice is remembered and applied before the page paints, so
