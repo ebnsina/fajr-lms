@@ -55,7 +55,7 @@
 		{@render children()}
 	</main>
 
-	<div class="bg-ground">
+	<div class="relative -mt-12">
 		<footer class="rounded-t-4xl border border-b-0 border-line bg-surface px-6 pt-16 pb-8">
 		<div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-5">
 			<div class="lg:col-span-2">

@@ -277,31 +277,31 @@
 			</p>
 		</div>
 
-		<!-- Four cards standing on edge: the open one carries its detail, the rest
-		     show their number and wait to be picked. -->
-		<div class="panels">
+		<!-- A stack of flash cards: the top one is the step you are on, the rest
+		     wait behind it. Clicking the top card turns to the next. -->
+		<div class="stack" use:reveal={{ y: 32 }}>
 			{#each steps as step, index (step.title)}
+				{@const depth = (index - front + steps.length) % steps.length}
 				<button
-					class="panel"
-					class:open={front === index}
+					class="flash"
+					class:top={depth === 0}
+					style:--depth={depth}
+					style:z-index={steps.length - depth}
 					type="button"
-					aria-expanded={front === index}
-					onclick={() => (front = index)}
+					aria-hidden={depth === 0 ? undefined : 'true'}
+					tabindex={depth === 0 ? 0 : -1}
+					onclick={() => (front = (front + 1) % steps.length)}
 				>
-					<span class="ghost font-display" aria-hidden="true">
-						{String(index + 1).padStart(2, '0')}
+					<span class="font-display text-sm font-bold text-brand-text">
+						{String(index + 1).padStart(2, '0')} of {steps.length}
 					</span>
-					<span class="num font-display">{String(index + 1).padStart(2, '0')}</span>
-					<span class="spine font-display">{step.title}</span>
-					<span class="detail">
-						<span class="block font-display text-2xl font-bold">{step.title}</span>
-						<span class="mt-3 block max-w-sm text-ink-soft">{step.body}</span>
-					</span>
+					<span class="mt-auto block font-display text-2xl font-bold">{step.title}</span>
+					<span class="mt-3 block text-ink-soft">{step.body}</span>
 				</button>
 			{/each}
 		</div>
 
-		<p class="mt-6 text-center text-sm text-ink-faint">Pick a step to open it.</p>
+		<p class="mt-8 text-center text-sm text-ink-faint">Tap the card for the next step.</p>
 
 		<div class="mt-12 flex justify-center" use:reveal>
 			<a class="btn" href="/start">
@@ -454,7 +454,7 @@
      shipped, and worded so nobody mistakes it for something they can use today. -->
 <section class="relative isolate overflow-hidden border-t border-line bg-sunken px-6 py-28">
 	<div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
-		<FluidOrb size={110} label="A slowly drifting orb of green light" />
+		<FluidOrb size={72} label="A slowly drifting orb of green light" />
 
 		<div use:reveal>
 			<span class="eyebrow mb-4">Fajr AI</span>
@@ -539,125 +539,47 @@
 <style>
 	/* The drawn page preview: every part is a block, tinted from the same tokens
 	   as the real thing. */
-	/* Cards on edge: the open one takes the room it needs and the rest hold
-	   their place, showing a number and their name down the spine. */
-	.panels {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
+	/* A stack of flash cards, one on top of the next, fanned just enough to
+	   show there are more behind. */
+	.stack {
+		position: relative;
+		inline-size: min(26rem, 100%);
+		block-size: 17rem;
+		margin-inline: auto;
 	}
 
-	.panel {
-		position: relative;
+	.flash {
+		position: absolute;
+		inset: 0;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		padding: 1.5rem;
+		padding: 1.75rem;
 		text-align: start;
 		border: 1px solid var(--color-line);
 		border-radius: var(--radius-card);
 		background: var(--color-surface);
 		cursor: pointer;
-		overflow: hidden;
+		transform: translateY(calc(var(--depth) * -0.9rem)) scale(calc(1 - var(--depth) * 0.045))
+			rotate(calc(var(--depth) * -1.4deg));
+		transform-origin: 50% 100%;
 		transition:
-			flex-grow 460ms cubic-bezier(0.22, 1, 0.36, 1),
-			flex-basis 460ms cubic-bezier(0.22, 1, 0.36, 1),
-			border-color 200ms ease,
-			background-color 200ms ease;
+			transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 320ms ease,
+			border-color 200ms ease;
+		opacity: calc(1 - var(--depth) * 0.18);
 	}
 
-	.panel:hover {
-		border-color: var(--color-brand-line);
-	}
-
-	.open {
-		background: var(--color-raised);
-		border-color: var(--color-brand-line);
-	}
-
-	.num {
-		position: relative;
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: var(--color-brand-text);
-		line-height: 1;
-	}
-
-	/* The number again, oversized and barely there, so an open card is not a
-	   field of empty surface. */
-	.ghost {
-		position: absolute;
-		inset-block-start: -1rem;
-		inset-inline-end: -0.5rem;
-		font-size: 9rem;
-		font-weight: 700;
-		line-height: 1;
-		color: var(--color-brand-soft);
-		opacity: 0;
-		transition: opacity 460ms ease;
-		pointer-events: none;
-	}
-
-	.open .ghost {
+	.top {
 		opacity: 1;
 	}
 
-	.spine {
-		display: none;
-	}
-
-	.detail {
-		position: relative;
-		margin-block-start: 1.25rem;
-		display: none;
-	}
-
-	.open .detail {
-		display: block;
-	}
-
-	@media (min-width: 48rem) {
-		.panels {
-			flex-direction: row;
-			block-size: 16rem;
-		}
-
-		.panel {
-			flex: 0 0 6.5rem;
-		}
-
-		.open {
-			flex: 1 1 auto;
-		}
-
-		/* Closed, the name runs up the card like the spine of a book. */
-		.spine {
-			display: block;
-			margin-block-start: auto;
-			writing-mode: vertical-rl;
-			transform: rotate(180deg);
-			font-size: 1.125rem;
-			font-weight: 700;
-			white-space: nowrap;
-			color: var(--color-ink-soft);
-		}
-
-		.open .spine {
-			display: none;
-		}
-
-		/* Number, name and detail read as one block rather than one at each end. */
-		.open .detail {
-			margin-block-start: 1.25rem;
-		}
-
-		.panel {
-			block-size: 100%;
-		}
+	.top:hover {
+		border-color: var(--color-brand-line);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.panel {
+		.flash {
 			transition: none;
 		}
 	}
