@@ -5,6 +5,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- A proper application shell: the menu stays put while the page scrolls, your
+  school and a switcher sit at the top of it, and your account sits at the
+  bottom with settings and sign out.
+- Breadcrumbs, a notification bell with the recent few and an unread count, and
+  a Settings page holding the appearance choice and your details.
+
 - Mark an assignment: the work, the brief and any attached photos on one page,
   with the mark and a comment returned to the learner.
 - Late work shows what the learner will actually receive once the penalty comes

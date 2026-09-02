@@ -35,10 +35,9 @@
 	<!-- The sidebar is always position: fixed, so it never scrolls with the
 	     content column; only its mobile visibility is toggled by translate. -->
 	<aside
-		class="fixed inset-y-0 start-0 z-40 flex w-64 shrink-0 flex-col border-e border-line bg-ground transition-transform duration-200 motion-reduce:transition-none lg:translate-x-0"
-		class:-translate-x-full={!open}
-		class:rtl:translate-x-full={!open}
-		class:translate-x-0={open}
+		class="fixed inset-y-0 start-0 z-40 flex w-64 shrink-0 flex-col border-e border-line bg-ground transition-transform duration-200 motion-reduce:transition-none"
+		class:max-lg:-translate-x-full={!open}
+		class:max-lg:rtl:translate-x-full={!open}
 	>
 		<div class="flex h-16 shrink-0 items-center gap-2 px-4">
 			{#if session?.tenant}
@@ -131,7 +130,8 @@
 							id="content-search"
 							class="field h-9 w-56 ps-9"
 							type="search"
-							placeholder="Search (coming soon)"
+							placeholder="Search"
+							title="Search is not ready yet"
 							readonly
 							aria-disabled="true"
 						/>
