@@ -16,6 +16,11 @@
 	// is never a circle sitting squarely in a square.
 	const SUN_AT = { x: 37, y: 42, r: 15 };
 
+	// Fā', the first letter of فجر. The real character in a naskh face rather
+	// than a drawn approximation of one, so the letterform is right.
+	const ARABIC =
+		"'Noto Naskh Arabic', 'Amiri', 'Scheherazade New', 'Geeza Pro', 'Noto Sans Arabic', serif";
+
 	// The squircle the orb draws in its shader, |x|^4 + |y|^4 = 1, fitted to four
 	// cubics: each handle lands at 0.919 of the half width.
 	const TILE =
@@ -228,6 +233,19 @@
 		</g>
 	</svg>
 	<canvas bind:this={canvas} class:live></canvas>
+	<!-- The letter rides above the sky, whether the sky is drawn or painted. -->
+	<svg class="letter" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+		<text
+			x="20"
+			y="26"
+			font-family={ARABIC}
+			font-size="34"
+			fill="#fdf6e6"
+			fill-opacity="0.96"
+			text-anchor="middle"
+			dominant-baseline="middle">ف</text
+		>
+	</svg>
 </div>
 
 <style>
@@ -237,6 +255,7 @@
 	}
 
 	svg,
+	.letter,
 	canvas {
 		position: absolute;
 		inset: 0;
@@ -251,5 +270,9 @@
 
 	canvas.live {
 		opacity: 1;
+	}
+
+	.letter {
+		pointer-events: none;
 	}
 </style>

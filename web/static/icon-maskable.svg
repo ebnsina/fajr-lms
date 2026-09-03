@@ -12,4 +12,7 @@
   </defs>
   <rect width="48" height="48" fill="url(#sky)"/>
   <circle cx="34" cy="38" r="22" fill="url(#sun)"/>
+  <text x="21" y="25" font-family="'Noto Naskh Arabic','Amiri','Geeza Pro','Noto Sans Arabic',serif"
+        font-size="30" fill="#fdf6e6" fill-opacity="0.96" text-anchor="middle"
+        dominant-baseline="middle">ف</text>
 </svg>

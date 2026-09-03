@@ -15,4 +15,7 @@
   </defs>
   <path d="M48 24C48 46.06 46.06 48 24 48C1.94 48 0 46.06 0 24C0 1.94 1.94 0 24 0C46.06 0 48 1.94 48 24Z" fill="url(#sky)"/>
   <g clip-path="url(#tile)"><circle cx="37" cy="42" r="24" fill="url(#sun)"/></g>
+  <text x="20" y="26" font-family="'Noto Naskh Arabic','Amiri','Geeza Pro','Noto Sans Arabic',serif"
+        font-size="34" fill="#fdf6e6" fill-opacity="0.96" text-anchor="middle"
+        dominant-baseline="middle">ف</text>
 </svg>
