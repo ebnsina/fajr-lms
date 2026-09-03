@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import Award from '@lucide/svelte/icons/award';
+	import CertificateCard from '$lib/components/CertificateCard.svelte';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
-
-	const issued = (iso: string) =>
-		new Intl.DateTimeFormat(undefined, { dateStyle: 'long' }).format(new Date(iso));
 </script>
 
 <svelte:head><title>Certificates · Fajr LMS</title></svelte:head>
@@ -55,36 +53,19 @@
 		</p>
 	</div>
 {:else}
-	<div class="grid gap-4 sm:grid-cols-2">
+	<ul class="grid list-none gap-5 p-0 sm:grid-cols-2">
 		{#each data.certificates as row (row.certificate.id)}
-			<article class="card" class:opacity-60={row.certificate.revoked_at}>
-				<header class="mb-3 flex items-start justify-between gap-2">
-					<h2 class="mb-0 font-medium" dir="auto">{row.certificate.course_title}</h2>
+			<li class="flex flex-col gap-3">
+				<CertificateCard certificate={row.certificate} />
+				<div class="flex flex-wrap items-center gap-2">
+					<a class="btn btn-sm btn-quiet" href={row.verify_url} target="_blank" rel="noreferrer">
+						<ExternalLink size={16} aria-hidden="true" /> Open the public page
+					</a>
 					{#if row.certificate.revoked_at}
-						<span class="chip">Revoked</span>
-					{:else if row.certificate.grade_percent !== null}
-						<span class="chip chip-brand font-mono">{row.certificate.grade_percent}%</span>
+						<span class="chip">No longer valid</span>
 					{/if}
-				</header>
-				<dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-					<dt class="text-ink-soft">Awarded to</dt>
-					<dd class="mb-0" dir="auto">{row.certificate.recipient_name}</dd>
-					<dt class="text-ink-soft">By</dt>
-					<dd class="mb-0" dir="auto">{row.certificate.issuer_name}</dd>
-					<dt class="text-ink-soft">On</dt>
-					<dd class="mb-0">{issued(row.certificate.issued_at)}</dd>
-					<dt class="text-ink-soft">Serial</dt>
-					<dd class="mb-0 font-mono text-xs">{row.certificate.serial}</dd>
-				</dl>
-				<a
-					class="btn btn-sm btn-quiet mt-4"
-					href={row.verify_url}
-					target="_blank"
-					rel="noreferrer"
-				>
-					<ExternalLink size={16} aria-hidden="true" /> Open the public page
-				</a>
-			</article>
+				</div>
+			</li>
 		{/each}
-	</div>
+	</ul>
 {/if}

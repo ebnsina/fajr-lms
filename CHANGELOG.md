@@ -60,6 +60,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   running clock beside the greeting, stat cards and recent activity chosen for
   what you do in the school, a chart of the work waiting to be graded, and a
   ring showing how far through your lessons you are.
+- A certificate looks like a certificate: the public page anyone can check is
+  set as a real document, with the recipient's name large, a ruled border, the
+  issuer, the date and the serial, printable as it stands and stamped REVOKED
+  when it no longer holds. Your own certificates are listed as scaled-down
+  copies of that same page rather than a table of fields.
 
 ### Changed
 - The product is written as Fajr LMS throughout, and the wording is US English:

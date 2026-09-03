@@ -394,7 +394,6 @@ var certificateTemplate = template.Must(template.New("certificate").Parse(`<!doc
     {{if .HasGrade}}<p class="grade">Final grade {{.Grade}}%</p>{{end}}
 
     <dl class="meta">
-      <div><dt>Issued by</dt><dd dir="auto">{{.Issuer}}</dd></div>
       <div><dt>Issued on</dt><dd>{{.IssuedOn}}</dd></div>
       <div><dt>Serial</dt><dd class="serial">{{.Serial}}</dd></div>
     </dl>
