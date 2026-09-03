@@ -49,6 +49,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the bank details and reference, and tell the office what they paid.
 - Money is now formatted and read by the currency's own subunit, so a dinar's
   three decimal places and a yen's none are right instead of assumed to be two.
+- The school's own shape: the academic year being taught in and the terms
+  inside it, and the classes, sections and subjects everything else is arranged
+  by. A school names its own ladder — Class Six, Ibtidaiyyah, HSC first year —
+  because no two schools agree on one. Students are placed in a section for the
+  year, with a roll number that is theirs alone within it.
 - Fajr AI. It drafts quiz questions from a lesson a teacher has written, and
   writes a first draft of a course summary or a lesson's text, streaming as it
   goes. Nothing is saved until the teacher accepts it, and a drafted question

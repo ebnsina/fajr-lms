@@ -179,6 +179,30 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/orders/paid", money(s.listPaidOrders))
 	mux.Handle("GET /v1/plans/all", money(s.listPlans))
 	mux.Handle("POST /v1/orders/{id}/refund", money(s.refundOrder))
+	// The academic spine. Reading it is open to any member, because the whole
+	// school is arranged by it; changing it belongs to the office.
+	mux.Handle("GET /v1/academics/years", inTenant(httpx.Handler(s.listYears)))
+	mux.Handle("POST /v1/academics/years", runs(s.createYear))
+	mux.Handle("PUT /v1/academics/years/{id}/current", runs(s.makeYearCurrent))
+	mux.Handle("DELETE /v1/academics/years/{id}", runs(s.deleteYear))
+	mux.Handle("POST /v1/academics/years/{id}/terms", runs(s.createTerm))
+	mux.Handle("PUT /v1/academics/terms/{id}/current", runs(s.makeTermCurrent))
+	mux.Handle("DELETE /v1/academics/terms/{id}", runs(s.deleteTerm))
+
+	mux.Handle("GET /v1/academics/classes", inTenant(httpx.Handler(s.listClasses)))
+	mux.Handle("POST /v1/academics/classes", runs(s.createClass))
+	mux.Handle("PATCH /v1/academics/classes/{id}", runs(s.updateClass))
+	mux.Handle("DELETE /v1/academics/classes/{id}", runs(s.deleteClass))
+	mux.Handle("POST /v1/academics/classes/{id}/sections", runs(s.createSection))
+	mux.Handle("PATCH /v1/academics/sections/{id}", runs(s.updateSection))
+	mux.Handle("DELETE /v1/academics/sections/{id}", runs(s.deleteSection))
+	mux.Handle("GET /v1/academics/sections/{id}/roll", teaches(s.sectionRoll))
+	mux.Handle("POST /v1/academics/sections/{id}/roll", runs(s.placeStudent))
+	mux.Handle("DELETE /v1/academics/placements/{id}", runs(s.removePlacement))
+
+	mux.Handle("POST /v1/academics/subjects", runs(s.createSubject))
+	mux.Handle("DELETE /v1/academics/subjects/{id}", runs(s.deleteSubject))
+
 	mux.Handle("GET /v1/sso", runs(s.identityProvider))
 	mux.Handle("PUT /v1/sso", runs(s.setIdentityProvider))
 	mux.Handle("DELETE /v1/sso", runs(s.clearIdentityProvider))

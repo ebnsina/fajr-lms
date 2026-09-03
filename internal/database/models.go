@@ -360,6 +360,51 @@ func (ns NullGradeSource) Value() (driver.Value, error) {
 	return string(ns.GradeSource), nil
 }
 
+type InstitutionKind string
+
+const (
+	InstitutionKindSchool   InstitutionKind = "school"
+	InstitutionKindCollege  InstitutionKind = "college"
+	InstitutionKindMadrasah InstitutionKind = "madrasah"
+	InstitutionKindCoaching InstitutionKind = "coaching"
+	InstitutionKindOther    InstitutionKind = "other"
+)
+
+func (e *InstitutionKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = InstitutionKind(s)
+	case string:
+		*e = InstitutionKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for InstitutionKind: %T", src)
+	}
+	return nil
+}
+
+type NullInstitutionKind struct {
+	InstitutionKind InstitutionKind `json:"institution_kind"`
+	Valid           bool            `json:"valid"` // Valid is true if InstitutionKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullInstitutionKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.InstitutionKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.InstitutionKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullInstitutionKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.InstitutionKind), nil
+}
+
 type LessonKind string
 
 const (
@@ -931,6 +976,17 @@ func (ns NullTextDir) Value() (driver.Value, error) {
 	return string(ns.TextDir), nil
 }
 
+type AcademicYear struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	Name      string             `json:"name"`
+	StartsOn  pgtype.Date        `json:"starts_on"`
+	EndsOn    pgtype.Date        `json:"ends_on"`
+	IsCurrent bool               `json:"is_current"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Assignment struct {
 	ID           uuid.UUID          `json:"id"`
 	TenantID     uuid.UUID          `json:"tenant_id"`
@@ -1003,6 +1059,15 @@ type CertificateVerification struct {
 	IssuedAt      pgtype.Timestamptz `json:"issued_at"`
 	RevokedAt     pgtype.Timestamptz `json:"revoked_at"`
 	TenantDir     TextDir            `json:"tenant_dir"`
+}
+
+type Class struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	Name      string             `json:"name"`
+	Rank      int32              `json:"rank"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ClassSession struct {
@@ -1292,6 +1357,16 @@ type PaymentPlan struct {
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Placement struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	YearID    uuid.UUID          `json:"year_id"`
+	SectionID uuid.UUID          `json:"section_id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	RollNo    *int32             `json:"roll_no"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type PublishedCourse struct {
 	ID          uuid.UUID          `json:"id"`
 	Slug        string             `json:"slug"`
@@ -1410,6 +1485,17 @@ type ScormState struct {
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Section struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	ClassID   uuid.UUID          `json:"class_id"`
+	Name      string             `json:"name"`
+	Capacity  *int32             `json:"capacity"`
+	TeacherID uuid.NullUUID      `json:"teacher_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Session struct {
 	ID         uuid.UUID          `json:"id"`
 	UserID     uuid.UUID          `json:"user_id"`
@@ -1455,6 +1541,17 @@ type SsoLogin struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
+type Subject struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	ClassID   uuid.NullUUID      `json:"class_id"`
+	Name      string             `json:"name"`
+	Code      string             `json:"code"`
+	Dir       TextDir            `json:"dir"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Submission struct {
 	ID            uuid.UUID          `json:"id"`
 	TenantID      uuid.UUID          `json:"tenant_id"`
@@ -1489,6 +1586,19 @@ type Tenant struct {
 	CustomDomain     *string            `json:"custom_domain"`
 	DomainToken      string             `json:"domain_token"`
 	DomainVerifiedAt pgtype.Timestamptz `json:"domain_verified_at"`
+	Institution      InstitutionKind    `json:"institution"`
+}
+
+type Term struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	YearID    uuid.UUID          `json:"year_id"`
+	Name      string             `json:"name"`
+	StartsOn  pgtype.Date        `json:"starts_on"`
+	EndsOn    pgtype.Date        `json:"ends_on"`
+	IsCurrent bool               `json:"is_current"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {

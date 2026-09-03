@@ -8,6 +8,7 @@ import Inbox from '@lucide/svelte/icons/inbox';
 import Users from '@lucide/svelte/icons/users';
 import Receipt from '@lucide/svelte/icons/receipt';
 import Globe from '@lucide/svelte/icons/globe';
+import School from '@lucide/svelte/icons/school';
 import type { Component } from 'svelte';
 
 export type NavItem = {
@@ -50,6 +51,7 @@ const groups: NavGroup[] = [
 	{
 		title: 'Administration',
 		items: [
+			{ label: 'The school', href: '/school', icon: School, roles: admin },
 			{ label: 'Members', href: '/members', icon: Users, roles: admin },
 			{ label: 'Payments', href: '/payments', icon: Receipt, roles: admin },
 			{ label: 'Website', href: '/website', icon: Globe, roles: admin }

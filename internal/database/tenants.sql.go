@@ -12,7 +12,7 @@ import (
 )
 
 const getTenant = `-- name: GetTenant :one
-SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at FROM tenants WHERE id = $1
+SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution FROM tenants WHERE id = $1
 `
 
 func (q *Queries) GetTenant(ctx context.Context, id uuid.UUID) (Tenant, error) {
@@ -33,6 +33,7 @@ func (q *Queries) GetTenant(ctx context.Context, id uuid.UUID) (Tenant, error) {
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }
@@ -73,7 +74,7 @@ func (q *Queries) ListUserTenants(ctx context.Context, userID uuid.UUID) ([]User
 }
 
 const provisionTenant = `-- name: ProvisionTenant :one
-SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at FROM provision_tenant($1, $2, $3, $4, $5, $6)
+SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution FROM provision_tenant($1, $2, $3, $4, $5, $6)
 `
 
 type ProvisionTenantParams struct {
@@ -110,12 +111,13 @@ func (q *Queries) ProvisionTenant(ctx context.Context, arg ProvisionTenantParams
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }
 
 const resolveTenant = `-- name: ResolveTenant :one
-SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at FROM resolve_tenant($1)
+SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution FROM resolve_tenant($1)
 `
 
 func (q *Queries) ResolveTenant(ctx context.Context, slug string) (Tenant, error) {
@@ -136,6 +138,7 @@ func (q *Queries) ResolveTenant(ctx context.Context, slug string) (Tenant, error
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }

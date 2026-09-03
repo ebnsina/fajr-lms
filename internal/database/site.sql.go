@@ -14,7 +14,7 @@ import (
 const clearCustomDomain = `-- name: ClearCustomDomain :one
 UPDATE tenants SET custom_domain = NULL, domain_token = '', domain_verified_at = NULL
 WHERE id = $1
-RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
+RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution
 `
 
 func (q *Queries) ClearCustomDomain(ctx context.Context, id uuid.UUID) (Tenant, error) {
@@ -35,6 +35,7 @@ func (q *Queries) ClearCustomDomain(ctx context.Context, id uuid.UUID) (Tenant, 
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }
@@ -268,7 +269,7 @@ func (q *Queries) ListSitePages(ctx context.Context) ([]SitePage, error) {
 }
 
 const markDomainVerified = `-- name: MarkDomainVerified :one
-UPDATE tenants SET domain_verified_at = now() WHERE id = $1 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
+UPDATE tenants SET domain_verified_at = now() WHERE id = $1 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution
 `
 
 func (q *Queries) MarkDomainVerified(ctx context.Context, id uuid.UUID) (Tenant, error) {
@@ -289,12 +290,13 @@ func (q *Queries) MarkDomainVerified(ctx context.Context, id uuid.UUID) (Tenant,
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }
 
 const resolveDomain = `-- name: ResolveDomain :one
-SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at FROM resolve_domain($1)
+SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution FROM resolve_domain($1)
 `
 
 func (q *Queries) ResolveDomain(ctx context.Context, customDomain string) (Tenant, error) {
@@ -315,6 +317,7 @@ func (q *Queries) ResolveDomain(ctx context.Context, customDomain string) (Tenan
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }
@@ -322,7 +325,7 @@ func (q *Queries) ResolveDomain(ctx context.Context, customDomain string) (Tenan
 const setCustomDomain = `-- name: SetCustomDomain :one
 UPDATE tenants SET custom_domain = $1, domain_token = $2, domain_verified_at = NULL
 WHERE id = $3
-RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
+RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution
 `
 
 type SetCustomDomainParams struct {
@@ -349,6 +352,7 @@ func (q *Queries) SetCustomDomain(ctx context.Context, arg SetCustomDomainParams
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }
@@ -385,7 +389,7 @@ func (q *Queries) SetSitePageStatus(ctx context.Context, arg SetSitePageStatusPa
 }
 
 const setSiteTheme = `-- name: SetSiteTheme :one
-UPDATE tenants SET site_theme = $1 WHERE id = $2 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
+UPDATE tenants SET site_theme = $1 WHERE id = $2 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution
 `
 
 type SetSiteThemeParams struct {
@@ -411,6 +415,7 @@ func (q *Queries) SetSiteTheme(ctx context.Context, arg SetSiteThemeParams) (Ten
 		&i.CustomDomain,
 		&i.DomainToken,
 		&i.DomainVerifiedAt,
+		&i.Institution,
 	)
 	return i, err
 }
