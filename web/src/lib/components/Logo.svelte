@@ -5,6 +5,14 @@
 
 	const uid = $props.id();
 
+	// The hour the mark is named for: the indigo sky before sunrise, warming at
+	// the horizon, the sun still half behind the ridge. Its own palette rather
+	// than the product's emerald, because the mark stands on its own.
+	const SKY = '#101f3d';
+	const HORIZON = '#33305e';
+	const SUN = '#f6c667';
+	const ROCK = '#070f1f';
+
 	// The squircle the orb draws in its shader, |x|^4 + |y|^4 = 1, fitted to four
 	// cubics: each handle lands at 0.919 of the half width.
 	const TILE =
@@ -27,7 +35,10 @@
 
 		uniform vec2 u_resolution;
 		uniform float u_time;
-		uniform vec3 u_brand;
+		uniform vec3 u_sky;
+		uniform vec3 u_horizon;
+		uniform vec3 u_sun;
+		uniform vec3 u_rock;
 
 		const vec2 A = vec2(-6.0, 54.0);
 		const vec2 B = vec2(16.0, 23.0);
@@ -78,21 +89,29 @@
 			vec2 g = vec2(fbm(p + drift), fbm(p + vec2(3.2, 1.5) - drift));
 			float f = fbm(p + 1.2 * g);
 
-			vec3 white = vec3(0.99, 1.0, 1.0);
-			vec3 sky = mix(u_brand, u_brand * 0.84, smoothstep(0.32, 0.76, f));
-			vec3 sun = mix(white, mix(white, u_brand, 0.4), smoothstep(0.3, 0.74, f));
-			vec3 rock = u_brand * 0.44;
+			// Cooler overhead, warmer at the horizon, with the sand drifting
+			// through both.
+			vec3 band = mix(u_sky, u_horizon, smoothstep(0.68, 0.02, uv.y));
+			vec3 sky = mix(band * 1.1, band * 0.82, smoothstep(0.3, 0.8, f));
+
+			// No rim on the sun: a soft core bleeding into a wide bloom, which is
+			// how light actually comes up over a ridge.
+			float d = distance(q, vec2(25.0, 27.0));
+			float core = smoothstep(13.5, 6.5, d);
+			float bloom = exp(-max(d - 6.0, 0.0) * 0.13);
+			float breathe = 0.9 + 0.1 * sin(u_time * 0.5);
+
+			vec3 lit = mix(sky, u_sun, clamp(bloom * 0.7 * breathe, 0.0, 1.0));
+			lit = mix(lit, u_sun, core * (0.82 + 0.18 * (1.0 - smoothstep(0.3, 0.8, f))));
 
 			float aa = 48.0 / u_resolution.x * 1.2;
-			float disc = smoothstep(13.0 + aa, 13.0 - aa, distance(q, vec2(25.0, 18.5)));
-
 			float y = seg(q.x, A, B);
 			y = mix(y, seg(q.x, B, C), step(B.x, q.x));
 			y = mix(y, seg(q.x, C, D), step(C.x, q.x));
 			y = mix(y, seg(q.x, D, E), step(D.x, q.x));
 			float ridge = smoothstep(y - aa, y + aa, q.y);
 
-			vec3 col = mix(mix(sky, sun, disc), rock, ridge);
+			vec3 col = mix(lit, u_rock, ridge);
 
 			vec2 c = (uv - 0.5) * 2.0;
 			float squircle = pow(abs(c.x), 4.0) + pow(abs(c.y), 4.0);
@@ -102,12 +121,8 @@
 		}
 	`;
 
-	function brandRgb(): [number, number, number] {
-		const raw = getComputedStyle(document.documentElement).getPropertyValue('--color-brand').trim();
-		let h = raw.replace('#', '');
-		if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-		const n = parseInt(h, 16);
-		if (h.length !== 6 || Number.isNaN(n)) return [0.016, 0.47, 0.34];
+	function rgb(hex: string): [number, number, number] {
+		const n = parseInt(hex.replace('#', ''), 16);
 		return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 	}
 
@@ -128,7 +143,13 @@
 		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 		if (reduce.matches) return;
 
-		const context = canvas.getContext('webgl', { antialias: true, alpha: true });
+		// The buffer is kept so a compositor frame the shader did not draw still
+		// shows the mark.
+		const context = canvas.getContext('webgl', {
+			antialias: true,
+			alpha: true,
+			preserveDrawingBuffer: true
+		});
 		if (!context) return;
 		const gl: WebGLRenderingContext = context;
 
@@ -154,17 +175,17 @@
 		gl.enableVertexAttribArray(aPos);
 		gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-		const uResolution = gl.getUniformLocation(program, 'u_resolution');
-		const uTime = gl.getUniformLocation(program, 'u_time');
-		const uBrand = gl.getUniformLocation(program, 'u_brand');
-
 		const dpr = Math.min(window.devicePixelRatio || 1, 2);
 		const px = Math.round(size * dpr);
 		canvas.width = px;
 		canvas.height = px;
 		gl.viewport(0, 0, px, px);
-		gl.uniform2f(uResolution, px, px);
-		gl.uniform3f(uBrand, ...brandRgb());
+		gl.uniform2f(gl.getUniformLocation(program, 'u_resolution'), px, px);
+		gl.uniform3f(gl.getUniformLocation(program, 'u_sky'), ...rgb(SKY));
+		gl.uniform3f(gl.getUniformLocation(program, 'u_horizon'), ...rgb(HORIZON));
+		gl.uniform3f(gl.getUniformLocation(program, 'u_sun'), ...rgb(SUN));
+		gl.uniform3f(gl.getUniformLocation(program, 'u_rock'), ...rgb(ROCK));
+		const uTime = gl.getUniformLocation(program, 'u_time');
 
 		const start = performance.now();
 		let raf = 0;
@@ -180,16 +201,8 @@
 		render(start);
 		live = true;
 
-		const repaint = () => gl.uniform3f(uBrand, ...brandRgb());
-		const scheme = window.matchMedia('(prefers-color-scheme: dark)');
-		scheme.addEventListener('change', repaint);
-		const themed = new MutationObserver(repaint);
-		themed.observe(document.documentElement, { attributeFilter: ['data-theme'] });
-
 		return () => {
 			cancelAnimationFrame(raf);
-			scheme.removeEventListener('change', repaint);
-			themed.disconnect();
 			gl.deleteProgram(program);
 			gl.deleteShader(vert);
 			gl.deleteShader(frag);
@@ -207,11 +220,24 @@
 	aria-hidden={label ? undefined : 'true'}
 >
 	<svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-		<path d={TILE} fill="var(--color-brand)" />
+		<defs>
+			<linearGradient id="fajr-sky-{uid}" x1="0" y1="0" x2="0" y2="1">
+				<stop offset="0" stop-color={SKY} />
+				<stop offset="1" stop-color={HORIZON} />
+			</linearGradient>
+			<!-- The sun has no rim: a bloom that fades out into the sky. -->
+			<radialGradient id="fajr-sun-{uid}" cx="0.5" cy="0.5" r="0.5">
+				<stop offset="0" stop-color={SUN} stop-opacity="1" />
+				<stop offset="0.4" stop-color={SUN} stop-opacity="0.94" />
+				<stop offset="0.7" stop-color={SUN} stop-opacity="0.34" />
+				<stop offset="1" stop-color={SUN} stop-opacity="0" />
+			</radialGradient>
+		</defs>
+		<path d={TILE} fill="url(#fajr-sky-{uid})" />
 		<clipPath id="fajr-tile-{uid}"><path d={TILE} /></clipPath>
 		<g clip-path="url(#fajr-tile-{uid})">
-			<circle cx="25" cy="18.5" r="13" fill="var(--color-brand-ink)" />
-			<path d={RIDGE} fill="color-mix(in oklab, var(--color-brand) 46%, black)" />
+			<circle cx="25" cy="27" r="21" fill="url(#fajr-sun-{uid})" />
+			<path d={RIDGE} fill={ROCK} />
 		</g>
 	</svg>
 	<canvas bind:this={canvas} class:live></canvas>
