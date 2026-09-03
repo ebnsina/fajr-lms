@@ -5,6 +5,7 @@
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import Check from '@lucide/svelte/icons/check';
 	import X from '@lucide/svelte/icons/x';
+	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import { money } from '$lib/api';
 	import type { PageProps } from './$types';
 
@@ -13,6 +14,16 @@
 
 	function when(iso: string): string {
 		return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(iso));
+	}
+
+	let refunding = $state<string | null>(null);
+
+	// What is left, written the way the payer would type it.
+	function major(minor: number, currency: string): string {
+		const digits =
+			new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
+				.maximumFractionDigits ?? 2;
+		return (minor / 10 ** digits).toFixed(digits);
 	}
 </script>
 
@@ -119,3 +130,117 @@
 		{/each}
 	</ul>
 {/if}
+
+<section class="mt-10">
+	<header class="mb-4">
+		<h2 class="text-lg font-semibold tracking-tight" dir="auto">Money taken</h2>
+		<p class="mt-1 text-sm text-ink-soft" dir="auto">
+			Payments that went through. Handing money back here records the refund and closes the
+			enrolment it paid for; moving the money itself is done at the bank or the gateway.
+		</p>
+	</header>
+
+	{#if data.paid.length === 0}
+		<div class="card flex items-start gap-3 text-sm text-ink-soft" dir="auto">
+			<Receipt class="mt-0.5 shrink-0" size={18} aria-hidden="true" />
+			<p class="mb-0">No payments yet.</p>
+		</div>
+	{:else}
+		<ul class="list-none space-y-3 p-0">
+			{#each data.paid as row (row.order.id)}
+				{@const left = row.order.amount_minor - row.order.refunded_minor}
+				<li class="card">
+					<div class="flex flex-wrap items-start gap-3">
+						<span class="min-w-0 flex-1">
+							<span class="block font-medium" dir="auto">{row.full_name}</span>
+							<span class="mt-0.5 block text-sm text-ink-soft" dir="auto">
+								{row.title}{row.order.paid_at ? ` · paid ${when(row.order.paid_at)}` : ''}
+							</span>
+						</span>
+						<span class="text-end">
+							<span class="block font-medium" dir="auto">
+								{money(row.order.amount_minor, row.order.currency, locale)}
+							</span>
+							<span class="mt-0.5 block font-mono text-sm text-ink-faint" dir="ltr">
+								{row.order.reference}
+							</span>
+						</span>
+					</div>
+
+					{#if row.order.refunded_minor > 0}
+						<p class="mt-3 mb-0 text-sm text-ink-soft" dir="auto">
+							{money(row.order.refunded_minor, row.order.currency, locale)} handed back{row.order
+								.refund_reason
+								? ` · ${row.order.refund_reason}`
+								: ''}
+						</p>
+					{/if}
+
+					{#if left > 0}
+						{#if refunding === row.order.id}
+							<form
+								method="POST"
+								action="?/refund"
+								use:enhance
+								class="mt-4 flex flex-wrap items-end gap-3 border-t border-line pt-4"
+							>
+								<input type="hidden" name="order_id" value={row.order.id} />
+								<input type="hidden" name="currency" value={row.order.currency} />
+								<div class="w-36">
+									<label class="mb-1.5 block text-sm font-medium" for="amount-{row.order.id}">
+										Amount
+									</label>
+									<input
+										class="field font-mono"
+										id="amount-{row.order.id}"
+										name="amount"
+										type="number"
+										min="0"
+										step="any"
+										placeholder={major(left, row.order.currency)}
+										dir="ltr"
+									/>
+								</div>
+								<div class="min-w-48 flex-1">
+									<label class="mb-1.5 block text-sm font-medium" for="reason-{row.order.id}">
+										Reason
+									</label>
+									<input
+										class="field"
+										id="reason-{row.order.id}"
+										name="reason"
+										dir="auto"
+										placeholder="withdrew before the course began"
+									/>
+								</div>
+								<label class="flex items-center gap-2 self-end pb-3 text-sm">
+									<input class="choice" type="checkbox" name="keep_access" />
+									Keep their access
+								</label>
+								<button
+									class="btn btn-quiet"
+									type="button"
+									onclick={() => (refunding = null)}
+								>
+									Cancel
+								</button>
+								<button class="btn" type="submit">Record the refund</button>
+							</form>
+						{:else}
+							<div class="mt-4 flex justify-end">
+								<button
+									class="btn btn-quiet"
+									type="button"
+									onclick={() => (refunding = row.order.id)}
+								>
+									<Undo2 size={16} aria-hidden="true" />
+									Refund
+								</button>
+							</div>
+						{/if}
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</section>

@@ -1230,6 +1230,10 @@ type Order struct {
 	CouponID        uuid.NullUUID      `json:"coupon_id"`
 	ListAmountMinor *int64             `json:"list_amount_minor"`
 	DiscountMinor   int64              `json:"discount_minor"`
+	RefundedMinor   int64              `json:"refunded_minor"`
+	RefundReason    string             `json:"refund_reason"`
+	RefundedBy      uuid.NullUUID      `json:"refunded_by"`
+	RefundedAt      pgtype.Timestamptz `json:"refunded_at"`
 }
 
 type OtpChallenge struct {

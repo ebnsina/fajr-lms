@@ -60,3 +60,22 @@ RETURNING *;
 
 -- name: ListOrderEvents :many
 SELECT * FROM payment_events WHERE order_id = @order_id ORDER BY created_at;
+
+-- name: RefundOrder :one
+-- The sum is checked in the statement, so two refunds racing cannot together
+-- hand back more than was paid.
+UPDATE orders SET
+  refunded_minor = refunded_minor + @amount_minor,
+  refund_reason  = @reason,
+  refunded_by    = @refunded_by,
+  refunded_at    = now(),
+  status = CASE WHEN refunded_minor + @amount_minor >= amount_minor THEN 'refunded'::order_status ELSE status END
+WHERE id = @id AND status IN ('paid', 'refunded') AND refunded_minor + @amount_minor <= amount_minor
+RETURNING *;
+
+-- name: ListPaidOrders :many
+SELECT sqlc.embed(o), c.title, u.full_name
+FROM orders o JOIN courses c ON c.id = o.course_id JOIN users u ON u.id = o.user_id
+WHERE o.status IN ('paid', 'refunded')
+ORDER BY o.paid_at DESC NULLS LAST
+LIMIT @page_limit OFFSET @page_offset;

@@ -3,6 +3,7 @@ package api_test
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/ebnsina/fajr-lms/internal/payment"
@@ -277,6 +278,102 @@ func TestManualPaymentFlow(t *testing.T) {
 			map[string]any{"decision": "approve"})
 		if rec.Code != http.StatusNotFound {
 			t.Fatalf("got %d, want 404: %s", rec.Code, rec.Body)
+		}
+	})
+}
+
+// TestRefunds covers money going back out: partly, then the rest, with the
+// enrolment closed only once the whole payment has been returned.
+func TestRefunds(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+	courseID := paidCourse(t, h, owner, 150000)
+
+	var order orderBody
+	rec := do(t, h, "POST", "/v1/courses/"+courseID+"/orders", student.token, owner.slug, nil)
+	if err := json.Unmarshal(rec.Body.Bytes(), &order); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+
+	t.Run("an unpaid order cannot be refunded", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/refund", owner.token, owner.slug,
+			map[string]any{"reason": "too early"})
+		if rec.Code != http.StatusConflict {
+			t.Fatalf("got %d, want 409: %s", rec.Code, rec.Body)
+		}
+	})
+
+	if rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/review", owner.token, owner.slug,
+		map[string]any{"decision": "approve"}); rec.Code != http.StatusOK {
+		t.Fatalf("approve: got %d: %s", rec.Code, rec.Body)
+	}
+
+	t.Run("a learner cannot refund their own order", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/refund", student.token, owner.slug,
+			map[string]any{"amount_minor": 150000})
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("got %d, want 403: %s", rec.Code, rec.Body)
+		}
+	})
+
+	t.Run("more than was paid is refused", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/refund", owner.token, owner.slug,
+			map[string]any{"amount_minor": 200000, "reason": "typo"})
+		if rec.Code != http.StatusConflict {
+			t.Fatalf("got %d, want 409: %s", rec.Code, rec.Body)
+		}
+	})
+
+	t.Run("part of a payment goes back and access stays", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/refund", owner.token, owner.slug,
+			map[string]any{"amount_minor": 50000, "reason": "one module missing"})
+		if rec.Code != http.StatusOK {
+			t.Fatalf("got %d: %s", rec.Code, rec.Body)
+		}
+		var after struct {
+			Status        string `json:"status"`
+			RefundedMinor int64  `json:"refunded_minor"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &after); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if after.Status != "paid" || after.RefundedMinor != 50000 {
+			t.Fatalf("got %+v, want a paid order with 50000 back", after)
+		}
+		rec = do(t, h, "GET", "/v1/enrollments", student.token, owner.slug, nil)
+		if !strings.Contains(rec.Body.String(), `"status":"active"`) {
+			t.Fatalf("a part refund closed the enrolment: %s", rec.Body)
+		}
+	})
+
+	t.Run("the rest goes back, and with it the enrolment", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/refund", owner.token, owner.slug,
+			map[string]any{"reason": "withdrew"})
+		if rec.Code != http.StatusOK {
+			t.Fatalf("got %d: %s", rec.Code, rec.Body)
+		}
+		var after struct {
+			Status        string `json:"status"`
+			RefundedMinor int64  `json:"refunded_minor"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &after); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if after.Status != "refunded" || after.RefundedMinor != 150000 {
+			t.Fatalf("got %+v, want a refunded order with the whole 150000 back", after)
+		}
+		rec = do(t, h, "GET", "/v1/enrollments", student.token, owner.slug, nil)
+		if strings.Contains(rec.Body.String(), `"status":"active"`) {
+			t.Fatalf("a full refund left the enrolment open: %s", rec.Body)
+		}
+	})
+
+	t.Run("refunding again is refused", func(t *testing.T) {
+		rec := do(t, h, "POST", "/v1/orders/"+order.ID+"/refund", owner.token, owner.slug,
+			map[string]any{"reason": "again"})
+		if rec.Code != http.StatusConflict {
+			t.Fatalf("got %d, want 409: %s", rec.Code, rec.Body)
 		}
 	})
 }

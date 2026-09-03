@@ -32,6 +32,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- Refunds. The payments page now lists the money taken as well as the money
+  waiting, and staff can hand back all of a payment or part of it with a reason.
+  A full refund closes the enrolment it paid for unless you say to keep access.
+  The money itself still moves at the bank or the gateway; this is the record.
 - A quiz can draw a few questions at random from a larger pool, and the shuffle
   setting now really shuffles. Each attempt keeps the paper it was handed, so a
   learner who reconnects gets the same questions back and is marked out of them.

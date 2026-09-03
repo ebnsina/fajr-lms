@@ -159,6 +159,8 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/coupons", money(s.createCoupon))
 	mux.Handle("PUT /v1/coupons/{id}/active", money(s.setCouponActive))
 	mux.Handle("DELETE /v1/coupons/{id}", money(s.deleteCoupon))
+	mux.Handle("GET /v1/orders/paid", money(s.listPaidOrders))
+	mux.Handle("POST /v1/orders/{id}/refund", money(s.refundOrder))
 	mux.Handle("GET /v1/orders/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.listReviewQueue))))
 	mux.Handle("POST /v1/orders/{id}/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.reviewOrder))))
 

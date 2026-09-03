@@ -14,7 +14,7 @@ import (
 const cancelOrder = `-- name: CancelOrder :one
 UPDATE orders SET status = 'cancelled'
 WHERE id = $1 AND status IN ('pending', 'awaiting_review')
-RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor
+RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at
 `
 
 func (q *Queries) CancelOrder(ctx context.Context, id uuid.UUID) (Order, error) {
@@ -41,6 +41,10 @@ func (q *Queries) CancelOrder(ctx context.Context, id uuid.UUID) (Order, error) 
 		&i.CouponID,
 		&i.ListAmountMinor,
 		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
 	)
 	return i, err
 }
@@ -50,7 +54,7 @@ INSERT INTO orders (tenant_id, user_id, course_id, provider, amount_minor, curre
                     coupon_id, list_amount_minor, discount_minor)
 VALUES ($1, $2, $3, $4, $5, $6, $7,
         $8, $9, $10)
-RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor
+RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at
 `
 
 type CreateOrderParams struct {
@@ -101,12 +105,16 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order
 		&i.CouponID,
 		&i.ListAmountMinor,
 		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
 	)
 	return i, err
 }
 
 const getOrder = `-- name: GetOrder :one
-SELECT id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor FROM orders WHERE id = $1
+SELECT id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at FROM orders WHERE id = $1
 `
 
 func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (Order, error) {
@@ -133,12 +141,16 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (Order, error) {
 		&i.CouponID,
 		&i.ListAmountMinor,
 		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
 	)
 	return i, err
 }
 
 const getOrderByReference = `-- name: GetOrderByReference :one
-SELECT id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor FROM orders WHERE reference = $1
+SELECT id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at FROM orders WHERE reference = $1
 `
 
 func (q *Queries) GetOrderByReference(ctx context.Context, reference string) (Order, error) {
@@ -165,12 +177,16 @@ func (q *Queries) GetOrderByReference(ctx context.Context, reference string) (Or
 		&i.CouponID,
 		&i.ListAmountMinor,
 		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
 	)
 	return i, err
 }
 
 const listMyOrders = `-- name: ListMyOrders :many
-SELECT o.id, o.tenant_id, o.user_id, o.course_id, o.provider, o.amount_minor, o.currency, o.status, o.reference, o.provider_ref, o.note, o.proof_media_id, o.reviewed_by, o.reviewed_at, o.paid_at, o.created_at, o.updated_at, o.coupon_id, o.list_amount_minor, o.discount_minor, c.title, c.slug
+SELECT o.id, o.tenant_id, o.user_id, o.course_id, o.provider, o.amount_minor, o.currency, o.status, o.reference, o.provider_ref, o.note, o.proof_media_id, o.reviewed_by, o.reviewed_at, o.paid_at, o.created_at, o.updated_at, o.coupon_id, o.list_amount_minor, o.discount_minor, o.refunded_minor, o.refund_reason, o.refunded_by, o.refunded_at, c.title, c.slug
 FROM orders o JOIN courses c ON c.id = o.course_id
 WHERE o.user_id = $1
 ORDER BY o.created_at DESC
@@ -219,6 +235,10 @@ func (q *Queries) ListMyOrders(ctx context.Context, arg ListMyOrdersParams) ([]L
 			&i.Order.CouponID,
 			&i.Order.ListAmountMinor,
 			&i.Order.DiscountMinor,
+			&i.Order.RefundedMinor,
+			&i.Order.RefundReason,
+			&i.Order.RefundedBy,
+			&i.Order.RefundedAt,
 			&i.Title,
 			&i.Slug,
 		); err != nil {
@@ -266,7 +286,7 @@ func (q *Queries) ListOrderEvents(ctx context.Context, orderID uuid.NullUUID) ([
 }
 
 const listOrdersForReview = `-- name: ListOrdersForReview :many
-SELECT o.id, o.tenant_id, o.user_id, o.course_id, o.provider, o.amount_minor, o.currency, o.status, o.reference, o.provider_ref, o.note, o.proof_media_id, o.reviewed_by, o.reviewed_at, o.paid_at, o.created_at, o.updated_at, o.coupon_id, o.list_amount_minor, o.discount_minor, c.title, u.full_name
+SELECT o.id, o.tenant_id, o.user_id, o.course_id, o.provider, o.amount_minor, o.currency, o.status, o.reference, o.provider_ref, o.note, o.proof_media_id, o.reviewed_by, o.reviewed_at, o.paid_at, o.created_at, o.updated_at, o.coupon_id, o.list_amount_minor, o.discount_minor, o.refunded_minor, o.refund_reason, o.refunded_by, o.refunded_at, c.title, u.full_name
 FROM orders o JOIN courses c ON c.id = o.course_id JOIN users u ON u.id = o.user_id
 WHERE o.status = 'awaiting_review'
 ORDER BY o.created_at
@@ -314,6 +334,76 @@ func (q *Queries) ListOrdersForReview(ctx context.Context, arg ListOrdersForRevi
 			&i.Order.CouponID,
 			&i.Order.ListAmountMinor,
 			&i.Order.DiscountMinor,
+			&i.Order.RefundedMinor,
+			&i.Order.RefundReason,
+			&i.Order.RefundedBy,
+			&i.Order.RefundedAt,
+			&i.Title,
+			&i.FullName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPaidOrders = `-- name: ListPaidOrders :many
+SELECT o.id, o.tenant_id, o.user_id, o.course_id, o.provider, o.amount_minor, o.currency, o.status, o.reference, o.provider_ref, o.note, o.proof_media_id, o.reviewed_by, o.reviewed_at, o.paid_at, o.created_at, o.updated_at, o.coupon_id, o.list_amount_minor, o.discount_minor, o.refunded_minor, o.refund_reason, o.refunded_by, o.refunded_at, c.title, u.full_name
+FROM orders o JOIN courses c ON c.id = o.course_id JOIN users u ON u.id = o.user_id
+WHERE o.status IN ('paid', 'refunded')
+ORDER BY o.paid_at DESC NULLS LAST
+LIMIT $2 OFFSET $1
+`
+
+type ListPaidOrdersParams struct {
+	PageOffset int32 `json:"page_offset"`
+	PageLimit  int32 `json:"page_limit"`
+}
+
+type ListPaidOrdersRow struct {
+	Order    Order  `json:"order"`
+	Title    string `json:"title"`
+	FullName string `json:"full_name"`
+}
+
+func (q *Queries) ListPaidOrders(ctx context.Context, arg ListPaidOrdersParams) ([]ListPaidOrdersRow, error) {
+	rows, err := q.db.Query(ctx, listPaidOrders, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPaidOrdersRow{}
+	for rows.Next() {
+		var i ListPaidOrdersRow
+		if err := rows.Scan(
+			&i.Order.ID,
+			&i.Order.TenantID,
+			&i.Order.UserID,
+			&i.Order.CourseID,
+			&i.Order.Provider,
+			&i.Order.AmountMinor,
+			&i.Order.Currency,
+			&i.Order.Status,
+			&i.Order.Reference,
+			&i.Order.ProviderRef,
+			&i.Order.Note,
+			&i.Order.ProofMediaID,
+			&i.Order.ReviewedBy,
+			&i.Order.ReviewedAt,
+			&i.Order.PaidAt,
+			&i.Order.CreatedAt,
+			&i.Order.UpdatedAt,
+			&i.Order.CouponID,
+			&i.Order.ListAmountMinor,
+			&i.Order.DiscountMinor,
+			&i.Order.RefundedMinor,
+			&i.Order.RefundReason,
+			&i.Order.RefundedBy,
+			&i.Order.RefundedAt,
 			&i.Title,
 			&i.FullName,
 		); err != nil {
@@ -328,7 +418,7 @@ func (q *Queries) ListOrdersForReview(ctx context.Context, arg ListOrdersForRevi
 }
 
 const openOrderForCourse = `-- name: OpenOrderForCourse :one
-SELECT id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor FROM orders
+SELECT id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at FROM orders
 WHERE course_id = $1 AND user_id = $2 AND status IN ('pending', 'awaiting_review')
 `
 
@@ -361,6 +451,10 @@ func (q *Queries) OpenOrderForCourse(ctx context.Context, arg OpenOrderForCourse
 		&i.CouponID,
 		&i.ListAmountMinor,
 		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
 	)
 	return i, err
 }
@@ -404,6 +498,63 @@ func (q *Queries) RecordPaymentEvent(ctx context.Context, arg RecordPaymentEvent
 	return i, err
 }
 
+const refundOrder = `-- name: RefundOrder :one
+UPDATE orders SET
+  refunded_minor = refunded_minor + $1,
+  refund_reason  = $2,
+  refunded_by    = $3,
+  refunded_at    = now(),
+  status = CASE WHEN refunded_minor + $1 >= amount_minor THEN 'refunded'::order_status ELSE status END
+WHERE id = $4 AND status IN ('paid', 'refunded') AND refunded_minor + $1 <= amount_minor
+RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at
+`
+
+type RefundOrderParams struct {
+	AmountMinor int64         `json:"amount_minor"`
+	Reason      string        `json:"reason"`
+	RefundedBy  uuid.NullUUID `json:"refunded_by"`
+	ID          uuid.UUID     `json:"id"`
+}
+
+// The sum is checked in the statement, so two refunds racing cannot together
+// hand back more than was paid.
+func (q *Queries) RefundOrder(ctx context.Context, arg RefundOrderParams) (Order, error) {
+	row := q.db.QueryRow(ctx, refundOrder,
+		arg.AmountMinor,
+		arg.Reason,
+		arg.RefundedBy,
+		arg.ID,
+	)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.UserID,
+		&i.CourseID,
+		&i.Provider,
+		&i.AmountMinor,
+		&i.Currency,
+		&i.Status,
+		&i.Reference,
+		&i.ProviderRef,
+		&i.Note,
+		&i.ProofMediaID,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
+		&i.PaidAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CouponID,
+		&i.ListAmountMinor,
+		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
+	)
+	return i, err
+}
+
 const settleOrder = `-- name: SettleOrder :one
 UPDATE orders SET
   status = $1,
@@ -411,7 +562,7 @@ UPDATE orders SET
   reviewed_at = now(),
   paid_at = CASE WHEN $1::order_status = 'paid' THEN coalesce(paid_at, now()) ELSE paid_at END
 WHERE id = $3 AND status IN ('pending', 'awaiting_review')
-RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor
+RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at
 `
 
 type SettleOrderParams struct {
@@ -444,6 +595,10 @@ func (q *Queries) SettleOrder(ctx context.Context, arg SettleOrderParams) (Order
 		&i.CouponID,
 		&i.ListAmountMinor,
 		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
 	)
 	return i, err
 }
@@ -455,7 +610,7 @@ UPDATE orders SET
   provider_ref = $2,
   note = $3
 WHERE id = $4 AND status = 'pending'
-RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor
+RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor, refunded_minor, refund_reason, refunded_by, refunded_at
 `
 
 type SubmitPaymentProofParams struct {
@@ -494,6 +649,10 @@ func (q *Queries) SubmitPaymentProof(ctx context.Context, arg SubmitPaymentProof
 		&i.CouponID,
 		&i.ListAmountMinor,
 		&i.DiscountMinor,
+		&i.RefundedMinor,
+		&i.RefundReason,
+		&i.RefundedBy,
+		&i.RefundedAt,
 	)
 	return i, err
 }

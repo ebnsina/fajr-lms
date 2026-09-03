@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -310,6 +311,26 @@ func (s *Server) listReviewQueue(w http.ResponseWriter, r *http.Request) error {
 	return httpx.JSON(w, http.StatusOK, map[string]any{"orders": rows})
 }
 
+// listPaidOrders is the record of money taken, which is where a refund starts.
+func (s *Server) listPaidOrders(w http.ResponseWriter, r *http.Request) error {
+	limit, offset, err := pagination(r)
+	if err != nil {
+		return err
+	}
+	var rows []database.ListPaidOrdersRow
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		rows, err = q.ListPaidOrders(r.Context(), database.ListPaidOrdersParams{
+			PageLimit: limit, PageOffset: offset,
+		})
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{"orders": rows})
+}
+
 func (s *Server) listMyOrders(w http.ResponseWriter, r *http.Request) error {
 	limit, offset, err := pagination(r)
 	if err != nil {
@@ -358,4 +379,108 @@ func (s *Server) cancelOrder(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return httpx.NoContent(w)
+}
+
+type refundRequest struct {
+	AmountMinor int64  `json:"amount_minor"`
+	Reason      string `json:"reason"`
+	KeepAccess  bool   `json:"keep_access"`
+}
+
+// refundOrder hands money back on the books. The gateway or the bank moves the
+// actual money; this records what was returned and closes the access it bought.
+func (s *Server) refundOrder(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var body refundRequest
+	if err := httpx.DecodeJSON(w, r, &body); err != nil {
+		return err
+	}
+	if body.AmountMinor < 0 {
+		return invalid("amount_minor", "A refund cannot be negative.")
+	}
+	reason := strings.TrimSpace(body.Reason)
+	if len(reason) > 500 {
+		return invalid("reason", "Keep the reason under 500 characters.")
+	}
+
+	tenant := CurrentTenant(r.Context())
+	staff := Authenticated(r.Context()).UserID
+	var order database.Order
+
+	err = s.store.InTenant(r.Context(), tenant.ID, func(q *database.Queries) error {
+		existing, err := q.GetOrder(r.Context(), id)
+		if err != nil {
+			return err
+		}
+		if existing.Status != database.OrderStatusPaid && existing.Status != database.OrderStatusRefunded {
+			return httpx.Errorf(http.StatusConflict, "order_not_paid",
+				"Only a paid order can be refunded.")
+		}
+
+		// Left empty, a refund is for whatever is still outstanding.
+		amount := body.AmountMinor
+		if amount == 0 {
+			amount = existing.AmountMinor - existing.RefundedMinor
+		}
+		if amount <= 0 {
+			return httpx.Errorf(http.StatusConflict, "already_refunded",
+				"This order has already been refunded in full.")
+		}
+
+		order, err = q.RefundOrder(r.Context(), database.RefundOrderParams{
+			ID: id, AmountMinor: amount, Reason: reason,
+			RefundedBy: uuid.NullUUID{UUID: staff, Valid: true},
+		})
+		if database.IsNotFound(err) {
+			return httpx.Errorf(http.StatusConflict, "refund_too_large",
+				"That is more than is left on this order.")
+		}
+		if err != nil {
+			return err
+		}
+
+		payload, err := json.Marshal(map[string]any{
+			"amount_minor": amount, "reason": reason, "staff": staff.String(),
+		})
+		if err != nil {
+			return err
+		}
+		if _, err := q.RecordPaymentEvent(r.Context(), database.RecordPaymentEventParams{
+			TenantID: tenant.ID, OrderID: uuid.NullUUID{UUID: order.ID, Valid: true},
+			Provider: order.Provider,
+			EventID:  fmt.Sprintf("refund:%s:%d", order.ID, order.RefundedMinor),
+			Kind:     "refund", Payload: payload,
+		}); err != nil && !database.IsNotFound(err) {
+			return err
+		}
+
+		if order.Status != database.OrderStatusRefunded || body.KeepAccess {
+			return nil
+		}
+		enrollment, err := q.GetEnrollment(r.Context(), database.GetEnrollmentParams{
+			CourseID: order.CourseID, UserID: order.UserID,
+		})
+		if database.IsNotFound(err) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		_, err = q.CancelEnrollment(r.Context(), enrollment.ID)
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	s.notifyUser(r.Context(), tenant.ID, order.UserID, "payment.refunded",
+		"Refund recorded", "A refund has been recorded against your payment.",
+		map[string]any{"order_id": order.ID, "reference": order.Reference})
+	return httpx.JSON(w, http.StatusOK, order)
 }

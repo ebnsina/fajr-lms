@@ -19,13 +19,31 @@ type Row = {
 	full_name: string;
 };
 
+type PaidRow = {
+	order: {
+		id: string;
+		reference: string;
+		amount_minor: number;
+		refunded_minor: number;
+		refund_reason: string;
+		currency: string;
+		status: string;
+		paid_at: string | null;
+	};
+	title: string;
+	full_name: string;
+};
+
 export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 	if (!locals.token) redirect(303, '/login');
 	const { session } = await parent();
 	if (!session?.tenant) redirect(303, '/tenant');
 
 	const scoped = { token: locals.token, tenant: session.tenant.slug, fetch };
-	const { orders } = await api<{ orders: Row[] }>('/v1/orders/review?limit=50', scoped);
+	const [{ orders }, paid] = await Promise.all([
+		api<{ orders: Row[] }>('/v1/orders/review?limit=50', scoped),
+		api<{ orders: PaidRow[] }>('/v1/orders/paid?limit=50', scoped)
+	]);
 
 	// The slip is the whole point of the review, so resolve a link for each one.
 	const withProof = await Promise.all(
@@ -39,7 +57,7 @@ export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 			}
 		})
 	);
-	return { orders: withProof };
+	return { orders: withProof, paid: paid.orders ?? [] };
 };
 
 export const actions: Actions = {
@@ -67,5 +85,43 @@ export const actions: Actions = {
 			throw failure;
 		}
 		return { decided: decision };
+	},
+
+	refund: async ({ request, locals, cookies, fetch }) => {
+		const tenant = cookies.get('fajr_tenant');
+		if (!locals.token || !tenant) redirect(303, '/login');
+
+		const form = await request.formData();
+		const amount = Number(form.get('amount') ?? 0);
+		if (!Number.isFinite(amount) || amount < 0) {
+			return fail(422, { message: 'Enter an amount to hand back, or leave it empty for the rest.' });
+		}
+
+		// A dinar has three decimal places and a yen none, so ask Intl rather
+		// than assuming a hundred subunits.
+		const currency = String(form.get('currency') ?? 'USD');
+		const digits = new Intl.NumberFormat('en', {
+			style: 'currency',
+			currency
+		}).resolvedOptions().maximumFractionDigits ?? 2;
+
+		try {
+			await api(`/v1/orders/${form.get('order_id')}/refund`, {
+				method: 'POST',
+				body: {
+					amount_minor: Math.round(amount * 10 ** digits),
+					reason: String(form.get('reason') ?? ''),
+					keep_access: form.get('keep_access') === 'on'
+				},
+				token: locals.token,
+				tenant,
+				fetch
+			});
+		} catch (failure) {
+			if (failure instanceof ApiFailure)
+				return fail(failure.status, { message: failure.error.message });
+			throw failure;
+		}
+		return { refunded: true };
 	}
 };
