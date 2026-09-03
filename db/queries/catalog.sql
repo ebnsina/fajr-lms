@@ -25,7 +25,9 @@ UPDATE courses SET
   summary     = coalesce(sqlc.narg('summary'), summary),
   dir         = coalesce(sqlc.narg('dir'), dir),
   visibility  = coalesce(sqlc.narg('visibility'), visibility),
-  price_minor = coalesce(sqlc.narg('price_minor'), price_minor)
+  price_minor = coalesce(sqlc.narg('price_minor'), price_minor),
+  installments = coalesce(sqlc.narg('installments'), installments),
+  installment_gap_days = coalesce(sqlc.narg('installment_gap_days'), installment_gap_days)
 WHERE id = @id
 RETURNING *;
 

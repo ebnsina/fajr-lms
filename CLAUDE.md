@@ -54,3 +54,8 @@ use `ctx7` / Context7. Never write API calls from memory.
 
 Never describe a feature on a public page as available unless it exists in the
 codebase. Work that is planned is written as planned, in as many words.
+
+## Fajr AI
+
+Anything that is Fajr AI is marked with the fluid orb (`$lib/components/FluidOrb.svelte`),
+sized to the icons around it. Never a sparkles or wand icon.

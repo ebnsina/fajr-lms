@@ -26,7 +26,7 @@ func (q *Queries) CountCourses(ctx context.Context, statusFilter *PublishStatus)
 const createCourse = `-- name: CreateCourse :one
 INSERT INTO courses (tenant_id, slug, title, summary, dir, visibility, price_minor, currency, created_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at
+RETURNING id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at, installments, installment_gap_days
 `
 
 type CreateCourseParams struct {
@@ -69,6 +69,8 @@ func (q *Queries) CreateCourse(ctx context.Context, arg CreateCourseParams) (Cou
 		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Installments,
+		&i.InstallmentGapDays,
 	)
 	return i, err
 }
@@ -186,7 +188,7 @@ func (q *Queries) DeleteModule(ctx context.Context, id uuid.UUID) (int64, error)
 }
 
 const getCourse = `-- name: GetCourse :one
-SELECT id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at FROM courses WHERE id = $1
+SELECT id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at, installments, installment_gap_days FROM courses WHERE id = $1
 `
 
 func (q *Queries) GetCourse(ctx context.Context, id uuid.UUID) (Course, error) {
@@ -207,12 +209,14 @@ func (q *Queries) GetCourse(ctx context.Context, id uuid.UUID) (Course, error) {
 		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Installments,
+		&i.InstallmentGapDays,
 	)
 	return i, err
 }
 
 const getCourseBySlug = `-- name: GetCourseBySlug :one
-SELECT id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at FROM courses WHERE slug = $1
+SELECT id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at, installments, installment_gap_days FROM courses WHERE slug = $1
 `
 
 func (q *Queries) GetCourseBySlug(ctx context.Context, slug string) (Course, error) {
@@ -233,6 +237,8 @@ func (q *Queries) GetCourseBySlug(ctx context.Context, slug string) (Course, err
 		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Installments,
+		&i.InstallmentGapDays,
 	)
 	return i, err
 }
@@ -264,7 +270,7 @@ func (q *Queries) GetLesson(ctx context.Context, id uuid.UUID) (Lesson, error) {
 }
 
 const listCourses = `-- name: ListCourses :many
-SELECT id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at FROM courses
+SELECT id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at, installments, installment_gap_days FROM courses
 WHERE ($1::publish_status IS NULL OR status = $1)
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $2
@@ -300,6 +306,8 @@ func (q *Queries) ListCourses(ctx context.Context, arg ListCoursesParams) ([]Cou
 			&i.PublishedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Installments,
+			&i.InstallmentGapDays,
 		); err != nil {
 			return nil, err
 		}
@@ -445,7 +453,7 @@ UPDATE courses SET
   status = $1,
   published_at = CASE WHEN $1::publish_status = 'published' THEN coalesce(published_at, now()) ELSE published_at END
 WHERE id = $2
-RETURNING id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at
+RETURNING id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at, installments, installment_gap_days
 `
 
 type SetCourseStatusParams struct {
@@ -471,6 +479,8 @@ func (q *Queries) SetCourseStatus(ctx context.Context, arg SetCourseStatusParams
 		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Installments,
+		&i.InstallmentGapDays,
 	)
 	return i, err
 }
@@ -481,18 +491,22 @@ UPDATE courses SET
   summary     = coalesce($2, summary),
   dir         = coalesce($3, dir),
   visibility  = coalesce($4, visibility),
-  price_minor = coalesce($5, price_minor)
-WHERE id = $6
-RETURNING id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at
+  price_minor = coalesce($5, price_minor),
+  installments = coalesce($6, installments),
+  installment_gap_days = coalesce($7, installment_gap_days)
+WHERE id = $8
+RETURNING id, tenant_id, slug, title, summary, dir, status, visibility, price_minor, currency, created_by, published_at, created_at, updated_at, installments, installment_gap_days
 `
 
 type UpdateCourseParams struct {
-	Title      *string           `json:"title"`
-	Summary    *string           `json:"summary"`
-	Dir        *TextDir          `json:"dir"`
-	Visibility *CourseVisibility `json:"visibility"`
-	PriceMinor *int64            `json:"price_minor"`
-	ID         uuid.UUID         `json:"id"`
+	Title              *string           `json:"title"`
+	Summary            *string           `json:"summary"`
+	Dir                *TextDir          `json:"dir"`
+	Visibility         *CourseVisibility `json:"visibility"`
+	PriceMinor         *int64            `json:"price_minor"`
+	Installments       *int16            `json:"installments"`
+	InstallmentGapDays *int16            `json:"installment_gap_days"`
+	ID                 uuid.UUID         `json:"id"`
 }
 
 func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Course, error) {
@@ -502,6 +516,8 @@ func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Cou
 		arg.Dir,
 		arg.Visibility,
 		arg.PriceMinor,
+		arg.Installments,
+		arg.InstallmentGapDays,
 		arg.ID,
 	)
 	var i Course
@@ -520,6 +536,8 @@ func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Cou
 		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Installments,
+		&i.InstallmentGapDays,
 	)
 	return i, err
 }

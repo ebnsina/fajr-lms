@@ -1,8 +1,8 @@
 -- name: CreateOrder :one
 INSERT INTO orders (tenant_id, user_id, course_id, provider, amount_minor, currency, reference,
-                    coupon_id, list_amount_minor, discount_minor)
+                    coupon_id, list_amount_minor, discount_minor, plan_id, part_no)
 VALUES (@tenant_id, @user_id, @course_id, @provider, @amount_minor, @currency, @reference,
-        @coupon_id, @list_amount_minor, @discount_minor)
+        @coupon_id, @list_amount_minor, @discount_minor, sqlc.narg('plan_id'), sqlc.narg('part_no'))
 RETURNING *;
 
 -- name: GetOrder :one

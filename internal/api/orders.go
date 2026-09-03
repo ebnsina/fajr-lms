@@ -15,6 +15,47 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/payment"
 )
 
+// planFor finds the learner's plan for a course, starting one the first time.
+// The price it holds is what was agreed at the start, coupon included, so a
+// code changed later does not move an agreement already made.
+func (s *Server) planFor(r *http.Request, q *database.Queries, tenantID, userID uuid.UUID,
+	course database.Course, total int64) (database.PaymentPlan, error) {
+
+	if course.Installments < 2 {
+		return database.PaymentPlan{}, httpx.Errorf(http.StatusConflict, "no_plan",
+			"This course is paid for in full.")
+	}
+	existing, err := q.PlanForCourse(r.Context(), database.PlanForCourseParams{
+		CourseID: course.ID, UserID: userID,
+	})
+	if err == nil {
+		if existing.PaidParts >= existing.Parts {
+			return database.PaymentPlan{}, httpx.Errorf(http.StatusConflict, "plan_finished",
+				"This course has been paid off.")
+		}
+		return existing, nil
+	}
+	if !database.IsNotFound(err) {
+		return database.PaymentPlan{}, err
+	}
+	return q.CreatePlan(r.Context(), database.CreatePlanParams{
+		TenantID: tenantID, UserID: userID, CourseID: course.ID, TotalMinor: total,
+		Currency: course.Currency, Parts: course.Installments, GapDays: course.InstallmentGapDays,
+	})
+}
+
+// countPart marks one instalment paid once the money is in.
+func countPart(ctx context.Context, q *database.Queries, plan uuid.NullUUID) error {
+	if !plan.Valid {
+		return nil
+	}
+	_, err := q.CountPlanPart(ctx, plan.UUID)
+	if database.IsNotFound(err) {
+		return nil
+	}
+	return err
+}
+
 // redeem counts a use of the code once the money is actually in. The cap is
 // checked in the same statement, so two payments landing together cannot push
 // a code past its limit.
@@ -33,6 +74,7 @@ func (s *Server) paymentProviders(w http.ResponseWriter, r *http.Request) error 
 type createOrderRequest struct {
 	Provider string `json:"provider"`
 	Coupon   string `json:"coupon"`
+	InParts  bool   `json:"in_parts"`
 }
 
 type orderResponse struct {
@@ -106,11 +148,29 @@ func (s *Server) createOrder(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
+		// Paying in parts: the plan holds the whole price, and this order is
+		// only for the part that is due now.
+		var plan uuid.NullUUID
+		var part *int16
+		if body.InParts {
+			row, err := s.planFor(r, q, tenant.ID, session.UserID, course, charge)
+			if err != nil {
+				return err
+			}
+			next := row.PaidParts + 1
+			amount, err := payment.Part(row.TotalMinor, int(row.Parts), int(next))
+			if err != nil {
+				return httpx.Errorf(http.StatusConflict, "plan_impossible", err.Error())
+			}
+			charge, plan, part = amount, uuid.NullUUID{UUID: row.ID, Valid: true}, &next
+		}
+
 		order, err = q.CreateOrder(r.Context(), database.CreateOrderParams{
 			TenantID: tenant.ID, UserID: session.UserID, CourseID: courseID,
 			Provider: provider.Caps().Name, AmountMinor: charge,
 			Currency: course.Currency, Reference: payment.NewReference(),
 			CouponID: coupon, ListAmountMinor: &course.PriceMinor, DiscountMinor: off,
+			PlanID: plan, PartNo: part,
 		})
 		return err
 	})
@@ -267,6 +327,9 @@ func (s *Server) reviewOrder(w http.ResponseWriter, r *http.Request) error {
 		if err := redeem(r.Context(), q, order.CouponID); err != nil {
 			return err
 		}
+		if err := countPart(r.Context(), q, order.PlanID); err != nil {
+			return err
+		}
 		_, err = q.EnrollUser(r.Context(), database.EnrollUserParams{
 			TenantID: tenant.ID, CourseID: order.CourseID, UserID: order.UserID,
 			Source: database.EnrollmentSourcePurchase,
@@ -309,6 +372,41 @@ func (s *Server) listReviewQueue(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return httpx.JSON(w, http.StatusOK, map[string]any{"orders": rows})
+}
+
+// myPlans is what a learner still owes, per course.
+func (s *Server) myPlans(w http.ResponseWriter, r *http.Request) error {
+	userID := Authenticated(r.Context()).UserID
+	var rows []database.MyPlansRow
+	err := s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		rows, err = q.MyPlans(r.Context(), userID)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{"plans": rows})
+}
+
+// listPlans is the office's view of who is paying a course off over time.
+func (s *Server) listPlans(w http.ResponseWriter, r *http.Request) error {
+	limit, offset, err := pagination(r)
+	if err != nil {
+		return err
+	}
+	var rows []database.ListPlansRow
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		rows, err = q.ListPlans(r.Context(), database.ListPlansParams{
+			PageLimit: limit, PageOffset: offset,
+		})
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{"plans": rows})
 }
 
 // listPaidOrders is the record of money taken, which is where a refund starts.

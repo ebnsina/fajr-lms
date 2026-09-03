@@ -155,6 +155,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/payment/providers", inTenant(httpx.Handler(s.paymentProviders)))
 	mux.Handle("POST /v1/courses/{id}/orders", inTenant(httpx.Handler(s.createOrder)))
 	mux.Handle("GET /v1/orders", inTenant(httpx.Handler(s.listMyOrders)))
+	mux.Handle("GET /v1/plans", inTenant(httpx.Handler(s.myPlans)))
 	mux.Handle("POST /v1/orders/{id}/proof", inTenant(httpx.Handler(s.submitProof)))
 	mux.Handle("DELETE /v1/orders/{id}", inTenant(httpx.Handler(s.cancelOrder)))
 	money := func(h httpx.Handler) http.Handler {
@@ -166,6 +167,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("DELETE /v1/coupons/{id}", money(s.deleteCoupon))
 	mux.Handle("POST /v1/lessons/{id}/quiz/draft", teaches(s.draftQuestions))
 	mux.Handle("GET /v1/orders/paid", money(s.listPaidOrders))
+	mux.Handle("GET /v1/plans/all", money(s.listPlans))
 	mux.Handle("POST /v1/orders/{id}/refund", money(s.refundOrder))
 	mux.Handle("GET /v1/orders/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.listReviewQueue))))
 	mux.Handle("POST /v1/orders/{id}/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.reviewOrder))))

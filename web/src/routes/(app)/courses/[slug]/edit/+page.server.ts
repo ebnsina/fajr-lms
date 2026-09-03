@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { api, ApiFailure } from '$lib/server/api';
-import type { Outline } from '$lib/api';
+import { toMinor, type Outline } from '$lib/api';
 
 export const load: PageServerLoad = async ({ params, locals, parent, fetch }) => {
 	if (!locals.token) redirect(303, '/login');
@@ -54,7 +54,12 @@ export const actions: Actions = {
 					title,
 					summary: String(form.get('summary') ?? '').trim(),
 					visibility: String(form.get('visibility') ?? 'private'),
-					price_minor: Math.round(Number(form.get('price') ?? 0) * 100)
+					price_minor: toMinor(
+						Number(form.get('price') ?? 0),
+						String(form.get('currency') ?? 'USD')
+					),
+					installments: Number(form.get('installments') ?? 1),
+					installment_gap_days: Number(form.get('installment_gap_days') ?? 30)
 				},
 				...scoped(locals, cookies, fetch)
 			});

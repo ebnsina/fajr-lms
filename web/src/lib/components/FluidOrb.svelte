@@ -169,15 +169,27 @@
 	});
 </script>
 
-<div
-	class="orb"
-	style:inline-size="{size}px"
-	style:block-size="{size}px"
-	role="img"
-	aria-label={label}
->
-	<canvas bind:this={canvas}></canvas>
-</div>
+<!-- Named when it stands for something, hidden when it sits beside its own words. -->
+{#if label}
+	<div
+		class="orb"
+		style:inline-size="{size}px"
+		style:block-size="{size}px"
+		role="img"
+		aria-label={label}
+	>
+		<canvas bind:this={canvas}></canvas>
+	</div>
+{:else}
+	<div
+		class="orb"
+		style:inline-size="{size}px"
+		style:block-size="{size}px"
+		aria-hidden="true"
+	>
+		<canvas bind:this={canvas}></canvas>
+	</div>
+{/if}
 
 <style>
 	.orb {

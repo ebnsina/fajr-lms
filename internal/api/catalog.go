@@ -203,6 +203,8 @@ type updateCourseRequest struct {
 	Dir        *string `json:"dir"`
 	Visibility *string `json:"visibility"`
 	PriceMinor *int64  `json:"price_minor"`
+	Parts      *int16  `json:"installments"`
+	GapDays    *int16  `json:"installment_gap_days"`
 }
 
 // updateCourse applies only the fields present, so changing a price does not
@@ -248,6 +250,19 @@ func (s *Server) updateCourse(w http.ResponseWriter, r *http.Request) error {
 			return invalid("price_minor", "Price cannot be negative.")
 		}
 		params.PriceMinor = body.PriceMinor
+	}
+
+	if body.Parts != nil {
+		if *body.Parts < 1 || *body.Parts > 24 {
+			return invalid("installments", "A course is paid in 1 to 24 parts.")
+		}
+		params.Installments = body.Parts
+	}
+	if body.GapDays != nil {
+		if *body.GapDays < 1 || *body.GapDays > 365 {
+			return invalid("installment_gap_days", "Parts fall between 1 and 365 days apart.")
+		}
+		params.InstallmentGapDays = body.GapDays
 	}
 
 	var course database.Course

@@ -101,9 +101,16 @@
 		{/if}
 	</div>
 {:else}
-	<p class="banner mb-6 text-sm" dir="auto">
-		You are not enrolled in this course yet, so nothing is being recorded.
-	</p>
+	<div class="banner mb-6 flex flex-wrap items-center gap-4 text-sm">
+		<p class="mb-0 min-w-56 flex-1" dir="auto">
+			You are not enrolled in this course yet, so nothing is being recorded.
+		</p>
+		{#if course.price_minor > 0}
+			<a class="btn btn-sm" href="/courses/{course.slug}/buy">
+				{course.installments > 1 ? 'Enroll, in full or in parts' : 'Enroll'}
+			</a>
+		{/if}
+	</div>
 {/if}
 
 <div class="stack space-y-6">

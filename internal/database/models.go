@@ -1040,20 +1040,22 @@ type Coupon struct {
 }
 
 type Course struct {
-	ID          uuid.UUID          `json:"id"`
-	TenantID    uuid.UUID          `json:"tenant_id"`
-	Slug        string             `json:"slug"`
-	Title       string             `json:"title"`
-	Summary     string             `json:"summary"`
-	Dir         TextDir            `json:"dir"`
-	Status      PublishStatus      `json:"status"`
-	Visibility  CourseVisibility   `json:"visibility"`
-	PriceMinor  int64              `json:"price_minor"`
-	Currency    string             `json:"currency"`
-	CreatedBy   uuid.NullUUID      `json:"created_by"`
-	PublishedAt pgtype.Timestamptz `json:"published_at"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ID                 uuid.UUID          `json:"id"`
+	TenantID           uuid.UUID          `json:"tenant_id"`
+	Slug               string             `json:"slug"`
+	Title              string             `json:"title"`
+	Summary            string             `json:"summary"`
+	Dir                TextDir            `json:"dir"`
+	Status             PublishStatus      `json:"status"`
+	Visibility         CourseVisibility   `json:"visibility"`
+	PriceMinor         int64              `json:"price_minor"`
+	Currency           string             `json:"currency"`
+	CreatedBy          uuid.NullUUID      `json:"created_by"`
+	PublishedAt        pgtype.Timestamptz `json:"published_at"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+	Installments       int16              `json:"installments"`
+	InstallmentGapDays int16              `json:"installment_gap_days"`
 }
 
 type Enrollment struct {
@@ -1234,6 +1236,8 @@ type Order struct {
 	RefundReason    string             `json:"refund_reason"`
 	RefundedBy      uuid.NullUUID      `json:"refunded_by"`
 	RefundedAt      pgtype.Timestamptz `json:"refunded_at"`
+	PlanID          uuid.NullUUID      `json:"plan_id"`
+	PartNo          *int16             `json:"part_no"`
 }
 
 type OtpChallenge struct {
@@ -1256,6 +1260,21 @@ type PaymentEvent struct {
 	Kind      string             `json:"kind"`
 	Payload   []byte             `json:"payload"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type PaymentPlan struct {
+	ID         uuid.UUID          `json:"id"`
+	TenantID   uuid.UUID          `json:"tenant_id"`
+	UserID     uuid.UUID          `json:"user_id"`
+	CourseID   uuid.UUID          `json:"course_id"`
+	TotalMinor int64              `json:"total_minor"`
+	Currency   string             `json:"currency"`
+	Parts      int16              `json:"parts"`
+	PaidParts  int16              `json:"paid_parts"`
+	GapDays    int16              `json:"gap_days"`
+	NextDueOn  pgtype.Date        `json:"next_due_on"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
 type PublishedCourse struct {

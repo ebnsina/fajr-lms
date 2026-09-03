@@ -32,6 +32,14 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- A course can be sold in instalments. The school sets how many payments and
+  how far apart; a learner picks paying in full or in parts at checkout, is
+  enrolled from the first payment, and can see what is left to pay. The office
+  gets a list of who is paying a course off over time.
+- The app has a checkout at last: a learner can buy a course from the web, see
+  the bank details and reference, and tell the office what they paid.
+- Money is now formatted and read by the currency's own subunit, so a dinar's
+  three decimal places and a yen's none are right instead of assumed to be two.
 - Fajr AI drafts quiz questions from a lesson a teacher has written. The draft
   is offered on the lesson's page and nothing is saved until the teacher adds a
   question; anything that could not be graded is dropped before it is shown.

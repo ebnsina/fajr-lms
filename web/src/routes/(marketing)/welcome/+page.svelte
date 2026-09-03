@@ -2,7 +2,7 @@
 	import ShaderGradient from '$lib/components/marketing/ShaderGradient.svelte';
 	import RollingWords from '$lib/components/marketing/RollingWords.svelte';
 	import { reveal } from '$lib/actions/motion';
-	import FluidOrb from '$lib/components/marketing/FluidOrb.svelte';
+	import FluidOrb from '$lib/components/FluidOrb.svelte';
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
 	import Globe from '@lucide/svelte/icons/globe';

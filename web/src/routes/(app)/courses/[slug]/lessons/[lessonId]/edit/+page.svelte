@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash from '@lucide/svelte/icons/trash-2';
-	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import FluidOrb from '$lib/components/FluidOrb.svelte';
 	import type { PageProps } from './$types';
 	import type { DraftQuestion } from './+page.server';
 
@@ -170,7 +170,7 @@
 
 		<section class="card mb-4">
 			<div class="flex flex-wrap items-center gap-3">
-				<Sparkles class="text-ink-soft" size={18} aria-hidden="true" />
+				<FluidOrb size={22} label="" />
 				<p class="mb-0 min-w-56 flex-1 text-sm text-ink-soft" dir="auto">
 					Fajr AI can read this lesson and suggest questions on it. Nothing is added until you
 					say so, and you can change any of it.

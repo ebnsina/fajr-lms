@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { api, ApiFailure } from '$lib/server/api';
-import type { Playback } from '$lib/api';
+import { toMinor, type Playback } from '$lib/api';
 
 type Row = {
 	order: {
@@ -112,7 +112,7 @@ export const actions: Actions = {
 			await api(`/v1/orders/${form.get('order_id')}/refund`, {
 				method: 'POST',
 				body: {
-					amount_minor: Math.round(amount * 10 ** digits),
+					amount_minor: toMinor(amount, currency),
 					reason: String(form.get('reason') ?? ''),
 					keep_access: form.get('keep_access') === 'on'
 				},

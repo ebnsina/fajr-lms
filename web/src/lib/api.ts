@@ -30,6 +30,8 @@ export type Course = {
 	visibility: 'private' | 'unlisted' | 'public';
 	price_minor: number;
 	currency: string;
+	installments: number;
+	installment_gap_days: number;
 };
 
 export type Outline = { course: Course; modules: Module[] };
@@ -77,6 +79,25 @@ export function meta(...parts: (string | number | false | null | undefined)[]): 
 	return parts.filter(Boolean).join(' · ');
 }
 
+// How many subunit digits a currency has: two for a taka, three for a dinar,
+// none for a yen. Intl knows; nothing here should be guessing.
+export function minorDigits(currency: string): number {
+	return (
+		new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
+			.maximumFractionDigits ?? 2
+	);
+}
+
+export function toMajor(minor: number, currency: string): number {
+	return minor / 10 ** minorDigits(currency);
+}
+
+export function toMinor(major: number, currency: string): number {
+	return Math.round(major * 10 ** minorDigits(currency));
+}
+
 export function money(minor: number, currency: string, locale = 'en'): string {
-	return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(minor / 100);
+	return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(
+		toMajor(minor, currency)
+	);
 }

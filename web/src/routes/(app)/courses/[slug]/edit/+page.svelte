@@ -8,6 +8,7 @@
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import MediaUpload from '$lib/components/MediaUpload.svelte';
+	import { toMajor } from '$lib/api';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -20,13 +21,22 @@
 
 	// An input keeps whatever it was created with, so the settings are held in
 	// state and resynced when the page reloads after a save.
-	let settings = $state({ title: '', summary: '', price: 0, visibility: 'private' });
+	let settings = $state({
+		title: '',
+		summary: '',
+		price: 0,
+		visibility: 'private',
+		installments: 1,
+		gapDays: 30
+	});
 	$effect(() => {
 		settings = {
 			title: data.outline.course.title,
 			summary: data.outline.course.summary,
-			price: data.outline.course.price_minor / 100,
-			visibility: data.outline.course.visibility
+			price: toMajor(data.outline.course.price_minor, data.outline.course.currency),
+			visibility: data.outline.course.visibility,
+			installments: data.outline.course.installments,
+			gapDays: data.outline.course.installment_gap_days
 		};
 	});
 
@@ -117,6 +127,7 @@
 			<label class="mb-1.5 block text-sm font-medium" for="course-price">
 				Fee <span class="font-normal text-ink-soft">· 0 is free</span>
 			</label>
+			<input type="hidden" name="currency" value={course.currency} />
 			<input
 				class="field font-mono"
 				id="course-price"
@@ -128,6 +139,40 @@
 				dir="ltr"
 			/>
 		</div>
+		<div>
+			<label class="mb-1.5 block text-sm font-medium" for="course-parts">
+				Payments <span class="font-normal text-ink-soft">· 1 is paid in full</span>
+			</label>
+			<input
+				class="field font-mono"
+				id="course-parts"
+				name="installments"
+				type="number"
+				min="1"
+				max="24"
+				bind:value={settings.installments}
+				dir="ltr"
+			/>
+		</div>
+		{#if settings.installments > 1}
+			<div>
+				<label class="mb-1.5 block text-sm font-medium" for="course-gap">
+					Days between payments
+				</label>
+				<input
+					class="field font-mono"
+					id="course-gap"
+					name="installment_gap_days"
+					type="number"
+					min="1"
+					max="365"
+					bind:value={settings.gapDays}
+					dir="ltr"
+				/>
+			</div>
+		{:else}
+			<input type="hidden" name="installment_gap_days" value={settings.gapDays} />
+		{/if}
 		<div>
 			<span class="mb-1.5 block text-sm font-medium">Who may see it</span>
 			<div class="flex flex-wrap gap-4 py-2.5">
