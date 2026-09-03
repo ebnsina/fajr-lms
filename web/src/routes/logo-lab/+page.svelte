@@ -7,8 +7,8 @@
 		{
 			key: 'Dawn',
 			id: 0,
-			note: 'the full disc',
-			say: 'The sun whole behind a twin ridge. The most literal reading of fajr, and the warmest.'
+			note: 'rising behind',
+			say: 'The sun low behind the twin ridge, half of it still to come up. The most literal reading of fajr, and the warmest.'
 		},
 		{
 			key: 'Horizon',
@@ -107,7 +107,7 @@
 			int v = int(u_variant + 0.5);
 
 			if (v == 0) {
-				light = smoothstep(13.0 + aa, 13.0 - aa, dist);
+				light = smoothstep(13.5 + aa, 13.5 - aa, distance(q, vec2(25.0, 27.0)));
 			} else if (v == 1) {
 				// Half risen: the disc, cut flat where it meets the horizon.
 				light = smoothstep(14.5 + aa, 14.5 - aa, dist) * smoothstep(27.0 + aa, 27.0 - aa, q.y);
@@ -166,7 +166,7 @@
 		const sunFill = variant.id === 5 ? (amber ? AMBER : '#12b981') : sunHex;
 
 		let sun = '';
-		if (variant.id === 0) sun = `<circle cx="25" cy="18.5" r="13" fill="${sunFill}"/>`;
+		if (variant.id === 0) sun = `<circle cx="25" cy="27" r="13.5" fill="${sunFill}"/>`;
 		else if (variant.id === 1)
 			sun = `<path d="M12 27a13 13 0 0 1 26 0z" fill="${sunFill}"/>`;
 		else if (variant.id === 2)
