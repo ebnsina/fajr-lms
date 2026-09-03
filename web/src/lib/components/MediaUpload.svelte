@@ -113,5 +113,5 @@
 {/if}
 
 {#if problem}
-	<p class="banner banner-bad mt-3 text-sm" role="alert">{problem}</p>
+	<p class="banner-bad mt-3 text-sm" role="alert">{problem}</p>
 {/if}

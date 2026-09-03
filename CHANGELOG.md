@@ -32,6 +32,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- A school's site is now served on its own domain: the Website page takes the
+  domain, shows the record to publish, and checks it. Once the record is there,
+  the site answers at the root of that domain.
+- Error messages were showing in the brand green, which read as good news. They
+  are red now, everywhere.
 - A certificate's verification link now opens on the school's own site instead
   of the API address, so the link on a printed certificate works.
 - Refunds. The payments page now lists the money taken as well as the money

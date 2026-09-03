@@ -90,7 +90,7 @@
 </div>
 
 {#if form?.message}
-	<p class="banner banner-bad mb-4" role="alert">{form.message}</p>
+	<p class="banner-bad mb-4" role="alert">{form.message}</p>
 {/if}
 
 {#if editingCourse}

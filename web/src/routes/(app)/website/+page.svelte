@@ -3,6 +3,8 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import Trash from '@lucide/svelte/icons/trash-2';
+	import Globe from '@lucide/svelte/icons/globe';
+	import Copy from '@lucide/svelte/icons/copy';
 	import { templates, regions, kindNames } from '$lib/site-templates';
 	import type { PageProps } from './$types';
 
@@ -25,6 +27,16 @@
 			new Date(iso)
 		);
 	const address = (slug: string) => `/site/${data.tenantSlug}${slug ? '/' + slug : ''}`;
+
+	let copied = $state('');
+	async function copy(value: string) {
+		try {
+			await navigator.clipboard.writeText(value);
+			copied = value;
+		} catch {
+			copied = '';
+		}
+	}
 </script>
 
 <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -51,7 +63,7 @@
 </div>
 
 {#if form?.message}
-	<p class="banner banner-bad mb-4" role="alert">{form.message}</p>
+	<p class="banner-bad mb-4" role="alert">{form.message}</p>
 {:else if form?.made}
 	<p class="banner mb-4" role="status">
 		{form.made}
@@ -133,6 +145,91 @@
 		</div>
 	</section>
 {/if}
+
+<section class="card mb-6">
+	<h2 class="mb-1 text-sm font-semibold tracking-wide uppercase text-ink-soft">Your own domain</h2>
+	<p class="mb-4 text-sm text-ink-soft">
+		Serve the site at your school's own address. Point the domain at us, add the record below, and
+		the site answers there.
+	</p>
+
+	{#if data.domain.domain}
+		<div class="mb-4 flex flex-wrap items-center gap-3">
+			<Globe class="text-ink-soft" size={18} aria-hidden="true" />
+			<span class="font-mono" dir="ltr">{data.domain.domain}</span>
+			<span class="chip" class:chip-brand={data.domain.verified}>
+				{data.domain.verified ? 'Live' : 'Waiting on DNS'}
+			</span>
+			<form class="ms-auto flex gap-2" method="POST" action="?/domain" use:enhance>
+				{#if !data.domain.verified}
+					<button class="btn btn-sm" type="submit" name="intent" value="verify">
+						Check the record
+					</button>
+				{/if}
+				<button class="btn btn-sm btn-quiet" type="submit" name="intent" value="clear">
+					Remove
+				</button>
+			</form>
+		</div>
+
+		{#if data.domain.record && !data.domain.verified}
+			<dl class="grid gap-3 rounded-xl border border-line bg-raised p-4 text-sm sm:grid-cols-[auto_1fr_1fr]">
+				<div>
+					<dt class="text-ink-soft">Type</dt>
+					<dd class="mt-0.5 font-mono" dir="ltr">{data.domain.record.type}</dd>
+				</div>
+				<div class="min-w-0">
+					<dt class="text-ink-soft">Name</dt>
+					<dd class="mt-0.5 flex items-center gap-2">
+						<span class="truncate font-mono" dir="ltr">{data.domain.record.name}</span>
+						<button
+							class="btn btn-sm btn-quiet shrink-0"
+							type="button"
+							onclick={() => copy(data.domain.record?.name ?? '')}
+							aria-label="Copy the record name"
+						>
+							<Copy size={14} aria-hidden="true" />
+						</button>
+					</dd>
+				</div>
+				<div class="min-w-0">
+					<dt class="text-ink-soft">Value</dt>
+					<dd class="mt-0.5 flex items-center gap-2">
+						<span class="truncate font-mono" dir="ltr">{data.domain.record.value}</span>
+						<button
+							class="btn btn-sm btn-quiet shrink-0"
+							type="button"
+							onclick={() => copy(data.domain.record?.value ?? '')}
+							aria-label="Copy the record value"
+						>
+							<Copy size={14} aria-hidden="true" />
+						</button>
+					</dd>
+				</div>
+			</dl>
+			{#if copied}
+				<p class="mt-2 mb-0 text-sm text-ink-soft" aria-live="polite">Copied.</p>
+			{/if}
+			<p class="mt-3 mb-0 text-sm text-ink-soft">
+				DNS can take a few minutes to spread, sometimes a few hours. Check again after adding it.
+			</p>
+		{/if}
+	{:else}
+		<form class="flex flex-wrap items-end gap-3" method="POST" action="?/domain" use:enhance>
+			<div class="min-w-56 flex-1">
+				<label class="mb-1.5 block text-sm font-medium" for="domain">Domain</label>
+				<input
+					class="field font-mono"
+					id="domain"
+					name="domain"
+					placeholder="school.edu.bd"
+					dir="ltr"
+				/>
+			</div>
+			<button class="btn" type="submit" name="intent" value="set">Add the domain</button>
+		</form>
+	{/if}
+</section>
 
 <form class="card mb-6" method="POST" action="?/theme" use:enhance>
 	<h2 class="mb-1 text-sm font-semibold tracking-wide uppercase text-ink-soft">Look</h2>

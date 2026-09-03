@@ -18,7 +18,7 @@
 </header>
 
 {#if form?.message}
-	<p class="banner banner-bad mb-4" role="alert">{form.message}</p>
+	<p class="banner-bad mb-4" role="alert">{form.message}</p>
 {:else if form?.claimed}
 	<p class="banner mb-4" role="status">Awarded. It is listed below.</p>
 {/if}

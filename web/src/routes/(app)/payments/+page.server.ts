@@ -94,16 +94,19 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const amount = Number(form.get('amount') ?? 0);
 		if (!Number.isFinite(amount) || amount < 0) {
-			return fail(422, { message: 'Enter an amount to hand back, or leave it empty for the rest.' });
+			return fail(422, {
+				message: 'Enter an amount to hand back, or leave it empty for the rest.'
+			});
 		}
 
 		// A dinar has three decimal places and a yen none, so ask Intl rather
 		// than assuming a hundred subunits.
 		const currency = String(form.get('currency') ?? 'USD');
-		const digits = new Intl.NumberFormat('en', {
-			style: 'currency',
-			currency
-		}).resolvedOptions().maximumFractionDigits ?? 2;
+		const digits =
+			new Intl.NumberFormat('en', {
+				style: 'currency',
+				currency
+			}).resolvedOptions().maximumFractionDigits ?? 2;
 
 		try {
 			await api(`/v1/orders/${form.get('order_id')}/refund`, {

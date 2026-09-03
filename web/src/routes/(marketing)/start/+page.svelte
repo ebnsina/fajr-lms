@@ -51,7 +51,7 @@
 	{/if}
 
 	{#if form?.message}
-		<p class="banner banner-bad mt-6" role="alert">{form.message}</p>
+		<p class="banner-bad mt-6" role="alert">{form.message}</p>
 	{/if}
 
 	<form class="card mt-6 flex flex-col gap-4" method="POST" use:enhance>

@@ -4,18 +4,25 @@ import { api, ApiFailure } from '$lib/server/api';
 import type { SitePage } from '$lib/types.site';
 import { templates } from '$lib/site-templates';
 
+type SiteDomain = {
+	domain: string;
+	verified: boolean;
+	record?: { type: string; name: string; value: string };
+};
+
 export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 	if (!locals.token) redirect(303, '/login');
 	const { session } = await parent();
 	if (!session?.tenant) redirect(303, '/tenant');
 
-	const { pages } = await api<{ pages: SitePage[] }>('/v1/site/pages', {
-		token: locals.token,
-		tenant: session.tenant.slug,
-		fetch
-	});
+	const scoped = { token: locals.token, tenant: session.tenant.slug, fetch };
+	const [{ pages }, domain] = await Promise.all([
+		api<{ pages: SitePage[] }>('/v1/site/pages', scoped),
+		api<SiteDomain>('/v1/site/domain', scoped)
+	]);
 	return {
 		pages,
+		domain,
 		tenantSlug: session.tenant.slug,
 		theme: session.tenant.site_theme ?? 'plain'
 	};
@@ -104,6 +111,35 @@ export const actions: Actions = {
 				fetch
 			});
 			return { saved: true };
+		} catch (cause) {
+			if (cause instanceof ApiFailure) return fail(cause.status, { message: cause.error.message });
+			throw cause;
+		}
+	},
+
+	domain: async ({ request, locals, fetch, cookies }) => {
+		const form = await request.formData();
+		const call = { token: locals.token, tenant: cookies.get('fajr_tenant') ?? '', fetch };
+		const intent = String(form.get('intent') ?? 'set');
+
+		try {
+			if (intent === 'clear') {
+				await api('/v1/site/domain', { method: 'DELETE', ...call });
+				return { domainCleared: true };
+			}
+			if (intent === 'verify') {
+				const checked = await api<SiteDomain>('/v1/site/domain/verify', {
+					method: 'POST',
+					...call
+				});
+				return { domainVerified: checked.verified };
+			}
+			await api('/v1/site/domain', {
+				method: 'PUT',
+				body: { domain: String(form.get('domain') ?? '') },
+				...call
+			});
+			return { domainSet: true };
 		} catch (cause) {
 			if (cause instanceof ApiFailure) return fail(cause.status, { message: cause.error.message });
 			throw cause;

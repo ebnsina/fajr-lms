@@ -76,7 +76,7 @@
 </div>
 
 {#if form?.message}
-	<p class="banner banner-bad mb-4" role="alert">{form.message}</p>
+	<p class="banner-bad mb-4" role="alert">{form.message}</p>
 {:else if form?.saved}
 	<p class="banner mb-4" role="status">Saved.</p>
 {/if}
