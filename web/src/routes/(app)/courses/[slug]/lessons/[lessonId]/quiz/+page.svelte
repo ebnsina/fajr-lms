@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import CloudOff from '@lucide/svelte/icons/cloud-off';
+	import { flush, hold, queued } from '$lib/answer-queue';
 	import QuizTimer from '$lib/components/QuizTimer.svelte';
 	import { dirOf } from '$lib/api';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -36,15 +38,55 @@
 	// Which answers are already stored, so a resumed paper comes back filled in.
 	let saved = $derived(new Map((live?.answers ?? []).map((a) => [a.question_id, a])));
 	let justSaved = $state<string | null>(null);
+	let waiting = $state(0);
 
+	const answerAction = $derived(
+		`/courses/${data.slug}/lessons/${data.lessonId}/quiz?/answer`
+	);
+
+	// An answer that cannot reach the server is kept on the phone and sent when
+	// the connection comes back, so a bad line never loses somebody's work.
 	function saving(questionId: string) {
-		return () =>
-			async ({ update }: { update: (o?: { reset?: boolean }) => Promise<void> }) => {
+		return ({ formData }: { formData: FormData }) =>
+			async ({
+				result,
+				update
+			}: {
+				result: { type: string };
+				update: (o?: { reset?: boolean }) => Promise<void>;
+			}) => {
+				if (result.type === 'error') {
+					hold({
+						attempt_id: String(formData.get('attempt_id') ?? ''),
+						question_id: questionId,
+						option_ids: formData.getAll('option_ids').map(String).filter(Boolean),
+						text: String(formData.get('text') ?? '')
+					});
+					waiting = queued(String(formData.get('attempt_id') ?? '')).length;
+					return;
+				}
 				await update({ reset: false });
 				justSaved = questionId;
 				setTimeout(() => (justSaved = null), 1500);
 			};
 	}
+
+	// Keyed on the attempt, not on mount: an attempt started without leaving the
+	// page still needs somewhere to send what was written while offline.
+	$effect(() => {
+		const attempt = live?.attempt.id;
+		if (!attempt) return;
+
+		const send = async () => {
+			if (queued(attempt).length === 0) return;
+			const left = await flush(answerAction);
+			waiting = left;
+			if (left === 0) await invalidateAll();
+		};
+		send();
+		window.addEventListener('online', send);
+		return () => window.removeEventListener('online', send);
+	});
 </script>
 
 <svelte:head><title>{quiz.title} · Fajr LMS</title></svelte:head>
@@ -148,8 +190,17 @@
 		{/if}
 	</div>
 
+	{#if waiting > 0}
+		<p class="banner mb-4 flex items-center gap-2.5 text-sm" role="status">
+			<CloudOff size={16} aria-hidden="true" />
+			{waiting}
+			{waiting === 1 ? 'answer is' : 'answers are'} waiting to be sent. They are kept on this device
+			and go out when you are back online.
+		</p>
+	{/if}
+
 	<ol class="mb-6 list-none space-y-3 p-0">
-		{#each data.questions as question, index (question.id)}
+		{#each live.questions as question, index (question.id)}
 			{@const answer = saved.get(question.id)}
 			<li class="card">
 				<div class="mb-4 flex items-start gap-3">
