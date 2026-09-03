@@ -43,3 +43,19 @@ LIMIT @page_limit;
 
 -- name: SetSiteTheme :one
 UPDATE tenants SET site_theme = @site_theme WHERE id = @id RETURNING *;
+
+-- name: SetCustomDomain :one
+UPDATE tenants SET custom_domain = @custom_domain, domain_token = @domain_token, domain_verified_at = NULL
+WHERE id = @id
+RETURNING *;
+
+-- name: MarkDomainVerified :one
+UPDATE tenants SET domain_verified_at = now() WHERE id = @id RETURNING *;
+
+-- name: ClearCustomDomain :one
+UPDATE tenants SET custom_domain = NULL, domain_token = '', domain_verified_at = NULL
+WHERE id = @id
+RETURNING *;
+
+-- name: ResolveDomain :one
+SELECT * FROM resolve_domain(@custom_domain);

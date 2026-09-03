@@ -1316,17 +1316,20 @@ type Submission struct {
 }
 
 type Tenant struct {
-	ID         uuid.UUID          `json:"id"`
-	Slug       string             `json:"slug"`
-	Name       string             `json:"name"`
-	Kind       TenantKind         `json:"kind"`
-	Status     TenantStatus       `json:"status"`
-	DefaultDir TextDir            `json:"default_dir"`
-	Locale     string             `json:"locale"`
-	Currency   string             `json:"currency"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
-	SiteTheme  string             `json:"site_theme"`
+	ID               uuid.UUID          `json:"id"`
+	Slug             string             `json:"slug"`
+	Name             string             `json:"name"`
+	Kind             TenantKind         `json:"kind"`
+	Status           TenantStatus       `json:"status"`
+	DefaultDir       TextDir            `json:"default_dir"`
+	Locale           string             `json:"locale"`
+	Currency         string             `json:"currency"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	SiteTheme        string             `json:"site_theme"`
+	CustomDomain     *string            `json:"custom_domain"`
+	DomainToken      string             `json:"domain_token"`
+	DomainVerifiedAt pgtype.Timestamptz `json:"domain_verified_at"`
 }
 
 type User struct {

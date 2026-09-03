@@ -19,6 +19,7 @@ type Server struct {
 	payments  *payment.Registry
 	notifier  *notify.Service
 	publicURL string
+	dns       DNSLookup
 }
 
 // UseNotifier wires the notification service after construction, since the
@@ -27,7 +28,8 @@ func (s *Server) UseNotifier(n *notify.Service) { s.notifier = n }
 
 func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry,
 	payments *payment.Registry, publicURL string) *Server {
-	return &Server{store: store, identity: ident, media: registry, payments: payments, publicURL: publicURL}
+	return &Server{store: store, identity: ident, media: registry, payments: payments,
+		publicURL: publicURL, dns: netLookup{}}
 }
 
 // Routes returns the full API surface, health probes included.
@@ -164,6 +166,11 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("PUT /v1/site/pages/{id}/status", site(s.setSitePageStatus))
 	mux.Handle("DELETE /v1/site/pages/{id}", site(s.deleteSitePage))
 	mux.Handle("PUT /v1/site/theme", site(s.setSiteTheme))
+	mux.Handle("GET /v1/site/domain", site(s.siteDomain))
+	mux.Handle("PUT /v1/site/domain", site(s.setDomain))
+	mux.Handle("POST /v1/site/domain/verify", site(s.verifyDomain))
+	mux.Handle("DELETE /v1/site/domain", site(s.clearDomain))
+	mux.Handle("GET /site/resolve", httpx.Handler(s.resolveHost))
 	mux.Handle("GET /site/{tenant}", httpx.Handler(s.publicPage))
 	mux.Handle("GET /site/{tenant}/{slug}", httpx.Handler(s.publicPage))
 

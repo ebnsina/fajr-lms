@@ -43,7 +43,7 @@
 	function close(returnFocus = true) {
 		open = false;
 		query = '';
-		if (returnFocus) trigger?.focus();
+		if (returnFocus) trigger?.focus({ preventScroll: true });
 	}
 
 	function pick(option: Option) {
@@ -71,16 +71,24 @@
 		}
 	}
 
+	// preventScroll, because focusing inside an absolutely positioned panel
+	// otherwise scrolls every ancestor and shifts the page under the field.
 	$effect(() => {
 		if (!open) return;
 		active = Math.max(0, shown.findIndex((o) => o.value === value));
-		if (searchable) field?.focus();
-		else list?.focus();
+		if (searchable) field?.focus({ preventScroll: true });
+		else list?.focus({ preventScroll: true });
 	});
 
+	// scrollIntoView would scroll ancestors too, so the list scrolls itself.
 	$effect(() => {
 		if (!open || !list) return;
-		list.querySelector<HTMLElement>('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
+		const item = list.querySelector<HTMLElement>('[data-active="true"]');
+		if (!item) return;
+		const top = item.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+		if (top < list.scrollTop) list.scrollTop = top;
+		else if (top + item.offsetHeight > list.scrollTop + list.clientHeight)
+			list.scrollTop = top + item.offsetHeight - list.clientHeight;
 	});
 </script>
 

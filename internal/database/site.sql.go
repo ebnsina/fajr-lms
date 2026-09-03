@@ -11,6 +11,34 @@ import (
 	"github.com/google/uuid"
 )
 
+const clearCustomDomain = `-- name: ClearCustomDomain :one
+UPDATE tenants SET custom_domain = NULL, domain_token = '', domain_verified_at = NULL
+WHERE id = $1
+RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
+`
+
+func (q *Queries) ClearCustomDomain(ctx context.Context, id uuid.UUID) (Tenant, error) {
+	row := q.db.QueryRow(ctx, clearCustomDomain, id)
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.Kind,
+		&i.Status,
+		&i.DefaultDir,
+		&i.Locale,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SiteTheme,
+		&i.CustomDomain,
+		&i.DomainToken,
+		&i.DomainVerifiedAt,
+	)
+	return i, err
+}
+
 const createSitePage = `-- name: CreateSitePage :one
 INSERT INTO site_pages (tenant_id, slug, title, description, dir, blocks, nav_label, nav_order, updated_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -239,6 +267,92 @@ func (q *Queries) ListSitePages(ctx context.Context) ([]SitePage, error) {
 	return items, nil
 }
 
+const markDomainVerified = `-- name: MarkDomainVerified :one
+UPDATE tenants SET domain_verified_at = now() WHERE id = $1 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
+`
+
+func (q *Queries) MarkDomainVerified(ctx context.Context, id uuid.UUID) (Tenant, error) {
+	row := q.db.QueryRow(ctx, markDomainVerified, id)
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.Kind,
+		&i.Status,
+		&i.DefaultDir,
+		&i.Locale,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SiteTheme,
+		&i.CustomDomain,
+		&i.DomainToken,
+		&i.DomainVerifiedAt,
+	)
+	return i, err
+}
+
+const resolveDomain = `-- name: ResolveDomain :one
+SELECT id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at FROM resolve_domain($1)
+`
+
+func (q *Queries) ResolveDomain(ctx context.Context, customDomain string) (Tenant, error) {
+	row := q.db.QueryRow(ctx, resolveDomain, customDomain)
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.Kind,
+		&i.Status,
+		&i.DefaultDir,
+		&i.Locale,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SiteTheme,
+		&i.CustomDomain,
+		&i.DomainToken,
+		&i.DomainVerifiedAt,
+	)
+	return i, err
+}
+
+const setCustomDomain = `-- name: SetCustomDomain :one
+UPDATE tenants SET custom_domain = $1, domain_token = $2, domain_verified_at = NULL
+WHERE id = $3
+RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
+`
+
+type SetCustomDomainParams struct {
+	CustomDomain *string   `json:"custom_domain"`
+	DomainToken  string    `json:"domain_token"`
+	ID           uuid.UUID `json:"id"`
+}
+
+func (q *Queries) SetCustomDomain(ctx context.Context, arg SetCustomDomainParams) (Tenant, error) {
+	row := q.db.QueryRow(ctx, setCustomDomain, arg.CustomDomain, arg.DomainToken, arg.ID)
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.Kind,
+		&i.Status,
+		&i.DefaultDir,
+		&i.Locale,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SiteTheme,
+		&i.CustomDomain,
+		&i.DomainToken,
+		&i.DomainVerifiedAt,
+	)
+	return i, err
+}
+
 const setSitePageStatus = `-- name: SetSitePageStatus :one
 UPDATE site_pages SET status = $1, updated_by = $2 WHERE id = $3 RETURNING id, tenant_id, slug, title, description, dir, blocks, status, nav_label, nav_order, updated_by, created_at, updated_at
 `
@@ -271,7 +385,7 @@ func (q *Queries) SetSitePageStatus(ctx context.Context, arg SetSitePageStatusPa
 }
 
 const setSiteTheme = `-- name: SetSiteTheme :one
-UPDATE tenants SET site_theme = $1 WHERE id = $2 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme
+UPDATE tenants SET site_theme = $1 WHERE id = $2 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at
 `
 
 type SetSiteThemeParams struct {
@@ -294,6 +408,9 @@ func (q *Queries) SetSiteTheme(ctx context.Context, arg SetSiteThemeParams) (Ten
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.SiteTheme,
+		&i.CustomDomain,
+		&i.DomainToken,
+		&i.DomainVerifiedAt,
 	)
 	return i, err
 }
