@@ -182,6 +182,25 @@
 		{:else}
 			<input type="hidden" name="installment_gap_days" value={settings.gapDays} />
 		{/if}
+		{#if data.topics.length > 0}
+			<div class="sm:col-span-2">
+				<span class="mb-1.5 block text-sm font-medium">Topics</span>
+				<div class="flex flex-wrap gap-3 py-2">
+					{#each data.topics as topic (topic.id)}
+						<label class="flex items-center gap-2 text-sm">
+							<input
+								class="choice"
+								type="checkbox"
+								name="topic_ids"
+								value={topic.id}
+								checked={data.chosen.includes(topic.id)}
+							/>
+							<span dir="auto">{topic.name}</span>
+						</label>
+					{/each}
+				</div>
+			</div>
+		{/if}
 		<div>
 			<span class="mb-1.5 block text-sm font-medium">Who may see it</span>
 			<div class="flex flex-wrap gap-4 py-2.5">

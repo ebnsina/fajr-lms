@@ -292,3 +292,78 @@
 		</div>
 	{/if}
 </section>
+
+<section class="card">
+	<h2 class="mb-1 text-sm font-semibold tracking-wide uppercase text-ink-soft">Points and badges</h2>
+	<p class="mb-4 text-sm text-ink-soft" dir="auto">
+		Points come from finishing lessons, passing quizzes and completing courses. Some schools want
+		a leaderboard; many do not.
+	</p>
+
+	<form method="POST" action="?/points" use:enhance class="mb-4 flex flex-wrap items-center gap-3">
+		<input type="hidden" name="on" value={String(!data.pointsOn)} />
+		<span class="min-w-0 flex-1 text-sm" dir="auto">
+			{data.pointsOn ? 'Points are being kept, and the school has a leaderboard.' : 'Points are switched off.'}
+		</span>
+		<button class="btn btn-sm btn-quiet" type="submit">
+			{data.pointsOn ? 'Switch off' : 'Switch on'}
+		</button>
+	</form>
+
+	{#if data.pointsOn}
+		{#if data.badges.length > 0}
+			<ul class="mb-4 list-none space-y-2 p-0">
+				{#each data.badges as badge (badge.id)}
+					<li class="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-raised px-3.5 py-2.5 text-sm">
+						{#if badge.emoji}<span aria-hidden="true">{badge.emoji}</span>{/if}
+						<span class="min-w-0 flex-1" dir="auto">
+							<span class="font-medium">{badge.name}</span>
+							{#if badge.description}
+								<span class="ms-2 text-ink-soft">{badge.description}</span>
+							{/if}
+						</span>
+						<span class="font-mono text-ink-soft tabular-nums">{badge.threshold} points</span>
+						<span class="text-ink-soft">
+							{badge.earned_by}
+							{badge.earned_by === 1 ? 'holder' : 'holders'}
+						</span>
+						<form method="POST" action="?/removeBadge" use:enhance>
+							<input type="hidden" name="id" value={badge.id} />
+							<button class="btn btn-sm btn-quiet" type="submit" aria-label="Remove {badge.name}">
+								<Trash size={14} aria-hidden="true" />
+							</button>
+						</form>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+
+		<form method="POST" action="?/addBadge" use:enhance class="flex flex-wrap items-end gap-3">
+			<div class="w-20">
+				<label class="mb-1.5 block text-sm font-medium" for="badge-emoji">Emoji</label>
+				<input class="field" id="badge-emoji" name="emoji" placeholder="🌅" dir="ltr" />
+			</div>
+			<div class="min-w-40 flex-1">
+				<label class="mb-1.5 block text-sm font-medium" for="badge-name">Badge</label>
+				<input class="field" id="badge-name" name="name" dir="auto" required />
+			</div>
+			<div class="min-w-40 flex-1">
+				<label class="mb-1.5 block text-sm font-medium" for="badge-description">What it is for</label>
+				<input class="field" id="badge-description" name="description" dir="auto" />
+			</div>
+			<div class="w-28">
+				<label class="mb-1.5 block text-sm font-medium" for="badge-threshold">At</label>
+				<input
+					class="field font-mono"
+					id="badge-threshold"
+					name="threshold"
+					type="number"
+					min="1"
+					value="100"
+					dir="ltr"
+				/>
+			</div>
+			<button class="btn btn-sm" type="submit">Add the badge</button>
+		</form>
+	{/if}
+</section>

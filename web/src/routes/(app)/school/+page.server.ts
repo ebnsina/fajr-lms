@@ -21,6 +21,15 @@ export type Section = {
 	students: number;
 };
 
+export type Badge = {
+	id: string;
+	name: string;
+	description: string;
+	emoji: string;
+	threshold: number;
+	earned_by: number;
+};
+
 export type Subject = {
 	subject: { id: string; name: string; code: string; class_id: string | null };
 	class_name: string | null;
@@ -32,15 +41,19 @@ export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 	if (!session?.tenant) redirect(303, '/tenant');
 
 	const scoped = { token: locals.token, tenant: session.tenant.slug, fetch };
-	const [years, arrangement] = await Promise.all([
+	const [years, arrangement, badges, standing] = await Promise.all([
 		api<{ years: Year[]; terms: Term[] }>('/v1/academics/years', scoped),
 		api<{ classes: Klass[]; sections: Section[]; subjects: Subject[] }>(
 			'/v1/academics/classes',
 			scoped
-		)
+		),
+		api<{ badges: Badge[] }>('/v1/badges', scoped),
+		api<{ on: boolean }>('/v1/points/me', scoped)
 	]);
 
 	return {
+		badges: badges.badges ?? [],
+		pointsOn: standing.on,
 		years: years.years ?? [],
 		terms: years.terms ?? [],
 		classes: arrangement.classes ?? [],
@@ -202,6 +215,52 @@ export const actions: Actions = {
 				...scoped(locals, cookies, fetch)
 			});
 			return { saved: true };
+		} catch (cause) {
+			return failed(cause);
+		}
+	},
+
+	points: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		try {
+			await api('/v1/points/setting', {
+				method: 'PUT',
+				body: { on: form.get('on') === 'true' },
+				...scoped(locals, cookies, fetch)
+			});
+			return { saved: true };
+		} catch (cause) {
+			return failed(cause);
+		}
+	},
+
+	addBadge: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		try {
+			await api('/v1/badges', {
+				method: 'POST',
+				body: {
+					name: String(form.get('name') ?? '').trim(),
+					description: String(form.get('description') ?? '').trim(),
+					emoji: String(form.get('emoji') ?? '').trim(),
+					threshold: Number(form.get('threshold') ?? 0)
+				},
+				...scoped(locals, cookies, fetch)
+			});
+			return { saved: true };
+		} catch (cause) {
+			return failed(cause);
+		}
+	},
+
+	removeBadge: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		try {
+			await api(`/v1/badges/${form.get('id')}`, {
+				method: 'DELETE',
+				...scoped(locals, cookies, fetch)
+			});
+			return { removed: true };
 		} catch (cause) {
 			return failed(cause);
 		}

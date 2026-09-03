@@ -3,6 +3,8 @@ import type { Actions, PageServerLoad } from './$types';
 import { api, ApiFailure } from '$lib/server/api';
 import { toMinor, type Outline } from '$lib/api';
 
+export type Topic = { id: string; name: string; slug: string };
+
 export const load: PageServerLoad = async ({ params, locals, parent, fetch }) => {
 	if (!locals.token) redirect(303, '/login');
 	const { session } = await parent();
@@ -11,13 +13,21 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 		error(403, 'Only staff can build a course.');
 	}
 
+	const scopedRead = { token: locals.token, tenant: session.tenant.slug, fetch };
 	try {
-		const outline = await api<Outline>(`/v1/courses/${params.slug}`, {
-			token: locals.token,
-			tenant: session.tenant.slug,
-			fetch
-		});
-		return { outline, slug: params.slug };
+		const outline = await api<Outline>(`/v1/courses/${params.slug}`, scopedRead);
+		const [{ topics }, mine] = await Promise.all([
+			api<{ topics: Topic[] }>('/v1/topics', scopedRead),
+			api<{ topics: Topic[] }>(`/v1/courses/${outline.course.id}/topics`, scopedRead).catch(() => ({
+				topics: [] as Topic[]
+			}))
+		]);
+		return {
+			outline,
+			slug: params.slug,
+			topics: topics ?? [],
+			chosen: (mine.topics ?? []).map((topic) => topic.id)
+		};
 	} catch (cause) {
 		if (cause instanceof ApiFailure && cause.status === 404) {
 			error(404, 'That course does not exist here.');
@@ -46,6 +56,17 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const title = String(form.get('title') ?? '').trim();
 		if (!title) return fail(422, { message: 'The course needs a title.' });
+
+		const call = scoped(locals, cookies, fetch);
+		try {
+			await api(`/v1/courses/${form.get('course_id')}/topics`, {
+				method: 'PUT',
+				body: { topic_ids: form.getAll('topic_ids').map(String) },
+				...call
+			});
+		} catch (cause) {
+			return failed(cause);
+		}
 
 		try {
 			await api(`/v1/courses/${form.get('course_id')}`, {

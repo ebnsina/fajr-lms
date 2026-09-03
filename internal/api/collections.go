@@ -73,6 +73,24 @@ func (s *Server) deleteTopic(w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
+// courseTopics is what one course is filed under.
+func (s *Server) courseTopics(w http.ResponseWriter, r *http.Request) error {
+	courseID, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var topics []database.Topic
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		topics, err = q.TopicsOfCourse(r.Context(), courseID)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{"topics": topics})
+}
+
 type courseTopicsRequest struct {
 	TopicIDs []string `json:"topic_ids"`
 }

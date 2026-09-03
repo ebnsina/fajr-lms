@@ -213,6 +213,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/topics", inTenant(httpx.Handler(s.listTopics)))
 	mux.Handle("POST /v1/topics", teaches(s.createTopic))
 	mux.Handle("DELETE /v1/topics/{id}", teaches(s.deleteTopic))
+	mux.Handle("GET /v1/courses/{id}/topics", inTenant(httpx.Handler(s.courseTopics)))
 	mux.Handle("PUT /v1/courses/{id}/topics", teaches(s.setCourseTopics))
 
 	mux.Handle("GET /v1/collections", inTenant(httpx.Handler(s.listCollections)))
