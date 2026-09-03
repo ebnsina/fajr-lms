@@ -32,6 +32,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- The app installs to a phone's home screen and survives a dropped connection:
+  the shell is cached, and a page that cannot load says so instead of showing a
+  browser error. Signed-in pages are never cached, so a shared phone does not
+  show one learner's work to the next.
+- The favicon existed in the markup but not in the app; it does now.
 - A school's site is now served on its own domain: the Website page takes the
   domain, shows the record to publish, and checks it. Once the record is there,
   the site answers at the root of that domain.
