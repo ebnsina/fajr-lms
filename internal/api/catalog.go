@@ -595,6 +595,28 @@ func pgErrCode(err error) string {
 	return ""
 }
 
+// oneLesson reads a single lesson, which authoring tools need without walking
+// the whole course.
+func (s *Server) oneLesson(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var lesson database.Lesson
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		lesson, err = q.GetLesson(r.Context(), id)
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, lesson)
+}
+
 type updateLessonRequest struct {
 	Title     *string `json:"title"`
 	Body      *string `json:"body"`

@@ -24,6 +24,13 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.39.0",
-		"gsap": "^3.15.0"
+		"@tanstack/ai": "^0.52.2",
+		"@tanstack/ai-anthropic": "^0.18.4",
+		"@tanstack/ai-gemini": "^0.28.0",
+		"@tanstack/ai-ollama": "^0.10.3",
+		"@tanstack/ai-openai": "^0.22.3",
+		"@tanstack/ai-svelte": "^0.20.0",
+		"gsap": "^3.15.0",
+		"zod": "^4.5.4"
 	}
 }

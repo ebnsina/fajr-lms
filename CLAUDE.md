@@ -59,3 +59,10 @@ codebase. Work that is planned is written as planned, in as many words.
 
 Anything that is Fajr AI is marked with the fluid orb (`$lib/components/FluidOrb.svelte`),
 sized to the icons around it. Never a sparkles or wand icon.
+
+AI lives in the web app, through TanStack AI (`web/src/lib/server/ai.ts`), never
+in the Go API. The provider is a setting, not a decision in the code: Anthropic,
+OpenAI, Gemini or Ollama, chosen by `FAJR_AI_PROVIDER` with the key and model
+beside it. With nothing configured, every surface says
+"Fajr AI is not configured" rather than failing — the wording lives in one
+constant. The key never reaches the browser.

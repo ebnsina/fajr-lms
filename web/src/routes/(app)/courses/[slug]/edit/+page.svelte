@@ -9,6 +9,7 @@
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import MediaUpload from '$lib/components/MediaUpload.svelte';
 	import { toMajor } from '$lib/api';
+	import AiWriter from '$lib/components/AiWriter.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -16,6 +17,8 @@
 	let openModule = $state<string | null>(null);
 	let addingModule = $state(false);
 	let editingCourse = $state(false);
+	// The body of the lesson being added, held here so Fajr AI can write into it.
+	let newBody = $state('');
 	let renamingModule = $state<string | null>(null);
 	let uploadingTo = $state<string | null>(null);
 
@@ -122,6 +125,12 @@
 				Summary <span class="font-normal text-ink-soft">· a line for the catalog</span>
 			</label>
 			<input class="field" id="course-summary" name="summary" bind:value={settings.summary} dir="auto" />
+			<AiWriter
+				what="Write a one-line summary of this course, for people deciding whether to take it"
+				context={`Course: ${course.title}`}
+				enabled={data.ai}
+				onText={(text) => (settings.summary = text.trim())}
+			/>
 		</div>
 		<div>
 			<label class="mb-1.5 block text-sm font-medium" for="course-price">
@@ -454,8 +463,19 @@
 							<label class="mb-1.5 block text-sm font-medium" for="body-{module.id}">
 								What the learner reads
 							</label>
-							<textarea class="field h-32 py-2" id="body-{module.id}" name="body" dir="auto"
+							<textarea
+								class="field h-32 py-2"
+								id="body-{module.id}"
+								name="body"
+								bind:value={newBody}
+								dir="auto"
 							></textarea>
+							<AiWriter
+								what="Write what a learner reads in this lesson"
+								context={`Course: ${course.title}. Section: ${module.title}.`}
+								enabled={data.ai}
+								onText={(text) => (newBody = text)}
+							/>
 						</div>
 					{/if}
 

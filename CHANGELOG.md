@@ -49,10 +49,12 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the bank details and reference, and tell the office what they paid.
 - Money is now formatted and read by the currency's own subunit, so a dinar's
   three decimal places and a yen's none are right instead of assumed to be two.
-- Fajr AI drafts quiz questions from a lesson a teacher has written. The draft
-  is offered on the lesson's page and nothing is saved until the teacher adds a
-  question; anything that could not be graded is dropped before it is shown.
-  Off unless a key is configured, and nothing leaves the server without it.
+- Fajr AI. It drafts quiz questions from a lesson a teacher has written, and
+  writes a first draft of a course summary or a lesson's text, streaming as it
+  goes. Nothing is saved until the teacher accepts it, and a drafted question
+  that could not be graded is dropped before it is shown. The provider is a
+  setting — Anthropic, OpenAI, Gemini, or Ollama on the school's own machine —
+  and with none configured every AI surface says so plainly instead of failing.
 - An answer written while the connection is gone is kept on the device and sent
   when it returns. The paper says how many are waiting.
 - A quiz being sat now shows the paper that attempt was served rather than the

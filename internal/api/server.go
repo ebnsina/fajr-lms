@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 
-	"github.com/ebnsina/fajr-lms/internal/ai"
 	"github.com/ebnsina/fajr-lms/internal/database"
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 	"github.com/ebnsina/fajr-lms/internal/identity"
@@ -22,7 +21,6 @@ type Server struct {
 	notifier  *notify.Service
 	publicURL string
 	dns       DNSLookup
-	ai        ai.Drafter
 	sso       *sso.Client
 }
 
@@ -33,15 +31,12 @@ func (s *Server) UseNotifier(n *notify.Service) { s.notifier = n }
 func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry,
 	payments *payment.Registry, publicURL string) *Server {
 	return &Server{store: store, identity: ident, media: registry, payments: payments,
-		publicURL: publicURL, dns: netLookup{}, ai: ai.Off{}, sso: &sso.Client{}}
+		publicURL: publicURL, dns: netLookup{}, sso: &sso.Client{}}
 }
 
 // UseSSO replaces the OpenID client, which a test needs to trust its own
 // provider.
 func (s *Server) UseSSO(client *sso.Client) { s.sso = client }
-
-// UseAI replaces the model that drafts teaching material.
-func (s *Server) UseAI(drafter ai.Drafter) { s.ai = drafter }
 
 // Routes returns the full API surface, health probes included.
 func (s *Server) Routes() http.Handler {
@@ -91,6 +86,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("PATCH /v1/modules/{id}", teaches(s.updateModule))
 	mux.Handle("PUT /v1/modules/{id}/position", teaches(s.moveModule))
 	mux.Handle("DELETE /v1/modules/{id}", teaches(s.deleteModule))
+	mux.Handle("GET /v1/lessons/{id}", teaches(s.oneLesson))
 	mux.Handle("PATCH /v1/lessons/{id}", teaches(s.updateLesson))
 	mux.Handle("PUT /v1/lessons/{id}/position", teaches(s.moveLesson))
 	mux.Handle("DELETE /v1/lessons/{id}", teaches(s.deleteLesson))
@@ -174,7 +170,6 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/coupons", money(s.createCoupon))
 	mux.Handle("PUT /v1/coupons/{id}/active", money(s.setCouponActive))
 	mux.Handle("DELETE /v1/coupons/{id}", money(s.deleteCoupon))
-	mux.Handle("POST /v1/lessons/{id}/quiz/draft", teaches(s.draftQuestions))
 	mux.Handle("POST /v1/lessons/{id}/scorm", teaches(s.uploadPackage))
 	mux.Handle("DELETE /v1/lessons/{id}/scorm", teaches(s.deletePackage))
 	mux.Handle("GET /v1/lessons/{id}/scorm/progress", teaches(s.listPackageProgress))

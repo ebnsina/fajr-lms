@@ -186,19 +186,6 @@ export const actions: Actions = {
 		return { added: true };
 	},
 
-	// A draft is offered, never saved. The teacher adds the ones they want.
-	draft: async ({ params, locals, cookies, fetch }) => {
-		try {
-			const { questions } = await api<{ questions: DraftQuestion[] }>(
-				`/v1/lessons/${params.lessonId}/quiz/draft`,
-				{ method: 'POST', ...scoped(locals, cookies, fetch) }
-			);
-			return { drafted: questions };
-		} catch (cause) {
-			return failed(cause);
-		}
-	},
-
 	acceptDraft: async ({ request, locals, cookies, fetch }) => {
 		const form = await request.formData();
 		const draft = String(form.get('question') ?? '');

@@ -21,7 +21,6 @@ type Config struct {
 	SMS             SMSConfig
 	SSLCommerz      SSLCommerzConfig
 	BKash           BKashConfig
-	AI              AIConfig
 	PublicURL       string
 	ShutdownTimeout time.Duration
 }
@@ -46,11 +45,6 @@ func Load() (Config, error) {
 				c.MediaHosts = append(c.MediaHosts, h)
 			}
 		}
-	}
-
-	c.AI = AIConfig{
-		Key:   env("FAJR_ANTHROPIC_API_KEY", ""),
-		Model: env("FAJR_AI_MODEL", "claude-sonnet-5"),
 	}
 
 	c.S3 = S3Config{
@@ -139,14 +133,6 @@ func Load() (Config, error) {
 
 // S3Config is optional: without an endpoint the file provider is not registered
 // and the API runs on embeds alone.
-// AIConfig switches on the drafting help. Left empty, nothing is sent anywhere.
-type AIConfig struct {
-	Key   string
-	Model string
-}
-
-func (a AIConfig) Enabled() bool { return a.Key != "" }
-
 type S3Config struct {
 	Endpoint  string
 	Bucket    string

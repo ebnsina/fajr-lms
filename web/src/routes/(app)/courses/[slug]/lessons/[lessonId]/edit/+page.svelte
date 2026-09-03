@@ -67,25 +67,41 @@
 	let drafted = $state<DraftQuestion[]>([]);
 	let busy = $state(false);
 
+	let draftProblem = $state('');
+
 	// The draft is held on the page, not written to the quiz: the teacher adds
 	// the ones they want and the rest are forgotten.
-	function drafting() {
+	async function draftQuestions() {
 		busy = true;
-		return async ({
-			result,
-			update
-		}: {
-			result: { type: string; data?: Record<string, unknown> };
-			update: (o?: { reset?: boolean }) => Promise<void>;
-		}) => {
-			busy = false;
-			if (result.type === 'success' && result.data?.drafted) {
-				drafted = result.data.drafted as DraftQuestion[];
+		draftProblem = '';
+		try {
+			const response = await fetch('/ai/draft', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ lesson_id: data.lesson.id, count: 5 })
+			});
+			if (!response.ok) {
+				draftProblem = await refusal(response);
 				return;
 			}
-			// Anything else is a refusal worth reading, so let it through.
-			await update({ reset: false });
-		};
+			const answer = (await response.json()) as { questions: DraftQuestion[] };
+			drafted = answer.questions;
+		} catch {
+			draftProblem = 'Fajr AI could not be reached. Check your connection.';
+		} finally {
+			busy = false;
+		}
+	}
+
+	// SvelteKit sends its own errors as HTML when asked for a page, so read the
+	// message out of the JSON body and fall back to the status.
+	async function refusal(response: Response): Promise<string> {
+		try {
+			const body = await response.json();
+			return body?.message ?? 'Fajr AI refused that request.';
+		} catch {
+			return 'Fajr AI refused that request.';
+		}
 	}
 
 	let kind = $state('mcq_single');
@@ -221,12 +237,14 @@
 					Fajr AI can read this lesson and suggest questions on it. Nothing is added until you
 					say so, and you can change any of it.
 				</p>
-				<form method="POST" action="?/draft" use:enhance={drafting}>
-					<button class="btn btn-sm" type="submit" disabled={busy}>
-						{busy ? 'Reading the lesson…' : 'Draft questions'}
-					</button>
-				</form>
+				<button class="btn btn-sm" type="button" onclick={draftQuestions} disabled={busy}>
+					{busy ? 'Reading the lesson…' : 'Draft questions'}
+				</button>
 			</div>
+
+			{#if draftProblem}
+				<p class="banner-bad mt-4 text-sm" role="alert">{draftProblem}</p>
+			{/if}
 
 			{#if drafted.length > 0}
 				<ul class="mt-4 flex list-none flex-col gap-3 p-0">

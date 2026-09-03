@@ -1,5 +1,6 @@
 import type { LayoutServerLoad } from './$types';
 import { api } from '$lib/server/api';
+import { aiEnabled } from '$lib/server/ai';
 
 type TenantSummary = {
 	id: string;
@@ -25,7 +26,8 @@ export const load: LayoutServerLoad = async ({ locals, parent, fetch }) => {
 		return {
 			recentNotifications: [] as NotificationSummary[],
 			unread: 0,
-			schools: [] as TenantSummary[]
+			schools: [] as TenantSummary[],
+			ai: aiEnabled()
 		};
 	}
 
@@ -51,12 +53,13 @@ export const load: LayoutServerLoad = async ({ locals, parent, fetch }) => {
 			tenant: session.tenant.slug,
 			fetch
 		});
-		return { recentNotifications: notifications, unread, schools };
+		return { recentNotifications: notifications, unread, schools, ai: aiEnabled() };
 	} catch {
 		return {
 			recentNotifications: [] as NotificationSummary[],
 			unread: 0,
-			schools: [] as TenantSummary[]
+			schools: [] as TenantSummary[],
+			ai: aiEnabled()
 		};
 	}
 };
