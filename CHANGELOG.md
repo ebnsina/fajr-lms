@@ -32,6 +32,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- Course packages built elsewhere. A SCORM 1.2 zip from a publisher uploads
+  onto a lesson, plays inside it, and what it reports comes back as progress and
+  as a mark a teacher can change. Packages that could not be served safely are
+  refused on the way in.
 - Signing in with a school account. A school points Fajr at its Google
   Workspace, Microsoft Entra or any OpenID Connect provider, and people sign in
   with the account they already have instead of waiting for a code. The school

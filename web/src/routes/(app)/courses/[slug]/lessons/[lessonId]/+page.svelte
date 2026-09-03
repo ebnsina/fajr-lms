@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import ScormPlayer from '$lib/components/ScormPlayer.svelte';
 	import MediaPlayer from '$lib/components/MediaPlayer.svelte';
 	import { dirOf, duration, meta } from '$lib/api';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -48,6 +50,17 @@
 	<article class="card mb-5 max-w-prose whitespace-pre-wrap" dir={dirOf(data.lesson.dir)}>
 		{data.lesson.body}
 	</article>
+{/if}
+
+{#if data.scorm}
+	<div class="mb-5">
+		<ScormPlayer
+			base="/courses/{data.course.slug}/lessons/{data.lesson.id}/scorm"
+			entry={data.scorm.package.entry_href}
+			progress={data.scorm.state}
+			onSaved={() => invalidateAll()}
+		/>
+	</div>
 {/if}
 
 {#if data.lesson.kind === 'quiz'}

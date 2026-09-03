@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash from '@lucide/svelte/icons/trash-2';
 	import FluidOrb from '$lib/components/FluidOrb.svelte';
+	import Package from '@lucide/svelte/icons/package';
 	import type { PageProps } from './$types';
 	import type { DraftQuestion } from './+page.server';
 
@@ -17,6 +19,50 @@
 	];
 	const kindName = (kind: string) => kinds.find((k) => k.value === kind)?.label ?? kind;
 	const needsOptions = (kind: string) => kind === 'mcq_single' || kind === 'mcq_multi';
+
+	// An absolute path: a relative one would resolve against the lesson, not
+	// this editor.
+	const packageEndpoint = $derived(
+		`/courses/${data.slug}/lessons/${data.lesson.id}/edit/scorm`
+	);
+	let uploading = $state(false);
+	let uploadProblem = $state('');
+
+	// The zip is posted straight to the server; nothing is kept in the page.
+	async function sendPackage(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+
+		uploading = true;
+		uploadProblem = '';
+		try {
+			const body = new FormData();
+			body.set('file', file);
+			const response = await fetch(packageEndpoint, { method: 'POST', body });
+			if (!response.ok) {
+				const answer = await response.json().catch(() => null);
+				uploadProblem = answer?.error?.message ?? 'That package could not be read.';
+				return;
+			}
+			await invalidateAll();
+		} catch {
+			uploadProblem = 'The package could not be sent. Check your connection.';
+		} finally {
+			uploading = false;
+			input.value = '';
+		}
+	}
+
+	async function removePackage() {
+		uploading = true;
+		try {
+			await fetch(packageEndpoint, { method: 'DELETE' });
+			await invalidateAll();
+		} finally {
+			uploading = false;
+		}
+	}
 
 	let drafted = $state<DraftQuestion[]>([]);
 	let busy = $state(false);
@@ -456,3 +502,35 @@
 		</p>
 	</div>
 {/if}
+
+<section class="card mt-6">
+	<div class="flex flex-wrap items-center gap-3">
+		<Package class="text-ink-soft" size={18} aria-hidden="true" />
+		<div class="min-w-56 flex-1">
+			<h2 class="mb-0.5 text-base font-semibold" dir="auto">A package from elsewhere</h2>
+			<p class="mb-0 text-sm text-ink-soft" dir="auto">
+				{#if data.scorm}
+					{data.scorm.title} · {data.scorm.file_count} files · starts at
+					<span class="font-mono">{data.scorm.entry_href}</span>
+					{#if data.scorm.mastery !== null}· passes at {data.scorm.mastery}%{/if}
+				{:else}
+					A SCORM 1.2 zip from a publisher plays inside the lesson, and what it reports comes
+					back as progress and a mark.
+				{/if}
+			</p>
+		</div>
+		{#if data.scorm}
+			<button class="btn btn-sm btn-quiet" type="button" onclick={removePackage} disabled={uploading}>
+				Remove
+			</button>
+		{/if}
+		<label class="btn btn-sm" class:opacity-60={uploading}>
+			{uploading ? 'Reading…' : data.scorm ? 'Replace' : 'Upload a package'}
+			<input class="sr-only" type="file" accept=".zip,application/zip" onchange={sendPackage} />
+		</label>
+	</div>
+
+	{#if uploadProblem}
+		<p class="banner-bad mt-4 text-sm" role="alert">{uploadProblem}</p>
+	{/if}
+</section>

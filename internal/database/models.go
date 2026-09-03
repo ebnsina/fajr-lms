@@ -1376,6 +1376,40 @@ type QuizAttempt struct {
 	PointsPossible int32              `json:"points_possible"`
 }
 
+type ScormFile struct {
+	PackageID   uuid.UUID `json:"package_id"`
+	Path        string    `json:"path"`
+	ContentType string    `json:"content_type"`
+	Body        []byte    `json:"body"`
+}
+
+type ScormPackage struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	LessonID    uuid.UUID          `json:"lesson_id"`
+	Title       string             `json:"title"`
+	EntryHref   string             `json:"entry_href"`
+	Version     string             `json:"version"`
+	Mastery     *int16             `json:"mastery"`
+	FileCount   int32              `json:"file_count"`
+	Bytes       int64              `json:"bytes"`
+	GradeItemID uuid.NullUUID      `json:"grade_item_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type ScormState struct {
+	PackageID    uuid.UUID          `json:"package_id"`
+	UserID       uuid.UUID          `json:"user_id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	Cmi          []byte             `json:"cmi"`
+	LessonStatus string             `json:"lesson_status"`
+	ScoreRaw     pgtype.Numeric     `json:"score_raw"`
+	SuspendData  string             `json:"suspend_data"`
+	Location     string             `json:"location"`
+	TotalTimeS   int32              `json:"total_time_s"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Session struct {
 	ID         uuid.UUID          `json:"id"`
 	UserID     uuid.UUID          `json:"user_id"`

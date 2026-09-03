@@ -89,7 +89,19 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 		}
 	}
 
-	return { lesson, quiz, questions, assignment, slug: params.slug };
+	// A package already attached, so the editor can say so and offer to replace it.
+	let scorm: ScormPackage | null = null;
+	try {
+		const found = await api<{ package: ScormPackage }>(
+			`/v1/lessons/${params.lessonId}/scorm`,
+			scoped
+		);
+		scorm = found.package;
+	} catch (cause) {
+		if (!(cause instanceof ApiFailure && cause.status === 404)) throw cause;
+	}
+
+	return { lesson, quiz, questions, assignment, scorm, slug: params.slug };
 };
 
 const scoped = (
@@ -105,6 +117,15 @@ const scoped = (
 const failed = (cause: unknown) => {
 	if (cause instanceof ApiFailure) return fail(cause.status, { message: cause.error.message });
 	throw cause;
+};
+
+export type ScormPackage = {
+	title: string;
+	entry_href: string;
+	version: string;
+	file_count: number;
+	bytes: number;
+	mastery: number | null;
 };
 
 export const actions: Actions = {

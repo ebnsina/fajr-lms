@@ -3,6 +3,17 @@ import type { Actions, PageServerLoad } from './$types';
 import { api, ApiFailure } from '$lib/server/api';
 import type { CourseProgress, Lesson, Outline, Playback } from '$lib/api';
 
+type ScormLesson = {
+	package: { title: string; entry_href: string; version: string; mastery: number | null };
+	state: {
+		lesson_status: string;
+		suspend_data: string;
+		location: string;
+		total_time_s: number;
+		score_raw: string | number | null;
+	};
+};
+
 export const load: PageServerLoad = async ({ params, locals, parent, fetch }) => {
 	if (!locals.token) redirect(303, '/login');
 	const { session } = await parent();
@@ -39,11 +50,20 @@ export const load: PageServerLoad = async ({ params, locals, parent, fetch }) =>
 		}
 	}
 
+	// A lesson may be a package built elsewhere; most are not.
+	let scorm: ScormLesson | null = null;
+	try {
+		scorm = await api<ScormLesson>(`/v1/lessons/${lesson.id}/scorm`, scoped);
+	} catch {
+		scorm = null;
+	}
+
 	const mine = progress?.lessons.find((row) => row.lesson_id === lesson.id);
 	return {
 		course: outline.course,
 		lesson,
 		playback,
+		scorm,
 		enrolled: progress !== null,
 		state: mine?.state ?? null,
 		resumeAt: mine?.position_s ?? 0,
