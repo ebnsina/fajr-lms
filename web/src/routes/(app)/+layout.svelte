@@ -43,7 +43,7 @@
 		class:max-lg:rtl:translate-x-full={!open}
 	>
 		<div class="flex h-16 shrink-0 items-center gap-2.5 px-4">
-			<Logo size={28} />
+			<Logo size={34} />
 			<span class="text-[0.95rem] font-semibold tracking-tight">Fajr LMS</span>
 		</div>
 

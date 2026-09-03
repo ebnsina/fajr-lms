@@ -12,15 +12,15 @@
 	const HORIZON = '#57c7dd';
 	const SUN = '#ffd27a';
 
-	// The sun rises from the bottom right, off the tile's diagonal, so the mark
-	// is never a circle sitting squarely in a square.
-	const SUN_AT = { x: 37, y: 42, r: 15 };
+	// Where the fā's dot would sit. Arabic writing puts it exactly where a
+	// rising sun belongs, so the sun takes its place.
+	const SUN_AT = { x: 29.09, y: 10.56, r: 1.72 };
 
-	// Fā', the first letter of فجر, drawn as an outline taken from Jomhuria
-	// (SIL OFL) rather than set as text: a mark cannot depend on the reader
-	// having an Arabic face installed.
-	const FA =
-		'M25.59 11.18H26.12L28.56 8.83V8.33L26.12 6.00H25.59L23.25 8.33V8.83ZM11.24 34.00H27.99Q28.90 34.00 29.63 33.69Q30.36 33.38 30.81 32.89Q31.26 32.40 31.58 31.75Q31.89 31.10 32.01 30.48Q32.14 29.85 32.14 29.23V19.92Q32.14 16.88 30.40 14.90Q28.67 12.92 26.07 12.92Q23.40 12.92 22.19 14.33Q20.98 15.74 20.98 18.03V21.98Q20.98 23.44 22.12 24.37Q22.95 25.05 24.02 25.05H28.42Q28.67 25.05 28.84 25.22Q29.02 25.38 29.02 25.63Q29.02 25.88 28.84 26.06Q28.67 26.24 28.42 26.24H11.49Q9.69 26.24 9.58 24.83Q9.58 24.74 9.58 24.65Q9.58 23.94 9.98 23.28Q10.38 22.63 10.78 22.32L11.19 22.02L9.28 20.56Q8.57 20.95 8.00 21.52Q7.43 22.09 7.08 22.66Q6.74 23.23 6.48 23.92Q6.22 24.60 6.10 25.08Q5.99 25.56 5.93 26.11Q5.86 26.65 5.86 26.79Q5.86 26.93 5.86 27.06V28.62Q5.86 30.85 7.44 32.42Q9.01 34.00 11.24 34.00ZM23.24 17.89Q23.24 16.32 24.68 16.32Q25.12 16.32 25.68 16.64Q26.24 16.95 26.74 17.38Q27.24 17.82 27.68 18.26Q28.11 18.69 28.36 19.01L28.61 19.31H24.91Q24.32 19.31 23.78 18.96Q23.24 18.60 23.24 17.89Z';
+	// فجر in Gulzar, shaped and joined, as an outline: a mark cannot depend on
+	// the reader having an Arabic face installed. The word is drawn without the
+	// dot above its fā', because the sun stands in for that dot.
+	const WORD =
+		'M17.11 35.00 17.06 34.71Q17.87 34.28 18.56 33.70Q19.24 33.11 19.70 32.60Q20.16 32.09 20.31 31.90Q20.79 31.30 21.27 30.51Q21.74 29.72 22.21 28.91Q22.68 28.10 23.13 27.43Q23.58 26.75 23.99 26.38Q24.25 26.29 24.55 26.55Q24.84 26.80 25.00 27.04Q24.45 27.40 24.06 27.81Q23.67 28.22 23.31 28.75Q22.95 29.28 22.55 29.97Q22.15 30.66 21.59 31.56Q21.37 31.92 20.98 32.44Q20.58 32.96 20.01 33.49Q19.44 34.03 18.72 34.44Q17.99 34.85 17.11 35.00ZM26.68 33.81Q26.62 33.81 26.54 33.80Q26.46 33.79 26.38 33.77Q25.70 33.59 25.36 33.20Q25.03 32.82 25.03 32.46Q25.03 32.15 25.19 31.91Q25.35 31.66 25.47 31.51L26.10 30.69H26.19Q26.44 31.13 26.80 31.40Q27.16 31.68 27.72 31.80Q28.03 31.85 28.03 32.05Q28.03 32.17 27.89 32.36L27.04 33.60Q26.96 33.72 26.88 33.76Q26.80 33.81 26.68 33.81ZM22.37 28.80Q22.85 27.83 23.22 27.26Q23.58 26.69 23.96 26.37Q24.33 26.06 24.81 25.87Q25.29 25.68 25.97 25.48Q26.29 25.37 26.76 25.23Q27.23 25.08 27.69 24.90Q28.15 24.73 28.46 24.52Q28.76 24.32 28.78 24.11Q28.30 23.96 27.60 23.89Q26.90 23.82 26.18 23.83Q25.46 23.84 24.88 23.94Q24.86 23.45 25.01 23.19Q25.17 22.94 25.42 22.82Q26.14 22.60 27.28 22.54Q28.42 22.48 29.56 22.61Q29.87 22.65 29.96 22.78Q30.06 22.92 30.03 23.07Q30.01 23.23 29.97 23.36Q29.92 23.53 29.75 23.85Q29.58 24.16 29.35 24.51Q29.12 24.86 28.89 25.18Q28.66 25.49 28.49 25.66Q27.81 26.34 27.08 26.67Q26.36 26.99 25.66 27.20Q25.00 27.40 24.43 27.68Q23.86 27.96 23.41 28.64ZM24.88 23.94Q24.76 23.87 24.76 23.69Q24.76 23.19 25.09 22.60Q25.42 22.00 26.10 21.45Q26.65 21.03 27.39 20.66Q28.13 20.30 29.07 19.84Q29.51 19.61 29.83 19.38Q30.14 19.14 30.14 18.92Q30.14 18.68 29.94 18.49Q29.72 18.69 29.44 18.77Q29.15 18.85 28.90 18.85Q28.39 18.85 28.03 18.53Q27.67 18.22 27.67 17.52L28.59 14.91Q28.69 14.83 28.92 14.72Q29.14 14.62 29.41 14.62Q29.94 14.62 30.28 15.01Q30.62 15.41 30.78 15.99Q30.94 16.58 30.94 17.20Q30.94 18.49 30.49 19.39Q30.04 20.30 29.36 20.76Q28.93 21.03 28.33 21.28Q27.72 21.54 27.18 21.81Q26.56 22.10 25.93 22.55Q25.29 23.01 24.88 23.94Z';
 
 	// The squircle the orb draws in its shader, |x|^4 + |y|^4 = 1, fitted to four
 	// cubics: each handle lands at 0.919 of the half width.
@@ -222,21 +222,30 @@
 			<!-- The sun has no rim: a bloom that fades out into the sky. -->
 			<radialGradient id="fajr-sun-{uid}" cx="0.5" cy="0.5" r="0.5">
 				<stop offset="0" stop-color={SUN} stop-opacity="1" />
-				<stop offset="0.4" stop-color={SUN} stop-opacity="0.94" />
-				<stop offset="0.7" stop-color={SUN} stop-opacity="0.34" />
+				<stop offset="0.34" stop-color={SUN} stop-opacity="0.95" />
+				<stop offset="0.62" stop-color={SUN} stop-opacity="0.42" />
 				<stop offset="1" stop-color={SUN} stop-opacity="0" />
 			</radialGradient>
 		</defs>
 		<path d={TILE} fill="url(#fajr-sky-{uid})" />
 		<clipPath id="fajr-tile-{uid}"><path d={TILE} /></clipPath>
 		<g clip-path="url(#fajr-tile-{uid})">
-			<circle cx={SUN_AT.x} cy={SUN_AT.y} r={SUN_AT.r * 1.6} fill="url(#fajr-sun-{uid})" />
+			<circle cx={SUN_AT.x} cy={SUN_AT.y} r={SUN_AT.r * 2.4} fill="url(#fajr-sun-{uid})" />
 		</g>
 	</svg>
 	<canvas bind:this={canvas} class:live></canvas>
-	<!-- The letter rides above the sky, whether the sky is drawn or painted. -->
+	<!-- The word rides above the sky, whether the sky is drawn or painted. -->
 	<svg class="letter" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-		<path d={FA} fill="#fdf6e6" fill-opacity="0.96" />
+		<path
+			d={WORD}
+			fill="#fdf6e6"
+			fill-opacity="0.97"
+			stroke="#fdf6e6"
+			stroke-opacity="0.97"
+			stroke-width="0.55"
+			stroke-linejoin="round"
+			stroke-linecap="round"
+		/>
 	</svg>
 </div>
 
