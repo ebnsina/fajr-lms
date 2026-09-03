@@ -32,6 +32,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- Invite somebody to your school by phone number or email address, set what
+  they may do, change it later, or remove them. The last owner cannot be
+  removed or demoted, so a school is never left without one.
+- Edit a course after making it: its title, summary, fee and who may see it.
+- Rename, reorder and delete the sections of a course, not only its lessons.
 - Take a roll call: pick a class, mark everyone present, late, absent or
   excused, and marking somebody absent tells them and anyone listed as their
   guardian.

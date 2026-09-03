@@ -3,6 +3,8 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash from '@lucide/svelte/icons/trash-2';
 	import Eye from '@lucide/svelte/icons/eye';
+	import Settings from '@lucide/svelte/icons/settings';
+	import Pencil from '@lucide/svelte/icons/pencil';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import type { PageProps } from './$types';
@@ -11,6 +13,20 @@
 
 	let openModule = $state<string | null>(null);
 	let addingModule = $state(false);
+	let editingCourse = $state(false);
+	let renamingModule = $state<string | null>(null);
+
+	// An input keeps whatever it was created with, so the settings are held in
+	// state and resynced when the page reloads after a save.
+	let settings = $state({ title: '', summary: '', price: 0, visibility: 'private' });
+	$effect(() => {
+		settings = {
+			title: data.outline.course.title,
+			summary: data.outline.course.summary,
+			price: data.outline.course.price_minor / 100,
+			visibility: data.outline.course.visibility
+		};
+	});
 
 	const course = $derived(data.outline.course);
 	const published = $derived(course.status === 'published');
@@ -51,6 +67,13 @@
 		</p>
 	</div>
 	<div class="flex items-center gap-2">
+		<button
+			class="btn btn-sm btn-quiet"
+			type="button"
+			onclick={() => (editingCourse = !editingCourse)}
+		>
+			<Settings size={16} aria-hidden="true" /> Settings
+		</button>
 		<a class="btn btn-sm btn-quiet" href="/courses/{data.slug}">
 			<Eye size={16} aria-hidden="true" /> View
 		</a>
@@ -68,18 +91,169 @@
 	<p class="banner banner-bad mb-4" role="alert">{form.message}</p>
 {/if}
 
+{#if editingCourse}
+	<form class="card mb-6 grid gap-4 sm:grid-cols-2" method="POST" action="?/saveCourse" use:enhance>
+		<input type="hidden" name="course_id" value={course.id} />
+		<div class="sm:col-span-2">
+			<label class="mb-1.5 block text-sm font-medium" for="course-title">Title</label>
+			<input
+				class="field"
+				id="course-title"
+				name="title"
+				bind:value={settings.title}
+				dir="auto"
+				required
+			/>
+		</div>
+		<div class="sm:col-span-2">
+			<label class="mb-1.5 block text-sm font-medium" for="course-summary">
+				Summary <span class="font-normal text-ink-soft">· a line for the catalog</span>
+			</label>
+			<input class="field" id="course-summary" name="summary" bind:value={settings.summary} dir="auto" />
+		</div>
+		<div>
+			<label class="mb-1.5 block text-sm font-medium" for="course-price">
+				Fee <span class="font-normal text-ink-soft">· 0 is free</span>
+			</label>
+			<input
+				class="field font-mono"
+				id="course-price"
+				name="price"
+				type="number"
+				min="0"
+				step="1"
+				bind:value={settings.price}
+				dir="ltr"
+			/>
+		</div>
+		<div>
+			<span class="mb-1.5 block text-sm font-medium">Who may see it</span>
+			<div class="flex flex-wrap gap-4 py-2.5">
+				<label class="flex items-center gap-2 text-sm">
+					<input
+						class="choice choice-round"
+						type="radio"
+						name="visibility"
+						value="private"
+						bind:group={settings.visibility}
+					/>
+					Only this school
+				</label>
+				<label class="flex items-center gap-2 text-sm">
+					<input
+						class="choice choice-round"
+						type="radio"
+						name="visibility"
+						value="public"
+						bind:group={settings.visibility}
+					/>
+					Anyone
+				</label>
+			</div>
+		</div>
+		<div class="flex justify-end sm:col-span-2">
+			<button class="btn" type="submit">Save the course</button>
+		</div>
+	</form>
+{/if}
+
 <div class="flex flex-col gap-4">
-	{#each data.outline.modules as module (module.id)}
+	{#each data.outline.modules as module, moduleIndex (module.id)}
 		<section class="card">
 			<header class="mb-4 flex flex-wrap items-center justify-between gap-2">
-				<h2 class="mb-0 text-lg font-medium" dir="auto">{module.title}</h2>
-				<button
-					class="btn btn-sm btn-quiet"
-					type="button"
-					onclick={() => (openModule = openModule === module.id ? null : module.id)}
-				>
-					<Plus size={16} aria-hidden="true" /> Add a lesson
-				</button>
+				{#if renamingModule === module.id}
+					<form
+						class="flex flex-1 flex-wrap items-center gap-2"
+						method="POST"
+						action="?/renameModule"
+						use:enhance={() => async ({ update }) => {
+							renamingModule = null;
+							await update();
+						}}
+					>
+						<input type="hidden" name="module_id" value={module.id} />
+						<input
+							class="field field-sm min-w-48 flex-1"
+							name="title"
+							value={module.title}
+							aria-label="Section name"
+							dir="auto"
+						/>
+						<button class="btn btn-sm" type="submit">Save</button>
+						<button
+							class="btn btn-sm btn-quiet"
+							type="button"
+							onclick={() => (renamingModule = null)}
+						>
+							Cancel
+						</button>
+					</form>
+				{:else}
+					<h2 class="mb-0 text-lg font-medium" dir="auto">{module.title}</h2>
+					<div class="flex flex-wrap items-center gap-2">
+						<button
+							class="btn btn-sm btn-quiet"
+							type="button"
+							onclick={() => (renamingModule = module.id)}
+							aria-label="Rename {module.title}"
+						>
+							<Pencil size={16} aria-hidden="true" />
+						</button>
+						<form method="POST" action="?/moveModule" use:enhance>
+							<input type="hidden" name="module_id" value={module.id} />
+							<input
+								type="hidden"
+								name="position"
+								value={moduleIndex > 0
+									? between(data.outline.modules, moduleIndex, moduleIndex - 1)
+									: 0}
+							/>
+							<button
+								class="btn btn-sm btn-quiet"
+								type="submit"
+								disabled={moduleIndex === 0}
+								aria-label="Move {module.title} up"
+							>
+								<ArrowUp size={16} aria-hidden="true" />
+							</button>
+						</form>
+						<form method="POST" action="?/moveModule" use:enhance>
+							<input type="hidden" name="module_id" value={module.id} />
+							<input
+								type="hidden"
+								name="position"
+								value={moduleIndex < data.outline.modules.length - 1
+									? between(data.outline.modules, moduleIndex, moduleIndex + 1)
+									: 0}
+							/>
+							<button
+								class="btn btn-sm btn-quiet"
+								type="submit"
+								disabled={moduleIndex === data.outline.modules.length - 1}
+								aria-label="Move {module.title} down"
+							>
+								<ArrowDown size={16} aria-hidden="true" />
+							</button>
+						</form>
+						<form method="POST" action="?/removeModule" use:enhance>
+							<input type="hidden" name="module_id" value={module.id} />
+							<button
+								class="btn btn-sm btn-quiet"
+								type="submit"
+								aria-label="Delete {module.title} and its lessons"
+							>
+								<Trash size={16} aria-hidden="true" />
+							</button>
+						</form>
+						<button
+							class="btn btn-sm btn-quiet"
+							type="button"
+							onclick={() => (openModule = openModule === module.id ? null : module.id)}
+						>
+							<Plus size={16} aria-hidden="true" /> Add a lesson
+						</button>
+					</div>
+				{/if}
 			</header>
 
 			{#if module.lessons.length === 0}

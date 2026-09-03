@@ -12,6 +12,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countOwners = `-- name: CountOwners :one
+SELECT count(*) FROM memberships WHERE role = 'owner' AND status = 'active'
+`
+
+func (q *Queries) CountOwners(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countOwners)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countTenantMembers = `-- name: CountTenantMembers :one
 SELECT count(*) FROM memberships WHERE status = 'active'
 `
@@ -37,6 +48,47 @@ type CreateMembershipParams struct {
 
 func (q *Queries) CreateMembership(ctx context.Context, arg CreateMembershipParams) (Membership, error) {
 	row := q.db.QueryRow(ctx, createMembership, arg.TenantID, arg.UserID, arg.Role)
+	var i Membership
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.UserID,
+		&i.Role,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteMembership = `-- name: DeleteMembership :execrows
+DELETE FROM memberships WHERE tenant_id = $1 AND user_id = $2
+`
+
+type DeleteMembershipParams struct {
+	TenantID uuid.UUID `json:"tenant_id"`
+	UserID   uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) DeleteMembership(ctx context.Context, arg DeleteMembershipParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMembership, arg.TenantID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const getMembership = `-- name: GetMembership :one
+SELECT id, tenant_id, user_id, role, status, created_at, updated_at FROM memberships WHERE tenant_id = $1 AND user_id = $2
+`
+
+type GetMembershipParams struct {
+	TenantID uuid.UUID `json:"tenant_id"`
+	UserID   uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) GetMembership(ctx context.Context, arg GetMembershipParams) (Membership, error) {
+	row := q.db.QueryRow(ctx, getMembership, arg.TenantID, arg.UserID)
 	var i Membership
 	err := row.Scan(
 		&i.ID,
@@ -105,4 +157,31 @@ func (q *Queries) ListTenantMembers(ctx context.Context, arg ListTenantMembersPa
 		return nil, err
 	}
 	return items, nil
+}
+
+const setMembershipRole = `-- name: SetMembershipRole :one
+UPDATE memberships SET role = $1
+WHERE tenant_id = $2 AND user_id = $3
+RETURNING id, tenant_id, user_id, role, status, created_at, updated_at
+`
+
+type SetMembershipRoleParams struct {
+	Role     MemberRole `json:"role"`
+	TenantID uuid.UUID  `json:"tenant_id"`
+	UserID   uuid.UUID  `json:"user_id"`
+}
+
+func (q *Queries) SetMembershipRole(ctx context.Context, arg SetMembershipRoleParams) (Membership, error) {
+	row := q.db.QueryRow(ctx, setMembershipRole, arg.Role, arg.TenantID, arg.UserID)
+	var i Membership
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.UserID,
+		&i.Role,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

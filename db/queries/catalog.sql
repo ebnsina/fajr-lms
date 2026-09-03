@@ -47,6 +47,9 @@ RETURNING *;
 -- name: ListModules :many
 SELECT * FROM modules WHERE course_id = @course_id ORDER BY position, created_at;
 
+-- name: UpdateModule :one
+UPDATE modules SET title = @title WHERE id = @id RETURNING *;
+
 -- name: MoveModule :one
 UPDATE modules SET position = @position WHERE id = @id RETURNING *;
 

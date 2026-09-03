@@ -203,3 +203,90 @@ func TestCatalog(t *testing.T) {
 		}
 	})
 }
+
+func TestUpdateCourseAndModules(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+
+	courseID := createdID(t, do(t, h, "POST", "/v1/courses", owner.token, owner.slug,
+		map[string]any{"title": "Tafsir", "visibility": "private", "price_minor": 0}))
+
+	rec := do(t, h, "PATCH", "/v1/courses/"+courseID, owner.token, owner.slug, map[string]any{
+		"summary": "An introduction for the winter term.", "price_minor": 250000, "visibility": "public",
+	})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("update course: got %d: %s", rec.Code, rec.Body)
+	}
+	var course struct {
+		Title      string `json:"title"`
+		Summary    string `json:"summary"`
+		PriceMinor int64  `json:"price_minor"`
+		Visibility string `json:"visibility"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &course); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if course.Title != "Tafsir" || course.PriceMinor != 250000 || course.Visibility != "public" {
+		t.Fatalf("update lost or ignored fields: %+v", course)
+	}
+
+	t.Run("a negative price is refused", func(t *testing.T) {
+		rec := do(t, h, "PATCH", "/v1/courses/"+courseID, owner.token, owner.slug,
+			map[string]any{"price_minor": -1})
+		if rec.Code != http.StatusUnprocessableEntity {
+			t.Fatalf("got %d, want 422: %s", rec.Code, rec.Body)
+		}
+	})
+
+	t.Run("a student cannot edit the course", func(t *testing.T) {
+		rec := do(t, h, "PATCH", "/v1/courses/"+courseID, student.token, owner.slug,
+			map[string]any{"title": "Mine now"})
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("got %d, want 403: %s", rec.Code, rec.Body)
+		}
+	})
+
+	moduleID := createdID(t, do(t, h, "POST", "/v1/courses/"+courseID+"/modules", owner.token,
+		owner.slug, map[string]any{"title": "Week one"}))
+	second := createdID(t, do(t, h, "POST", "/v1/courses/"+courseID+"/modules", owner.token,
+		owner.slug, map[string]any{"title": "Week two"}))
+
+	t.Run("a module can be renamed", func(t *testing.T) {
+		rec := do(t, h, "PATCH", "/v1/modules/"+moduleID, owner.token, owner.slug,
+			map[string]any{"title": "الأسبوع الأول"})
+		if rec.Code != http.StatusOK {
+			t.Fatalf("got %d: %s", rec.Code, rec.Body)
+		}
+		var module struct {
+			Title string `json:"title"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &module); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if module.Title != "الأسبوع الأول" {
+			t.Errorf("title is %q", module.Title)
+		}
+	})
+
+	t.Run("a module can be moved", func(t *testing.T) {
+		rec := do(t, h, "PUT", "/v1/modules/"+second+"/position", owner.token, owner.slug,
+			map[string]any{"position": 512})
+		if rec.Code != http.StatusOK {
+			t.Fatalf("got %d: %s", rec.Code, rec.Body)
+		}
+		outline := readOutline(t, h, owner, "tafsir")
+		if outline.Modules[0].Title != "Week two" {
+			t.Errorf("the moved module is not first: %+v", outline.Modules)
+		}
+	})
+
+	t.Run("a module can be deleted, and only once", func(t *testing.T) {
+		if rec := do(t, h, "DELETE", "/v1/modules/"+second, owner.token, owner.slug, nil); rec.Code != http.StatusNoContent {
+			t.Fatalf("delete: got %d: %s", rec.Code, rec.Body)
+		}
+		if rec := do(t, h, "DELETE", "/v1/modules/"+second, owner.token, owner.slug, nil); rec.Code != http.StatusNotFound {
+			t.Fatalf("second delete: got %d, want 404: %s", rec.Code, rec.Body)
+		}
+	})
+}

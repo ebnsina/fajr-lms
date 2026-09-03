@@ -42,6 +42,71 @@ const failed = (cause: unknown) => {
 };
 
 export const actions: Actions = {
+	saveCourse: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		const title = String(form.get('title') ?? '').trim();
+		if (!title) return fail(422, { message: 'The course needs a title.' });
+
+		try {
+			await api(`/v1/courses/${form.get('course_id')}`, {
+				method: 'PATCH',
+				body: {
+					title,
+					summary: String(form.get('summary') ?? '').trim(),
+					visibility: String(form.get('visibility') ?? 'private'),
+					price_minor: Math.round(Number(form.get('price') ?? 0) * 100)
+				},
+				...scoped(locals, cookies, fetch)
+			});
+		} catch (cause) {
+			return failed(cause);
+		}
+		return { saved: true };
+	},
+
+	renameModule: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		const title = String(form.get('title') ?? '').trim();
+		if (!title) return fail(422, { message: 'The section needs a name.' });
+		try {
+			await api(`/v1/modules/${form.get('module_id')}`, {
+				method: 'PATCH',
+				body: { title },
+				...scoped(locals, cookies, fetch)
+			});
+		} catch (cause) {
+			return failed(cause);
+		}
+		return { saved: true };
+	},
+
+	moveModule: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		try {
+			await api(`/v1/modules/${form.get('module_id')}/position`, {
+				method: 'PUT',
+				body: { position: Number(form.get('position') ?? 0) },
+				...scoped(locals, cookies, fetch)
+			});
+		} catch (cause) {
+			return failed(cause);
+		}
+		return { moved: true };
+	},
+
+	removeModule: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		try {
+			await api(`/v1/modules/${form.get('module_id')}`, {
+				method: 'DELETE',
+				...scoped(locals, cookies, fetch)
+			});
+		} catch (cause) {
+			return failed(cause);
+		}
+		return { removed: true };
+	},
+
 	addModule: async ({ request, locals, cookies, fetch }) => {
 		const form = await request.formData();
 		const title = String(form.get('title') ?? '').trim();

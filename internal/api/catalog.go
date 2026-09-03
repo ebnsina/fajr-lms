@@ -197,6 +197,74 @@ func (s *Server) setCourseStatus(w http.ResponseWriter, r *http.Request) error {
 	return httpx.JSON(w, http.StatusOK, course)
 }
 
+type updateCourseRequest struct {
+	Title      *string `json:"title"`
+	Summary    *string `json:"summary"`
+	Dir        *string `json:"dir"`
+	Visibility *string `json:"visibility"`
+	PriceMinor *int64  `json:"price_minor"`
+}
+
+// updateCourse applies only the fields present, so changing a price does not
+// require restating the summary.
+func (s *Server) updateCourse(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var body updateCourseRequest
+	if err := httpx.DecodeJSON(w, r, &body); err != nil {
+		return err
+	}
+
+	params := database.UpdateCourseParams{ID: id}
+	if body.Title != nil {
+		title, err := requireText("title", *body.Title, 200)
+		if err != nil {
+			return err
+		}
+		params.Title = &title
+	}
+	if body.Summary != nil {
+		summary := strings.TrimSpace(*body.Summary)
+		params.Summary = &summary
+	}
+	if body.Dir != nil {
+		dir, err := parseDir(*body.Dir)
+		if err != nil {
+			return err
+		}
+		params.Dir = &dir
+	}
+	if body.Visibility != nil {
+		visibility, err := parseVisibility(*body.Visibility)
+		if err != nil {
+			return err
+		}
+		params.Visibility = &visibility
+	}
+	if body.PriceMinor != nil {
+		if *body.PriceMinor < 0 {
+			return invalid("price_minor", "Price cannot be negative.")
+		}
+		params.PriceMinor = body.PriceMinor
+	}
+
+	var course database.Course
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		course, err = q.UpdateCourse(r.Context(), params)
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, course)
+}
+
 type createModuleRequest struct {
 	Title string `json:"title"`
 }
@@ -295,6 +363,89 @@ type moveLessonRequest struct {
 }
 
 // moveLesson takes the position the client computed, so a drag writes one row.
+func (s *Server) updateModule(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var body createModuleRequest
+	if err := httpx.DecodeJSON(w, r, &body); err != nil {
+		return err
+	}
+	title, err := requireText("title", body.Title, 200)
+	if err != nil {
+		return err
+	}
+
+	var module database.Module
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		module, err = q.UpdateModule(r.Context(), database.UpdateModuleParams{ID: id, Title: title})
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, module)
+}
+
+// moveModule takes a position rather than a direction: positions are fractional,
+// so a move rewrites one row.
+func (s *Server) moveModule(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var body struct {
+		Position float64 `json:"position"`
+	}
+	if err := httpx.DecodeJSON(w, r, &body); err != nil {
+		return err
+	}
+	if body.Position <= 0 || body.Position > 1e15 {
+		return invalid("position", "Position must be a positive number.")
+	}
+
+	var module database.Module
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		module, err = q.MoveModule(r.Context(), database.MoveModuleParams{ID: id, Position: body.Position})
+		return err
+	})
+	if database.IsNotFound(err) {
+		return httpx.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return httpx.JSON(w, http.StatusOK, module)
+}
+
+// deleteModule takes its lessons with it, which the schema does on cascade.
+func (s *Server) deleteModule(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	var rows int64
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		rows, err = q.DeleteModule(r.Context(), id)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return httpx.ErrNotFound
+	}
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
 func (s *Server) moveLesson(w http.ResponseWriter, r *http.Request) error {
 	id, err := pathUUID(r, "id")
 	if err != nil {

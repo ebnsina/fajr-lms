@@ -27,6 +27,7 @@ export type Course = {
 	summary: string;
 	dir: 'auto' | 'ltr' | 'rtl';
 	status: string;
+	visibility: 'private' | 'unlisted' | 'public';
 	price_minor: number;
 	currency: string;
 };

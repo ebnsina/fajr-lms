@@ -578,3 +578,27 @@ func (q *Queries) UpdateLesson(ctx context.Context, arg UpdateLessonParams) (Les
 	)
 	return i, err
 }
+
+const updateModule = `-- name: UpdateModule :one
+UPDATE modules SET title = $1 WHERE id = $2 RETURNING id, tenant_id, course_id, title, position, created_at, updated_at
+`
+
+type UpdateModuleParams struct {
+	Title string    `json:"title"`
+	ID    uuid.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateModule(ctx context.Context, arg UpdateModuleParams) (Module, error) {
+	row := q.db.QueryRow(ctx, updateModule, arg.Title, arg.ID)
+	var i Module
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.CourseID,
+		&i.Title,
+		&i.Position,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
