@@ -52,8 +52,10 @@
 		uniform vec2 u_resolution;
 		uniform float u_time;
 		uniform float u_variant;
-		uniform vec3 u_brand;
+		uniform vec3 u_sky;
+		uniform vec3 u_glow;
 		uniform vec3 u_sun;
+		uniform vec3 u_rock;
 
 		const vec2 A = vec2(-6.0, 54.0);
 		const vec2 B = vec2(16.0, 23.0);
@@ -90,10 +92,12 @@
 			vec2 g = vec2(fbm(p + drift), fbm(p + vec2(3.2, 1.5) - drift));
 			float f = fbm(p + 1.5 * g);
 
-			vec3 white = u_sun;
-			vec3 sky  = mix(u_brand * 1.08, u_brand * 0.72, smoothstep(0.26, 0.82, f));
-			vec3 sun  = mix(white, mix(white, u_brand, 0.5), smoothstep(0.24, 0.8, f));
-			vec3 rock = u_brand * 0.42;
+			// The sky darkens upward and warms toward the horizon, which is what a
+			// dawn actually does; the sand drifts through both.
+			vec3 band = mix(u_sky, u_glow, smoothstep(0.62, 0.05, uv.y));
+			vec3 sky  = mix(band * 1.06, band * 0.82, smoothstep(0.26, 0.82, f));
+			vec3 sun  = mix(u_sun, mix(u_sun, u_glow, 0.45), smoothstep(0.24, 0.8, f));
+			vec3 rock = u_rock;
 
 			// The ridge, shared by every variation that has one.
 			float y = seg(q.x, A, B);
@@ -127,11 +131,9 @@
 
 			vec3 col;
 			if (v == 5) {
-				// Ink tile, emerald sun, pale ridge.
-				vec3 ink = vec3(0.055, 0.075, 0.08);
-				vec3 glow = mix(u_sun * 1.15, u_sun * 0.85, smoothstep(0.24, 0.8, f));
-				col = mix(ink, glow, light);
-				col = mix(col, mix(white, u_brand * 1.3, 0.25), ridge);
+				// The inverse: dark sky, lit sun, pale ridge.
+				col = mix(u_sky * 0.5, sun, light);
+				col = mix(col, mix(vec3(1.0), u_sun, 0.12), ridge);
 			} else if (v == 3) {
 				col = mix(sky, sun, light * (1.0 - ridge));
 				col = mix(col, rock, ridge);
@@ -151,19 +153,57 @@
 	const RIDGE = 'M-6 54 16 23 24 33 32 27 54 54 54 64 -6 64Z';
 
 	// The still mark, which is what a favicon and a reduced-motion viewer get.
-	// The sun in both colours, compared live: white for contrast, or the dawn
-	// amber the product already uses for progress.
-	const WHITE = '#ffffff';
-	const AMBER = '#e8a33d';
-	let amber = $state(false);
-	const sunHex = $derived(amber ? AMBER : WHITE);
+	// The mark stands on its own, so its palette is its own decision rather than
+	// the product's. Each is sky, the warm band beneath it, the sun, and the rock.
+	const PALETTES = [
+		{
+			key: 'Emerald',
+			say: 'The product’s own green.',
+			sky: '#047857',
+			glow: '#0b8f68',
+			sun: '#ffffff',
+			rock: '#0b3f2e'
+		},
+		{
+			key: 'Night',
+			say: 'The sky before sunrise: indigo, with the sun the only warm thing in it.',
+			sky: '#101f3d',
+			glow: '#2c3f66',
+			sun: '#f6c667',
+			rock: '#070f1f'
+		},
+		{
+			key: 'Ember',
+			say: 'The minute the sun breaks: cold above, hot at the horizon.',
+			sky: '#243050',
+			glow: '#c2582c',
+			sun: '#ffd9a3',
+			rock: '#0d1522'
+		},
+		{
+			key: 'Ink',
+			say: 'Near-black, one warm disc, pale rock. Quietest and most premium.',
+			sky: '#12161a',
+			glow: '#1d242b',
+			sun: '#f2b757',
+			rock: '#e6ebe8'
+		},
+		{
+			key: 'Sand',
+			say: 'Warm paper rather than a dark tile — the one that prints.',
+			sky: '#efe3cc',
+			glow: '#f7d9a4',
+			sun: '#c2521f',
+			rock: '#2c2418'
+		}
+	];
+
+	let palette = $state(PALETTES[0]);
 
 	function stillMark(variant: (typeof VARIANTS)[number], px: number) {
-		const emerald = '#047857';
-		const ink = '#0e1214';
-		const tile = variant.id === 5 ? ink : emerald;
-		const rock = variant.id === 5 ? '#dfeee7' : '#0b3f2e';
-		const sunFill = variant.id === 5 ? (amber ? AMBER : '#12b981') : sunHex;
+		const tile = variant.id === 5 ? shade(palette.sky, 0.5) : palette.sky;
+		const rock = variant.id === 5 ? '#e9efeb' : palette.rock;
+		const sunFill = palette.sun;
 
 		let sun = '';
 		if (variant.id === 0) sun = `<circle cx="25" cy="27" r="13.5" fill="${sunFill}"/>`;
@@ -193,18 +233,36 @@
 		return shader;
 	}
 
-	const drawn: { gl: WebGLRenderingContext; uSun: WebGLUniformLocation | null }[] = [];
+	type Painted = {
+		gl: WebGLRenderingContext;
+		sky: WebGLUniformLocation | null;
+		glow: WebGLUniformLocation | null;
+		sun: WebGLUniformLocation | null;
+		rock: WebGLUniformLocation | null;
+	};
+	const drawn: Painted[] = [];
 
 	function rgb(hex: string): [number, number, number] {
 		const n = parseInt(hex.replace('#', ''), 16);
 		return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 	}
 
+	// A darker or lighter version of a colour, for the inverse variant's tile.
+	function shade(hex: string, by: number): string {
+		const [r, g, b] = rgb(hex).map((c) => Math.round(Math.min(c * by, 1) * 255));
+		return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+	}
+
+	function paint(one: Painted) {
+		one.gl.uniform3f(one.sky, ...rgb(palette.sky));
+		one.gl.uniform3f(one.glow, ...rgb(palette.glow));
+		one.gl.uniform3f(one.sun, ...rgb(palette.sun));
+		one.gl.uniform3f(one.rock, ...rgb(palette.rock));
+	}
+
 	$effect(() => {
-		const colour = rgb(sunHex);
-		for (const one of drawn) {
-			one.gl.uniform3f(one.uSun, ...colour);
-		}
+		palette;
+		for (const one of drawn) paint(one);
 	});
 
 	function animate(canvas: HTMLCanvasElement, variant: (typeof VARIANTS)[number]) {
@@ -242,10 +300,15 @@
 		gl.viewport(0, 0, px, px);
 		gl.uniform2f(gl.getUniformLocation(program, 'u_resolution'), px, px);
 		gl.uniform1f(gl.getUniformLocation(program, 'u_variant'), variant.id);
-		gl.uniform3f(gl.getUniformLocation(program, 'u_brand'), 0.016, 0.47, 0.34);
-		const uSun = gl.getUniformLocation(program, 'u_sun');
-		gl.uniform3f(uSun, ...rgb(sunHex));
-		drawn.push({ gl, uSun });
+		const painted: Painted = {
+			gl,
+			sky: gl.getUniformLocation(program, 'u_sky'),
+			glow: gl.getUniformLocation(program, 'u_glow'),
+			sun: gl.getUniformLocation(program, 'u_sun'),
+			rock: gl.getUniformLocation(program, 'u_rock')
+		};
+		paint(painted);
+		drawn.push(painted);
 		const uTime = gl.getUniformLocation(program, 'u_time');
 
 		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -283,16 +346,20 @@
 	</header>
 
 	<div class="switch">
-		<button class="pick" class:on={!amber} type="button" onclick={() => (amber = false)}>
-			White sun
-		</button>
-		<button class="pick" class:on={amber} type="button" onclick={() => (amber = true)}>
-			Dawn amber
-		</button>
-		<span class="hint">
-			Both are live. The mark has to stand alone, so judge it at 16 and 28 pixels as much as large.
-		</span>
+		{#each PALETTES as option (option.key)}
+			<button
+				class="pick"
+				class:on={palette.key === option.key}
+				type="button"
+				onclick={() => (palette = option)}
+			>
+				<span class="dot" style="background: {option.sky}; box-shadow: inset 0 0 0 2px {option.sun}"
+				></span>
+				{option.key}
+			</button>
+		{/each}
 	</div>
+	<p class="hint">{palette.say} The mark stands alone, so judge it at 16 and 28 pixels too.</p>
 
 	<div class="grid">
 		{#each VARIANTS as variant (variant.key)}
@@ -389,7 +456,7 @@
 	.lede { max-width: 62ch; color: var(--ink-soft); margin: 0; }
 	.lede b { color: var(--ink); font-weight: 600; }
 
-	.switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem; }
+	.switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem; }
 	.pick {
 		font: 500 0.85rem/1 var(--sans);
 		color: var(--ink-soft);
@@ -400,7 +467,15 @@
 		cursor: pointer;
 	}
 	.pick.on { color: var(--ink); border-color: var(--brand); background: rgba(4, 120, 87, 0.16); }
-	.switch .hint { font-size: 0.8rem; color: var(--ink-faint); margin-inline-start: 0.4rem; }
+	.pick .dot {
+		display: inline-block;
+		inline-size: 0.7rem;
+		block-size: 0.7rem;
+		border-radius: 0.25rem;
+		margin-inline-end: 0.45rem;
+		vertical-align: -1px;
+	}
+	.hint { font-size: 0.82rem; color: var(--ink-faint); margin: 0 0 1.5rem; }
 
 	.grid {
 		display: grid;
