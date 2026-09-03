@@ -226,6 +226,11 @@ func (s *Server) submitAttempt(w http.ResponseWriter, r *http.Request) error {
 		out.Percent = assessment.Percent(result.PointsAwarded, result.PointsPossible)
 		out.Passed = !result.NeedsHuman && assessment.Passed(result.PointsAwarded, result.PointsPossible, int(quiz.PassPercent))
 
+		// Paid once per quiz, however many attempts it took.
+		if out.Passed {
+			s.award(r.Context(), q, CurrentTenant(r.Context()), userID, "quiz", quiz.ID, pointsPerQuiz)
+		}
+
 		if quiz.RevealAnswers {
 			explanations := make(map[uuid.UUID]string, len(questions))
 			for _, question := range questions {

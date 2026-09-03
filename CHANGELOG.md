@@ -54,6 +54,15 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the bank details and reference, and tell the office what they paid.
 - Money is now formatted and read by the currency's own subunit, so a dinar's
   three decimal places and a yen's none are right instead of assumed to be two.
+- Topics, so a catalog of forty courses is navigable, and collections: a path
+  is several courses worked through in order, a bundle is several bought
+  together. A path carries no price, because it is worked through rather than
+  sold.
+- Points and badges, off unless a school switches them on. Finishing a lesson,
+  passing a quiz and finishing a course each pay once, however many times they
+  are repeated; a school sets its own badges and the mark each is earned at.
+  The leaderboard runs on the last month, because a board that never resets
+  belongs to whoever joined first.
 - Every course has a discussion. Anybody on the course can ask and answer;
   teachers pin what matters and close what is finished. A person can fix their
   own words and nobody else's, and a removed post keeps its place in the thread

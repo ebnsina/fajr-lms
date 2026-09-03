@@ -101,6 +101,48 @@ func (ns NullAttendanceStatus) Value() (driver.Value, error) {
 	return string(ns.AttendanceStatus), nil
 }
 
+type CollectionKind string
+
+const (
+	CollectionKindPath   CollectionKind = "path"
+	CollectionKindBundle CollectionKind = "bundle"
+)
+
+func (e *CollectionKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CollectionKind(s)
+	case string:
+		*e = CollectionKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CollectionKind: %T", src)
+	}
+	return nil
+}
+
+type NullCollectionKind struct {
+	CollectionKind CollectionKind `json:"collection_kind"`
+	Valid          bool           `json:"valid"` // Valid is true if CollectionKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCollectionKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.CollectionKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CollectionKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCollectionKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CollectionKind), nil
+}
+
 type CourseVisibility string
 
 const (
@@ -1120,6 +1162,23 @@ type Attendance struct {
 	MarkedAt     pgtype.Timestamptz `json:"marked_at"`
 }
 
+type Badge struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Emoji       string             `json:"emoji"`
+	Threshold   int32              `json:"threshold"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type BadgeAward struct {
+	BadgeID   uuid.UUID          `json:"badge_id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	AwardedAt pgtype.Timestamptz `json:"awarded_at"`
+}
+
 type Certificate struct {
 	ID            uuid.UUID          `json:"id"`
 	TenantID      uuid.UUID          `json:"tenant_id"`
@@ -1174,6 +1233,28 @@ type ClassSession struct {
 	RecordingMediaID uuid.NullUUID      `json:"recording_media_id"`
 }
 
+type Collection struct {
+	ID         uuid.UUID          `json:"id"`
+	TenantID   uuid.UUID          `json:"tenant_id"`
+	Kind       CollectionKind     `json:"kind"`
+	Slug       string             `json:"slug"`
+	Title      string             `json:"title"`
+	Summary    string             `json:"summary"`
+	Dir        TextDir            `json:"dir"`
+	Status     PublishStatus      `json:"status"`
+	PriceMinor int64              `json:"price_minor"`
+	Currency   string             `json:"currency"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+type CollectionCourse struct {
+	CollectionID uuid.UUID `json:"collection_id"`
+	CourseID     uuid.UUID `json:"course_id"`
+	TenantID     uuid.UUID `json:"tenant_id"`
+	Position     float64   `json:"position"`
+}
+
 type Coupon struct {
 	ID             uuid.UUID          `json:"id"`
 	TenantID       uuid.UUID          `json:"tenant_id"`
@@ -1208,6 +1289,12 @@ type Course struct {
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 	Installments       int16              `json:"installments"`
 	InstallmentGapDays int16              `json:"installment_gap_days"`
+}
+
+type CourseTopic struct {
+	CourseID uuid.UUID `json:"course_id"`
+	TopicID  uuid.UUID `json:"topic_id"`
+	TenantID uuid.UUID `json:"tenant_id"`
 }
 
 type Enrollment struct {
@@ -1499,6 +1586,16 @@ type Placement struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type PointAward struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	Kind      string             `json:"kind"`
+	RefID     uuid.UUID          `json:"ref_id"`
+	Points    int32              `json:"points"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type PublishedCourse struct {
 	ID          uuid.UUID          `json:"id"`
 	Slug        string             `json:"slug"`
@@ -1726,6 +1823,7 @@ type Tenant struct {
 	DomainToken      string             `json:"domain_token"`
 	DomainVerifiedAt pgtype.Timestamptz `json:"domain_verified_at"`
 	Institution      InstitutionKind    `json:"institution"`
+	PointsOn         bool               `json:"points_on"`
 }
 
 type Term struct {
@@ -1738,6 +1836,14 @@ type Term struct {
 	IsCurrent bool               `json:"is_current"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Topic struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	Name      string             `json:"name"`
+	Slug      string             `json:"slug"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {

@@ -209,10 +209,17 @@ func (s *Server) recordProgress(w http.ResponseWriter, r *http.Request) error {
 
 		out.PercentComplete = percent(out.LessonsDone, out.LessonsTotal)
 		out.CourseComplete = out.LessonsTotal > 0 && out.LessonsDone >= out.LessonsTotal
-		if out.CourseComplete && enrollment.Status != database.EnrollmentStatusCompleted {
-			_, err = q.CompleteEnrollment(r.Context(), enrollment.ID)
+
+		if body.Completed {
+			s.award(r.Context(), q, tenant, userID, "lesson", lessonID, pointsPerLesson)
 		}
-		return err
+		if out.CourseComplete && enrollment.Status != database.EnrollmentStatusCompleted {
+			if _, err = q.CompleteEnrollment(r.Context(), enrollment.ID); err != nil {
+				return err
+			}
+			s.award(r.Context(), q, tenant, userID, "course", courseID, pointsPerCourse)
+		}
+		return nil
 	})
 	if database.IsNotFound(err) {
 		return httpx.ErrNotFound

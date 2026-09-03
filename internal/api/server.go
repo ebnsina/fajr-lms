@@ -200,6 +200,29 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/academics/sections/{id}/roll", runs(s.placeStudent))
 	mux.Handle("DELETE /v1/academics/placements/{id}", runs(s.removePlacement))
 
+	// Points and badges, if a school wants them.
+	mux.Handle("GET /v1/points/me", inTenant(httpx.Handler(s.myStanding)))
+	mux.Handle("GET /v1/points/board", inTenant(httpx.Handler(s.leaderboard)))
+	mux.Handle("GET /v1/badges", inTenant(httpx.Handler(s.listBadges)))
+	mux.Handle("POST /v1/badges", runs(s.createBadge))
+	mux.Handle("DELETE /v1/badges/{id}", runs(s.deleteBadge))
+	mux.Handle("PUT /v1/points/setting", runs(s.setPointsOn))
+
+	// Topics file a course; collections put several together — a path to work
+	// through, a bundle to buy.
+	mux.Handle("GET /v1/topics", inTenant(httpx.Handler(s.listTopics)))
+	mux.Handle("POST /v1/topics", teaches(s.createTopic))
+	mux.Handle("DELETE /v1/topics/{id}", teaches(s.deleteTopic))
+	mux.Handle("PUT /v1/courses/{id}/topics", teaches(s.setCourseTopics))
+
+	mux.Handle("GET /v1/collections", inTenant(httpx.Handler(s.listCollections)))
+	mux.Handle("POST /v1/collections", teaches(s.createCollection))
+	mux.Handle("GET /v1/collections/{slug}", inTenant(httpx.Handler(s.readCollection)))
+	mux.Handle("PATCH /v1/collections/{id}", teaches(s.updateCollection))
+	mux.Handle("DELETE /v1/collections/{id}", teaches(s.deleteCollection))
+	mux.Handle("POST /v1/collections/{id}/courses", teaches(s.addToCollection))
+	mux.Handle("DELETE /v1/collections/{id}/courses/{courseId}", teaches(s.removeFromCollection))
+
 	// The course forum: anybody on the course may ask, staff moderate.
 	mux.Handle("GET /v1/courses/{id}/threads", inTenant(httpx.Handler(s.listThreads)))
 	mux.Handle("POST /v1/courses/{id}/threads", inTenant(httpx.Handler(s.startThread)))
