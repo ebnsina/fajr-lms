@@ -46,19 +46,24 @@ func (q *Queries) CancelOrder(ctx context.Context, id uuid.UUID) (Order, error) 
 }
 
 const createOrder = `-- name: CreateOrder :one
-INSERT INTO orders (tenant_id, user_id, course_id, provider, amount_minor, currency, reference)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO orders (tenant_id, user_id, course_id, provider, amount_minor, currency, reference,
+                    coupon_id, list_amount_minor, discount_minor)
+VALUES ($1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10)
 RETURNING id, tenant_id, user_id, course_id, provider, amount_minor, currency, status, reference, provider_ref, note, proof_media_id, reviewed_by, reviewed_at, paid_at, created_at, updated_at, coupon_id, list_amount_minor, discount_minor
 `
 
 type CreateOrderParams struct {
-	TenantID    uuid.UUID `json:"tenant_id"`
-	UserID      uuid.UUID `json:"user_id"`
-	CourseID    uuid.UUID `json:"course_id"`
-	Provider    string    `json:"provider"`
-	AmountMinor int64     `json:"amount_minor"`
-	Currency    string    `json:"currency"`
-	Reference   string    `json:"reference"`
+	TenantID        uuid.UUID     `json:"tenant_id"`
+	UserID          uuid.UUID     `json:"user_id"`
+	CourseID        uuid.UUID     `json:"course_id"`
+	Provider        string        `json:"provider"`
+	AmountMinor     int64         `json:"amount_minor"`
+	Currency        string        `json:"currency"`
+	Reference       string        `json:"reference"`
+	CouponID        uuid.NullUUID `json:"coupon_id"`
+	ListAmountMinor *int64        `json:"list_amount_minor"`
+	DiscountMinor   int64         `json:"discount_minor"`
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
@@ -70,6 +75,9 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order
 		arg.AmountMinor,
 		arg.Currency,
 		arg.Reference,
+		arg.CouponID,
+		arg.ListAmountMinor,
+		arg.DiscountMinor,
 	)
 	var i Order
 	err := row.Scan(

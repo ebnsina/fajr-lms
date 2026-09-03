@@ -1,6 +1,8 @@
 -- name: CreateOrder :one
-INSERT INTO orders (tenant_id, user_id, course_id, provider, amount_minor, currency, reference)
-VALUES (@tenant_id, @user_id, @course_id, @provider, @amount_minor, @currency, @reference)
+INSERT INTO orders (tenant_id, user_id, course_id, provider, amount_minor, currency, reference,
+                    coupon_id, list_amount_minor, discount_minor)
+VALUES (@tenant_id, @user_id, @course_id, @provider, @amount_minor, @currency, @reference,
+        @coupon_id, @list_amount_minor, @discount_minor)
 RETURNING *;
 
 -- name: GetOrder :one

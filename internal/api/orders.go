@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -13,12 +14,24 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/payment"
 )
 
+// redeem counts a use of the code once the money is actually in. The cap is
+// checked in the same statement, so two payments landing together cannot push
+// a code past its limit.
+func redeem(ctx context.Context, q *database.Queries, coupon uuid.NullUUID) error {
+	if !coupon.Valid {
+		return nil
+	}
+	_, err := q.RedeemCoupon(ctx, coupon.UUID)
+	return err
+}
+
 func (s *Server) paymentProviders(w http.ResponseWriter, r *http.Request) error {
 	return httpx.JSON(w, http.StatusOK, map[string]any{"providers": s.payments.Capabilities()})
 }
 
 type createOrderRequest struct {
 	Provider string `json:"provider"`
+	Coupon   string `json:"coupon"`
 }
 
 type orderResponse struct {
@@ -62,6 +75,25 @@ func (s *Server) createOrder(w http.ResponseWriter, r *http.Request) error {
 			return httpx.Errorf(http.StatusConflict, "course_is_free", "This course is free; enroll directly.")
 		}
 
+		// A code is priced here rather than at checkout, so what the learner is
+		// told to pay is what the record says.
+		charge, off := course.PriceMinor, int64(0)
+		var coupon uuid.NullUUID
+		if code := strings.ToUpper(strings.TrimSpace(body.Coupon)); code != "" {
+			found, err := q.CouponByCode(r.Context(), code)
+			if database.IsNotFound(err) {
+				return &httpx.Error{Status: http.StatusUnprocessableEntity, Code: "invalid_coupon",
+					Message: "No code by that name.", Field: "coupon"}
+			}
+			if err != nil {
+				return err
+			}
+			if charge, off, err = discountFor(found, courseID, course.PriceMinor); err != nil {
+				return err
+			}
+			coupon = uuid.NullUUID{UUID: found.ID, Valid: true}
+		}
+
 		existing, err := q.OpenOrderForCourse(r.Context(), database.OpenOrderForCourseParams{
 			CourseID: courseID, UserID: session.UserID,
 		})
@@ -75,8 +107,9 @@ func (s *Server) createOrder(w http.ResponseWriter, r *http.Request) error {
 
 		order, err = q.CreateOrder(r.Context(), database.CreateOrderParams{
 			TenantID: tenant.ID, UserID: session.UserID, CourseID: courseID,
-			Provider: provider.Caps().Name, AmountMinor: course.PriceMinor,
+			Provider: provider.Caps().Name, AmountMinor: charge,
 			Currency: course.Currency, Reference: payment.NewReference(),
+			CouponID: coupon, ListAmountMinor: &course.PriceMinor, DiscountMinor: off,
 		})
 		return err
 	})
@@ -229,6 +262,9 @@ func (s *Server) reviewOrder(w http.ResponseWriter, r *http.Request) error {
 
 		if status != database.OrderStatusPaid {
 			return nil
+		}
+		if err := redeem(r.Context(), q, order.CouponID); err != nil {
+			return err
 		}
 		_, err = q.EnrollUser(r.Context(), database.EnrollUserParams{
 			TenantID: tenant.ID, CourseID: order.CourseID, UserID: order.UserID,

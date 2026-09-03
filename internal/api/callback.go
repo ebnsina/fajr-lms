@@ -124,6 +124,9 @@ func (s *Server) paymentCallback(w http.ResponseWriter, r *http.Request) error {
 		}
 
 		settled = true
+		if err := redeem(r.Context(), q, order.CouponID); err != nil {
+			return err
+		}
 		_, err = q.EnrollUser(r.Context(), database.EnrollUserParams{
 			TenantID: tenant.ID, CourseID: order.CourseID, UserID: order.UserID,
 			Source: database.EnrollmentSourcePurchase,
