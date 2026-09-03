@@ -32,6 +32,8 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- A certificate's verification link now opens on the school's own site instead
+  of the API address, so the link on a printed certificate works.
 - Refunds. The payments page now lists the money taken as well as the money
   waiting, and staff can hand back all of a payment or part of it with a reason.
   A full refund closes the enrolment it paid for unless you say to keep access.
