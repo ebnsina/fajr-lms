@@ -1,572 +1,102 @@
 <script lang="ts">
-	// A scratch page for choosing the mark. Delete this route once one is picked.
-
-	// One WebGL program draws every mark; a uniform picks the composition, so the
-	// six variations share the same light, noise and drift.
-	const VARIANTS = [
-		{
-			key: 'Dawn',
-			id: 0,
-			note: 'rising behind',
-			say: 'The sun low behind the twin ridge, half of it still to come up. The most literal reading of fajr, and the warmest.'
-		},
-		{
-			key: 'Horizon',
-			id: 1,
-			note: 'half risen',
-			say: 'Cut by the horizon, mid-rise. Calmer and more geometric — it sits quietly beside a wordmark.'
-		},
-		{
-			key: 'Aperture',
-			id: 2,
-			note: 'a ring of light',
-			say: 'The sun as a ring rather than a disc. Holds its shape at 16 pixels better than anything else here.'
-		},
-		{
-			key: 'Notch',
-			id: 3,
-			note: 'light through the gap',
-			say: 'No disc at all: the light is what comes through the notch between the two peaks. The quietest, and the most confident.'
-		},
-		{
-			key: 'Crescent',
-			id: 4,
-			note: 'a thin crescent',
-			say: 'A crescent instead of a disc — the dawn prayer said without a mosque or a star on it.'
-		},
-		{
-			key: 'Inverse',
-			id: 5,
-			note: 'dark paper',
-			say: 'Ink tile, emerald sun, pale ridge. Reads as a seal rather than an app icon — good on a certificate.'
-		}
-	];
-
-	const VERT = `
-		attribute vec2 a_pos;
-		void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
-	`;
-
-	const FRAG = `
-		precision mediump float;
-		uniform vec2 u_resolution;
-		uniform float u_time;
-		uniform float u_variant;
-		uniform vec3 u_sky;
-		uniform vec3 u_glow;
-		uniform vec3 u_sun;
-		uniform vec3 u_rock;
-
-		const vec2 A = vec2(-6.0, 54.0);
-		const vec2 B = vec2(16.0, 23.0);
-		const vec2 C = vec2(24.0, 33.0);
-		const vec2 D = vec2(32.0, 27.0);
-		const vec2 E = vec2(54.0, 54.0);
-
-		float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
-
-		float noise(vec2 p) {
-			vec2 i = floor(p), f = fract(p);
-			vec2 u = f * f * (3.0 - 2.0 * f);
-			return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-			           mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
-		}
-
-		float fbm(vec2 p) {
-			float v = 0.0, a = 0.6;
-			for (int i = 0; i < 4; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
-			return v;
-		}
-
-		float seg(float x, vec2 p, vec2 q) { return p.y + (q.y - p.y) * (x - p.x) / (q.x - p.x); }
-
-		void main() {
-			vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-			vec2 q = vec2(uv.x, 1.0 - uv.y) * 48.0;
-			float aa = 48.0 / u_resolution.x * 1.2;
-
-			float t = u_time * 0.2;
-			vec2 drift = vec2(sin(t) + 0.6 * sin(t * 1.7 + 1.3),
-			                  cos(t * 0.8) + 0.6 * cos(t * 1.3 + 2.1));
-			vec2 p = vec2(uv.x * 1.6, uv.y) * 1.4 + drift * 0.6;
-			vec2 g = vec2(fbm(p + drift), fbm(p + vec2(3.2, 1.5) - drift));
-			float f = fbm(p + 1.5 * g);
-
-			// The sky darkens upward and warms toward the horizon, which is what a
-			// dawn actually does; the sand drifts through both.
-			vec3 band = mix(u_sky, u_glow, smoothstep(0.62, 0.05, uv.y));
-			vec3 sky  = mix(band * 1.06, band * 0.82, smoothstep(0.26, 0.82, f));
-			vec3 sun  = mix(u_sun, mix(u_sun, u_glow, 0.45), smoothstep(0.24, 0.8, f));
-			vec3 rock = u_rock;
-
-			// The ridge, shared by every variation that has one.
-			float y = seg(q.x, A, B);
-			y = mix(y, seg(q.x, B, C), step(B.x, q.x));
-			y = mix(y, seg(q.x, C, D), step(C.x, q.x));
-			y = mix(y, seg(q.x, D, E), step(D.x, q.x));
-			float ridge = smoothstep(y - aa, y + aa, q.y);
-
-			float dist = distance(q, vec2(25.0, 18.5));
-			float light = 0.0;
-			int v = int(u_variant + 0.5);
-
-			if (v == 0) {
-				light = smoothstep(13.5 + aa, 13.5 - aa, distance(q, vec2(25.0, 27.0)));
-			} else if (v == 1) {
-				// Half risen: the disc, cut flat where it meets the horizon.
-				light = smoothstep(14.5 + aa, 14.5 - aa, dist) * smoothstep(27.0 + aa, 27.0 - aa, q.y);
-			} else if (v == 2) {
-				// A ring: the disc with its middle taken back out.
-				light = smoothstep(14.0 + aa, 14.0 - aa, dist) * smoothstep(8.4 - aa, 8.4 + aa, dist);
-			} else if (v == 3) {
-				// No disc: a soft glow that only shows through the notch.
-				light = smoothstep(13.0, 1.0, distance(q, vec2(24.0, 29.0)));
-			} else if (v == 4) {
-				// A crescent: the disc, less an offset disc.
-				float bite = smoothstep(12.2 + aa, 12.2 - aa, distance(q, vec2(29.5, 15.0)));
-				light = max(smoothstep(13.5 + aa, 13.5 - aa, dist) - bite, 0.0);
-			} else {
-				light = smoothstep(10.0 + aa, 10.0 - aa, distance(q, vec2(25.0, 15.0)));
-			}
-
-			vec3 col;
-			if (v == 5) {
-				// The inverse: dark sky, lit sun, pale ridge.
-				col = mix(u_sky * 0.5, sun, light);
-				col = mix(col, mix(vec3(1.0), u_sun, 0.12), ridge);
-			} else if (v == 3) {
-				col = mix(sky, sun, light * (1.0 - ridge));
-				col = mix(col, rock, ridge);
-			} else {
-				col = mix(mix(sky, sun, light), rock, ridge);
-			}
-
-			vec2 c = (uv - 0.5) * 2.0;
-			float squircle = pow(abs(c.x), 4.0) + pow(abs(c.y), 4.0);
-			float edge = smoothstep(1.0, 0.9, squircle);
-			gl_FragColor = vec4(col * edge, edge);
-		}
-	`;
+	// A scratch page for choosing the letterform. Delete this route once one is
+	// picked; the mark itself lives in $lib/components/Logo.svelte.
+	const SKY = '#0f4c81';
+	const HORIZON = '#57c7dd';
+	const SUN = '#ffd27a';
 
 	const TILE =
 		'M48 24C48 46.06 46.06 48 24 48C1.94 48 0 46.06 0 24C0 1.94 1.94 0 24 0C46.06 0 48 1.94 48 24Z';
-	const RIDGE = 'M-6 54 16 23 24 33 32 27 54 54 54 64 -6 64Z';
 
-	// The still mark, which is what a favicon and a reduced-motion viewer get.
-	// The mark stands on its own, so its palette is its own decision rather than
-	// the product's. Each is sky, the warm band beneath it, the sun, and the rock.
-	const PALETTES = [
-		{
-			key: 'Emerald',
-			say: 'The product’s own green.',
-			sky: '#047857',
-			glow: '#0b8f68',
-			sun: '#ffffff',
-			rock: '#0b3f2e'
-		},
-		{
-			key: 'Night',
-			say: 'The sky before sunrise: indigo, with the sun the only warm thing in it.',
-			sky: '#101f3d',
-			glow: '#2c3f66',
-			sun: '#f6c667',
-			rock: '#070f1f'
-		},
-		{
-			key: 'Ember',
-			say: 'The minute the sun breaks: cold above, hot at the horizon.',
-			sky: '#243050',
-			glow: '#c2582c',
-			sun: '#ffd9a3',
-			rock: '#0d1522'
-		},
-		{
-			key: 'Ink',
-			say: 'Near-black, one warm disc, pale rock. Quietest and most premium.',
-			sky: '#12161a',
-			glow: '#1d242b',
-			sun: '#f2b757',
-			rock: '#e6ebe8'
-		},
-		{
-			key: 'Sand',
-			say: 'Warm paper rather than a dark tile — the one that prints.',
-			sky: '#efe3cc',
-			glow: '#f7d9a4',
-			sun: '#c2521f',
-			rock: '#2c2418'
-		}
+	const FACES = [
+		{ label: "Katibeh", note: "thuluth signage: long tapering strokes, pen-cut ends", d: "M32.78 25.05Q32.86 25.73 32.86 26.08Q32.86 26.76 32.77 27.29Q32.67 27.82 32.63 27.97Q32.56 27.37 32.41 26.93Q32.25 26.49 31.91 26.00Q28.95 28.20 24.58 29.19Q20.56 30.10 16.30 30.10Q10.34 30.10 7.19 27.97Q5.67 26.95 4.84 25.41Q4.00 23.87 4.00 21.94Q4.00 20.15 4.65 18.29Q5.29 16.43 6.13 15.67L6.73 16.24Q5.82 17.84 5.82 19.70Q5.82 21.33 6.53 22.51Q7.23 23.68 8.29 24.33Q9.35 24.94 11.58 25.49Q13.80 26.04 17.48 26.04Q21.51 26.04 25.42 25.24Q28.49 24.59 30.28 23.76Q29.56 22.89 28.30 22.43Q27.54 22.16 26.75 22.01Q25.95 21.86 25.72 21.86V19.16Q25.72 17.49 26.73 16.56Q27.73 15.63 29.37 15.63Q30.66 15.63 31.59 16.13Q32.52 16.62 33.09 17.49Q34.00 18.86 34.00 20.91Q34.00 21.97 33.73 22.89Q33.47 23.80 33.18 24.35Q32.90 24.90 32.78 25.05ZM28.08 19.77Q29.48 20.11 30.47 20.84Q31.61 21.63 32.10 22.77Q32.48 22.01 32.48 21.25Q32.48 20.19 31.72 19.54Q31.11 19.01 30.13 19.01Q29.14 19.01 28.08 19.77ZM31.08 11.99Q30.73 12.48 30.28 13.05Q29.82 13.62 29.10 14.30Q27.54 12.75 26.67 12.25Q28.27 10.43 28.68 9.90Q29.33 10.24 30.03 10.85Q30.73 11.46 31.08 11.99Z" },
+		{ label: "Jomhuria", note: "heavy thuluth display, the hand of a masthead", d: "M26.06 10.55H26.63L29.24 8.03V7.50L26.63 5.00H26.06L23.56 7.50V8.03ZM10.68 35.00H28.63Q29.60 35.00 30.39 34.67Q31.17 34.33 31.65 33.81Q32.14 33.28 32.47 32.59Q32.81 31.89 32.94 31.22Q33.08 30.56 33.08 29.89V19.91Q33.08 16.65 31.22 14.54Q29.36 12.42 26.57 12.42Q23.71 12.42 22.41 13.93Q21.12 15.43 21.12 17.89V22.13Q21.12 23.69 22.34 24.68Q23.23 25.41 24.38 25.41H29.09Q29.36 25.41 29.55 25.59Q29.74 25.77 29.74 26.04Q29.74 26.30 29.55 26.49Q29.36 26.68 29.09 26.68H10.95Q9.03 26.68 8.91 25.18Q8.91 25.08 8.91 24.99Q8.91 24.22 9.34 23.52Q9.77 22.81 10.19 22.49L10.63 22.16L8.59 20.60Q7.82 21.02 7.21 21.63Q6.60 22.24 6.23 22.85Q5.86 23.46 5.58 24.20Q5.31 24.93 5.18 25.45Q5.06 25.96 4.99 26.54Q4.92 27.12 4.92 27.28Q4.92 27.43 4.92 27.56V29.24Q4.92 31.62 6.61 33.31Q8.30 35.00 10.68 35.00ZM23.54 17.74Q23.54 16.06 25.08 16.06Q25.56 16.06 26.16 16.40Q26.76 16.73 27.30 17.20Q27.83 17.66 28.30 18.13Q28.76 18.60 29.03 18.94L29.30 19.27H25.33Q24.70 19.27 24.12 18.88Q23.54 18.50 23.54 17.74Z" },
+		{ label: "Vibes", note: "a wide flat nib, high contrast", d: "M34.00 24.17Q34.00 26.51 32.91 28.37Q31.83 30.23 29.55 31.27Q27.27 32.31 23.85 32.15H14.15Q10.98 32.06 8.78 31.52Q6.59 30.98 4.00 29.47L4.63 27.84Q7.01 29.39 9.12 29.91Q11.23 30.43 14.65 30.56H18.00Q15.99 29.26 14.88 27.03Q13.78 24.79 13.78 22.20Q13.78 19.36 14.93 16.94Q16.08 14.51 18.04 13.09Q20.00 11.67 22.26 11.67Q25.52 11.67 28.21 13.55Q30.91 15.43 32.45 18.34Q34.00 21.24 34.00 24.17ZM24.52 30.52Q28.48 30.52 30.45 28.64Q32.41 26.76 32.41 23.87Q32.41 21.41 31.05 18.92Q29.70 16.44 27.34 14.83Q24.97 13.22 22.13 13.22Q20.34 13.22 18.75 14.43Q17.16 15.64 16.20 17.71Q15.24 19.78 15.24 22.16Q15.24 24.12 16.12 25.90Q16.99 27.68 18.50 28.87Q20.00 30.06 21.84 30.31Q23.43 30.52 24.52 30.52ZM14.45 9.17Q14.45 8.62 14.05 8.23Q13.65 7.83 13.19 7.83Q12.69 7.83 12.40 8.16Q12.11 8.50 12.11 9.00Q12.11 9.63 12.54 10.11Q12.98 10.59 13.57 10.42Q13.99 10.29 14.22 9.94Q14.45 9.58 14.45 9.17Z" },
+		{ label: "Mirza", note: "sloped and flowing, nastaliq-leaning", d: "M33.91 20.80Q34.00 21.76 34.00 22.23Q34.00 24.44 33.39 26.52Q32.57 29.39 30.75 30.77Q29.06 32.07 26.48 32.40Q23.90 32.72 18.18 32.72Q15.18 32.72 13.75 32.64Q12.32 32.55 11.02 32.33Q8.12 31.86 6.49 30.64Q4.87 29.43 4.30 27.43Q4.00 26.26 4.00 24.75Q4.00 23.71 4.13 22.62L4.95 22.93Q5.21 24.49 5.86 25.53Q7.29 27.70 10.89 28.26Q12.32 28.48 14.01 28.52Q15.71 28.56 18.61 28.56L25.63 28.52Q27.97 28.52 29.34 28.00Q30.71 27.48 31.49 26.48Q31.96 25.87 32.22 25.14Q32.48 24.40 32.40 23.66Q31.23 24.79 29.06 24.79Q27.24 24.79 26.24 23.88Q25.07 22.84 25.07 20.80Q25.07 19.72 25.39 18.53Q25.72 17.33 26.24 16.38Q26.72 15.47 27.52 14.78Q28.32 14.08 29.45 14.08Q31.31 14.08 32.48 16.08Q33.65 18.07 33.91 20.80ZM28.80 16.99Q27.58 16.99 27.02 17.81Q26.46 18.63 26.46 19.41Q26.46 20.11 27.00 20.85Q27.54 21.58 29.06 21.58Q30.10 21.58 30.77 21.24Q31.44 20.89 31.79 20.50Q31.05 16.99 28.80 16.99ZM31.75 9.66Q30.88 10.61 29.49 11.91Q28.32 10.53 27.11 9.57Q28.23 8.53 29.32 7.28Q30.01 7.80 30.68 8.45Q31.36 9.10 31.75 9.66Z" },
+		{ label: "Gulzar", note: "nastaliq proper, the subcontinent\u2019s hand", d: "M13.17 34.50Q11.36 34.50 9.69 34.29Q8.03 34.09 6.75 33.51Q5.48 32.92 4.74 31.83Q4.00 30.73 4.00 28.95Q4.00 27.91 4.24 26.43Q4.47 24.96 4.64 23.61H5.68Q5.51 25.02 5.66 25.80Q5.81 26.57 6.28 27.27Q6.99 28.28 9.02 28.84Q11.05 29.39 14.65 29.39Q16.93 29.39 19.71 29.17Q22.48 28.95 25.23 28.45Q27.99 27.95 30.20 27.07Q30.88 26.80 31.48 26.48Q32.09 26.16 32.52 25.76Q32.35 24.82 31.58 24.62Q31.35 24.82 30.86 24.99Q30.37 25.16 29.80 25.16Q28.96 25.16 28.17 24.62Q27.38 24.08 27.38 22.54L29.20 17.40Q29.57 17.09 30.00 16.96Q30.44 16.83 30.77 16.83Q32.25 16.83 33.13 18.34Q34.00 19.85 34.00 22.10Q34.00 23.24 33.82 24.42Q33.63 25.59 33.23 26.70Q32.89 27.58 32.37 28.40Q31.85 29.22 31.11 29.89Q30.17 30.77 28.64 31.51Q27.11 32.25 25.23 32.82Q22.58 33.62 19.42 34.06Q16.26 34.50 13.17 34.50ZM31.04 11.65Q30.91 11.65 30.76 11.63Q30.61 11.62 30.44 11.58Q29.10 11.22 28.44 10.46Q27.78 9.70 27.78 9.00Q27.78 8.39 28.10 7.91Q28.42 7.42 28.66 7.12L29.90 5.50H30.07Q30.57 6.38 31.28 6.91Q31.98 7.45 33.09 7.69Q33.70 7.79 33.70 8.19Q33.70 8.43 33.43 8.80L31.75 11.25Q31.58 11.48 31.43 11.57Q31.28 11.65 31.04 11.65Z" },
+		{ label: "Amiri", note: "classical naskh, the most bookish of these", d: "M29.64 14.82Q31.04 14.40 32.40 16.54Q33.77 18.67 33.98 22.63Q34.08 24.03 33.66 25.04Q32.72 27.21 29.32 29.00Q27.61 29.87 25.67 30.55Q23.73 31.24 21.52 31.73Q19.32 32.22 17.30 32.48Q15.29 32.74 13.44 32.74Q4.58 32.81 4.02 27.25Q3.92 26.20 4.27 24.52Q4.65 22.73 5.77 21.16Q5.91 20.95 6.16 20.95Q6.40 20.95 6.47 21.19Q6.54 21.44 6.40 21.61Q3.88 25.60 6.40 27.42Q10.04 30.05 17.92 29.10Q21.14 28.72 24.37 27.70Q27.61 26.69 30.83 25.04Q32.75 24.10 33.00 22.84Q32.82 21.96 32.09 21.37Q32.02 21.30 31.88 21.54Q30.93 23.36 29.50 23.57Q26.70 23.99 26.21 21.33Q25.90 19.55 28.21 15.98Q28.80 15.07 29.64 14.82ZM30.02 19.76Q30.37 19.44 29.99 19.13Q28.73 18.08 28.03 19.34Q27.89 19.65 28.07 19.83Q29.04 20.67 30.02 19.76ZM23.45 7.34Q23.52 7.23 23.73 7.27Q25.13 7.76 26.21 8.74Q26.35 8.88 26.25 9.02L24.60 11.68Q24.50 11.85 24.25 11.64Q24.11 11.54 23.52 11.15Q22.92 10.77 21.80 10.10Q21.63 10.00 21.73 9.89Z" },
+		{ label: "Rakkas", note: "bold display with calligraphic curves", d: "M34.00 20.41Q34.00 22.60 33.12 25.37Q32.24 28.14 31.21 29.65Q30.00 30.85 27.34 31.97Q24.67 33.09 21.36 33.75Q18.05 34.42 15.05 34.42Q9.89 34.42 6.94 32.55Q4.00 30.68 4.00 27.37Q5.03 24.49 6.73 21.98Q8.43 19.46 11.26 16.67L12.08 20.37Q9.93 21.91 7.83 24.06Q8.94 26.08 11.31 26.98Q13.67 27.89 17.75 27.89Q21.23 27.89 24.72 27.22Q28.20 26.55 30.60 25.57L30.43 23.98H28.28Q26.65 23.98 25.66 23.48Q24.67 22.99 24.67 22.08Q24.67 21.01 25.83 19.20Q26.99 17.40 28.58 16.00Q30.17 14.61 31.34 14.61Q32.50 14.61 33.25 16.24Q34.00 17.87 34.00 20.41ZM26.69 8.24 30.69 5.58 31.29 6.57Q32.50 8.55 33.31 9.58L29.70 11.94Q28.20 10.78 26.69 8.24Z" },
+		{ label: "Aref Ruqaa Ink", note: "ruqaa with the ink spread of a real nib", d: "M27.82 7.72Q27.00 8.79 26.15 9.84Q25.31 10.89 24.44 11.96L21.52 9.24L24.90 5.00ZM8.31 33.61Q6.91 32.66 6.35 30.95Q5.80 29.24 6.50 26.67Q7.20 24.10 9.54 20.52Q9.71 20.27 9.87 20.02Q10.04 19.78 10.37 19.69Q9.75 20.81 9.13 22.12Q8.51 23.44 8.39 25.09Q8.23 26.86 9.15 27.89Q10.08 28.92 11.72 29.35Q13.37 29.78 15.43 29.76Q17.49 29.74 19.67 29.35Q21.85 28.96 23.83 28.38Q25.80 27.80 27.28 27.10Q28.77 26.40 29.38 25.79Q29.38 25.79 29.24 25.33Q29.10 24.88 28.89 24.30Q28.68 23.73 28.46 23.36Q28.23 22.99 28.07 23.19Q27.41 23.73 26.36 24.06Q25.31 24.39 24.32 23.89Q23.74 23.61 23.72 22.76Q23.70 21.92 23.99 21.34Q24.69 20.07 25.33 18.75Q25.97 17.43 26.79 16.28Q27.49 15.33 28.27 15.48Q29.05 15.62 29.82 16.38Q30.58 17.14 31.07 18.17Q32.02 19.98 31.87 21.98Q31.73 23.98 30.82 25.89Q29.92 27.80 28.52 29.45Q27.24 30.97 25.25 32.11Q23.25 33.24 20.90 33.96Q18.56 34.68 16.17 34.90Q13.78 35.13 11.72 34.82Q9.67 34.51 8.31 33.61Z" }
 	];
-
-	let palette = $state(PALETTES[0]);
-
-	function stillMark(variant: (typeof VARIANTS)[number], px: number) {
-		const tile = variant.id === 5 ? shade(palette.sky, 0.5) : palette.sky;
-		const rock = variant.id === 5 ? '#e9efeb' : palette.rock;
-		const sunFill = palette.sun;
-
-		let sun = '';
-		if (variant.id === 0) sun = `<circle cx="25" cy="27" r="13.5" fill="${sunFill}"/>`;
-		else if (variant.id === 1)
-			sun = `<path d="M12 27a13 13 0 0 1 26 0z" fill="${sunFill}"/>`;
-		else if (variant.id === 2)
-			sun = `<path d="M25 4.5a14 14 0 1 1 0 28 14 14 0 0 1 0-28zm0 5.6a8.4 8.4 0 1 0 0 16.8 8.4 8.4 0 0 0 0-16.8z" fill="${sunFill}"/>`;
-		else if (variant.id === 3)
-			sun = `<circle cx="24" cy="29" r="9" fill="${sunFill}"/>`;
-		else if (variant.id === 4)
-			sun = `<path d="M25 5a13.5 13.5 0 1 0 0 27 13.5 13.5 0 0 0 8.6-3.1 12.2 12.2 0 1 1 0-20.8A13.5 13.5 0 0 0 25 5z" fill="${sunFill}"/>`;
-		else sun = `<circle cx="25" cy="15" r="10" fill="${sunFill}"/>`;
-
-		return `<svg width="${px}" height="${px}" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-			<path d="${TILE}" fill="${tile}"/>
-			<clipPath id="clip-${variant.key}-${px}"><path d="${TILE}"/></clipPath>
-			<g clip-path="url(#clip-${variant.key}-${px})">${sun}<path d="${RIDGE}" fill="${rock}"/></g>
-		</svg>`;
-	}
-
-	function compile(gl: WebGLRenderingContext, type: number, src: string) {
-		const shader = gl.createShader(type);
-		if (!shader) return null;
-		gl.shaderSource(shader, src);
-		gl.compileShader(shader);
-		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return null;
-		return shader;
-	}
-
-	type Painted = {
-		gl: WebGLRenderingContext;
-		sky: WebGLUniformLocation | null;
-		glow: WebGLUniformLocation | null;
-		sun: WebGLUniformLocation | null;
-		rock: WebGLUniformLocation | null;
-	};
-	const drawn: Painted[] = [];
-
-	function rgb(hex: string): [number, number, number] {
-		const n = parseInt(hex.replace('#', ''), 16);
-		return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
-	}
-
-	// A darker or lighter version of a colour, for the inverse variant's tile.
-	function shade(hex: string, by: number): string {
-		const [r, g, b] = rgb(hex).map((c) => Math.round(Math.min(c * by, 1) * 255));
-		return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
-	}
-
-	function paint(one: Painted) {
-		one.gl.uniform3f(one.sky, ...rgb(palette.sky));
-		one.gl.uniform3f(one.glow, ...rgb(palette.glow));
-		one.gl.uniform3f(one.sun, ...rgb(palette.sun));
-		one.gl.uniform3f(one.rock, ...rgb(palette.rock));
-	}
-
-	$effect(() => {
-		palette;
-		for (const one of drawn) paint(one);
-	});
-
-	function animate(canvas: HTMLCanvasElement, variant: (typeof VARIANTS)[number]) {
-		const context = canvas.getContext('webgl', { antialias: true, alpha: true });
-		if (!context) return false;
-		const gl: WebGLRenderingContext = context;
-
-		const program = gl.createProgram();
-		const vert = compile(gl, gl.VERTEX_SHADER, VERT);
-		const frag = compile(gl, gl.FRAGMENT_SHADER, FRAG);
-		if (!program || !vert || !frag) return false;
-		gl.attachShader(program, vert);
-		gl.attachShader(program, frag);
-		gl.linkProgram(program);
-		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return false;
-		gl.useProgram(program);
-
-		const buffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-		gl.bufferData(
-			gl.ARRAY_BUFFER,
-			new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-			gl.STATIC_DRAW
-		);
-		const aPos = gl.getAttribLocation(program, 'a_pos');
-		gl.enableVertexAttribArray(aPos);
-		gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-		const dpr = Math.min(window.devicePixelRatio || 1, 2);
-		const px = Math.round(140 * dpr);
-		canvas.width = px;
-		canvas.height = px;
-		canvas.style.width = '140px';
-		canvas.style.height = '140px';
-		gl.viewport(0, 0, px, px);
-		gl.uniform2f(gl.getUniformLocation(program, 'u_resolution'), px, px);
-		gl.uniform1f(gl.getUniformLocation(program, 'u_variant'), variant.id);
-		const painted: Painted = {
-			gl,
-			sky: gl.getUniformLocation(program, 'u_sky'),
-			glow: gl.getUniformLocation(program, 'u_glow'),
-			sun: gl.getUniformLocation(program, 'u_sun'),
-			rock: gl.getUniformLocation(program, 'u_rock')
-		};
-		paint(painted);
-		drawn.push(painted);
-		const uTime = gl.getUniformLocation(program, 'u_time');
-
-		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		const start = performance.now();
-		function draw(now: number) {
-			if (!document.hidden) {
-				gl.uniform1f(uTime, still ? 4 : (now - start) / 1000);
-				gl.drawArrays(gl.TRIANGLES, 0, 6);
-			}
-			if (!still) requestAnimationFrame(draw);
-		}
-		draw(start);
-		return true;
-	}
-
-	// Each card's canvas starts drawing as soon as it is in the page.
-	function live(canvas: HTMLCanvasElement, variant: (typeof VARIANTS)[number]) {
-		animate(canvas, variant);
-		return {};
-	}
 </script>
 
-<svelte:head><title>Mark studio · Fajr LMS</title></svelte:head>
+<svelte:head><title>The letter · Fajr LMS</title></svelte:head>
+
+{#snippet mark(d: string, px: number, id: string)}
+	<svg width={px} height={px} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+		<defs>
+			<linearGradient id="sky-{id}" x1="0" y1="0" x2="1" y2="1">
+				<stop offset="0" stop-color={SKY} />
+				<stop offset="1" stop-color={HORIZON} />
+			</linearGradient>
+			<radialGradient id="sun-{id}" cx="0.5" cy="0.5" r="0.5">
+				<stop offset="0" stop-color={SUN} stop-opacity="1" />
+				<stop offset="0.4" stop-color={SUN} stop-opacity="0.94" />
+				<stop offset="0.7" stop-color={SUN} stop-opacity="0.34" />
+				<stop offset="1" stop-color={SUN} stop-opacity="0" />
+			</radialGradient>
+			<clipPath id="tile-{id}"><path d={TILE} /></clipPath>
+		</defs>
+		<path d={TILE} fill="url(#sky-{id})" />
+		<g clip-path="url(#tile-{id})">
+			<circle cx="37" cy="42" r="24" fill="url(#sun-{id})" />
+		</g>
+		<path {d} fill="#fdf6e6" fill-opacity="0.96" />
+	</svg>
+{/snippet}
 
 <div class="wrap">
-	<header class="top">
-		<p class="eyebrow">Fajr LMS · the mark</p>
-		<h1>Six ways to draw the dawn</h1>
+	<header>
+		<p class="eyebrow">Fajr LMS · the letter</p>
+		<h1>Eight hands writing the same letter</h1>
 		<p class="lede">
-			Same idea throughout: <b>the sun coming up behind a ridge</b>, in the squircle the fluid orb
-			uses, moving the way the orb moves. What differs is the composition — how much sun, how the
-			light and the rock are weighted, and what carries the motion. Each is live here; the small
-			sizes beside it are the still version a favicon uses.
+			Fā', the first letter of فجر, in the mark as it stands. Only the letterform changes: the sky,
+			the sun and the tile are the same throughout. Judge it at 28 and 16 pixels, not at 140.
 		</p>
 	</header>
 
-	<div class="switch">
-		{#each PALETTES as option (option.key)}
-			<button
-				class="pick"
-				class:on={palette.key === option.key}
-				type="button"
-				onclick={() => (palette = option)}
-			>
-				<span class="dot" style="background: {option.sky}; box-shadow: inset 0 0 0 2px {option.sun}"
-				></span>
-				{option.key}
-			</button>
-		{/each}
-	</div>
-	<p class="hint">{palette.say} The mark stands alone, so judge it at 16 and 28 pixels too.</p>
-
 	<div class="grid">
-		{#each VARIANTS as variant (variant.key)}
-			<article class="mark-card">
-				<div class="stage">
-					<span class="under">{@html stillMark(variant, 140)}</span>
-					<canvas use:live={variant}></canvas>
-				</div>
+		{#each FACES as face, index (face.label)}
+			<article class="card">
+				<div class="stage">{@render mark(face.d, 140, `big-${index}`)}</div>
 				<div class="sizes">
-					<span class="chip">{@html stillMark(variant, 44)} 44px</span>
-					<span class="chip">{@html stillMark(variant, 28)} 28px</span>
-					<span class="chip">{@html stillMark(variant, 16)} 16px</span>
-				</div>
-				<div class="on-paper">
-					{@html stillMark(variant, 26)}
-					<span class="name">Fajr LMS</span>
-					<span class="note">{variant.note}</span>
+					{@render mark(face.d, 44, `m-${index}`)}
+					{@render mark(face.d, 28, `s-${index}`)}
+					{@render mark(face.d, 16, `t-${index}`)}
 				</div>
 				<div class="say">
-					<h2><span class="key">{variant.key}</span></h2>
-					<p>{variant.say}</p>
+					<h2>{face.label}</h2>
+					<p>{face.note}</p>
 				</div>
 			</article>
 		{/each}
 	</div>
-
-	<section class="tail">
-		<h3>Pick one</h3>
-		<p>
-			Reply with the name — <code>Dawn</code>, <code>Horizon</code>, <code>Aperture</code>,
-			<code>Notch</code>, <code>Crescent</code> or <code>Inverse</code> — and I will put it in the
-			sidebar, the tab icon and the home-screen icon. Mixing is fine too: "Aperture, but the ridge
-			from Dawn".
-		</p>
-
-		<div class="q">
-			<b>Two things worth deciding while you look</b>
-			<span>
-				Should the mark ever appear without the words "Fajr LMS" beside it — on a certificate, say,
-				or a printed report? And should the sun stay white, or take the amber that the product
-				already uses for progress?
-			</span>
-		</div>
-	</section>
 </div>
 
-
 <style>
-
-	:root {
-		--ground: #0d1012;
-		--raised: #14181b;
-		--line: #232a2e;
-		--line-strong: #333d43;
-		--ink: #eef2f0;
-		--ink-soft: #9aa6a1;
-		--ink-faint: #6b7773;
-		--brand: #047857;
-		--brand-bright: #10b981;
-		--paper: #f6f4ee;
-		--paper-ink: #14171a;
-		--sans: 'Cabin', system-ui, -apple-system, sans-serif;
-		--mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-	}
-
-	* { box-sizing: border-box; }
-
-	body {
+	:global(body) {
 		margin: 0;
-		background: var(--ground);
-		color: var(--ink);
-		font: 16px/1.6 var(--sans);
-		-webkit-font-smoothing: antialiased;
+		background: #0d1012;
+		color: #eef2f0;
+		font: 16px/1.6 'Cabin', system-ui, sans-serif;
 	}
 
 	.wrap { max-width: 1080px; margin: 0 auto; padding: 3.5rem 1.25rem 5rem; }
-
-	header.top { margin-bottom: 3rem; }
 	.eyebrow {
-		font: 500 0.7rem/1 var(--mono);
+		font: 500 0.7rem/1 'Geist Mono', ui-monospace, monospace;
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
-		color: var(--brand-bright);
+		color: #57c7dd;
 		margin: 0 0 0.9rem;
 	}
-	h1 {
-		font-size: clamp(2rem, 5vw, 2.9rem);
-		font-weight: 700;
-		letter-spacing: -0.025em;
-		line-height: 1.1;
-		margin: 0 0 0.75rem;
-		text-wrap: balance;
-	}
-	.lede { max-width: 62ch; color: var(--ink-soft); margin: 0; }
-	.lede b { color: var(--ink); font-weight: 600; }
+	h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); letter-spacing: -0.025em; margin: 0 0 0.7rem; }
+	.lede { max-width: 62ch; color: #9aa6a1; margin: 0 0 2.5rem; }
 
-	.switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem; }
-	.pick {
-		font: 500 0.85rem/1 var(--sans);
-		color: var(--ink-soft);
-		background: var(--raised);
-		border: 1px solid var(--line);
-		border-radius: 0.6rem;
-		padding: 0.55rem 0.9rem;
-		cursor: pointer;
-	}
-	.pick.on { color: var(--ink); border-color: var(--brand); background: rgba(4, 120, 87, 0.16); }
-	.pick .dot {
-		display: inline-block;
-		inline-size: 0.7rem;
-		block-size: 0.7rem;
-		border-radius: 0.25rem;
-		margin-inline-end: 0.45rem;
-		vertical-align: -1px;
-	}
-	.hint { font-size: 0.82rem; color: var(--ink-faint); margin: 0 0 1.5rem; }
-
-	.grid {
-		display: grid;
-		gap: 1.25rem;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-	}
-
-	.mark-card {
-		border: 1px solid var(--line);
-		border-radius: 1.25rem;
-		background: var(--raised);
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.stage {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 2.25rem 1.5rem 1.75rem;
-		background:
-			radial-gradient(120% 90% at 50% 0%, rgba(4, 120, 87, 0.16), transparent 70%),
-			var(--raised);
-	}
-	.stage { position: relative; }
-	/* The still mark sits under the canvas, so the stage is never empty. */
-	.stage .under { position: absolute; inset-block-start: 2.25rem; line-height: 0; }
-	.stage canvas { display: block; position: relative; border-radius: 30%; }
-
-	.sizes {
-		display: flex;
-		align-items: center;
-		gap: 1.1rem;
-		padding: 0 1.5rem 1.4rem;
-		justify-content: center;
-	}
-	.sizes .chip {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font: 400 0.7rem/1 var(--mono);
-		color: var(--ink-faint);
-	}
-
-	.on-paper {
-		display: flex;
-		align-items: center;
-		gap: 0.7rem;
-		padding: 0.85rem 1.5rem;
-		background: var(--paper);
-		color: var(--paper-ink);
-		border-block: 1px solid var(--line);
-	}
-	.on-paper .name { font-weight: 600; font-size: 0.95rem; letter-spacing: -0.01em; }
-	.on-paper .note { margin-inline-start: auto; font: 400 0.7rem/1 var(--mono); color: #6c7570; }
-
-	.say { padding: 1.15rem 1.5rem 1.4rem; }
-	.say h2 {
-		margin: 0 0 0.35rem;
-		font-size: 1.05rem;
-		font-weight: 600;
-		letter-spacing: -0.01em;
-		display: flex;
-		align-items: baseline;
-		gap: 0.6rem;
-	}
-	.say h2 .key {
-		font: 500 0.7rem/1 var(--mono);
-		color: var(--brand-bright);
-		border: 1px solid rgba(16, 185, 129, 0.35);
-		border-radius: 0.4rem;
-		padding: 0.2rem 0.4rem;
-	}
-	.say p { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
-
-	.tail { margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 1.75rem; }
-	.tail h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
-	.tail p { color: var(--ink-soft); margin: 0 0 0.75rem; max-width: 68ch; font-size: 0.92rem; }
-	.tail code {
-		font: 400 0.85rem/1.4 var(--mono);
-		background: var(--raised);
-		border: 1px solid var(--line);
-		border-radius: 0.4rem;
-		padding: 0.1rem 0.35rem;
-	}
-	.q { border-inline-start: 2px solid var(--brand); padding-inline-start: 0.9rem; margin: 1.1rem 0; }
-	.q b { display: block; font-weight: 600; }
-	.q span { color: var(--ink-soft); font-size: 0.9rem; }
-
-	@media (prefers-reduced-motion: reduce) {
-		.stage canvas { animation: none; }
-	}
+	.grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+	.card { border: 1px solid #232a2e; border-radius: 1.25rem; background: #14181b; overflow: hidden; }
+	.stage { display: flex; justify-content: center; padding: 2rem 1.5rem 1.25rem; }
+	.sizes { display: flex; align-items: flex-end; justify-content: center; gap: 1.25rem; padding-bottom: 1.4rem; }
+	.say { padding: 1rem 1.5rem 1.4rem; border-top: 1px solid #232a2e; }
+	.say h2 { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; }
+	.say p { margin: 0; color: #9aa6a1; font-size: 0.88rem; }
 </style>
