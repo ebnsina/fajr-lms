@@ -10,6 +10,7 @@ import (
 	"github.com/ebnsina/fajr-lms/internal/media"
 	"github.com/ebnsina/fajr-lms/internal/notify"
 	"github.com/ebnsina/fajr-lms/internal/payment"
+	"github.com/ebnsina/fajr-lms/internal/sso"
 )
 
 // Server holds the dependencies every endpoint shares.
@@ -22,6 +23,7 @@ type Server struct {
 	publicURL string
 	dns       DNSLookup
 	ai        ai.Drafter
+	sso       *sso.Client
 }
 
 // UseNotifier wires the notification service after construction, since the
@@ -31,8 +33,12 @@ func (s *Server) UseNotifier(n *notify.Service) { s.notifier = n }
 func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry,
 	payments *payment.Registry, publicURL string) *Server {
 	return &Server{store: store, identity: ident, media: registry, payments: payments,
-		publicURL: publicURL, dns: netLookup{}, ai: ai.Off{}}
+		publicURL: publicURL, dns: netLookup{}, ai: ai.Off{}, sso: &sso.Client{}}
 }
+
+// UseSSO replaces the OpenID client, which a test needs to trust its own
+// provider.
+func (s *Server) UseSSO(client *sso.Client) { s.sso = client }
 
 // UseAI replaces the model that drafts teaching material.
 func (s *Server) UseAI(drafter ai.Drafter) { s.ai = drafter }
@@ -48,6 +54,9 @@ func (s *Server) Routes() http.Handler {
 
 	mux.Handle("POST /v1/auth/otp", httpx.Handler(s.requestOTP))
 	mux.Handle("POST /v1/auth/otp/verify", httpx.Handler(s.verifyOTP))
+	mux.Handle("GET /v1/auth/sso/{slug}", httpx.Handler(s.ssoOffered))
+	mux.Handle("POST /v1/auth/sso/{slug}/start", httpx.Handler(s.startSSO))
+	mux.Handle("POST /v1/auth/sso/finish", httpx.Handler(s.finishSSO))
 
 	authed := func(h http.Handler) http.Handler { return s.RequireAuth(h) }
 	mux.Handle("GET /v1/me", authed(httpx.Handler(s.me)))
@@ -169,6 +178,9 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /v1/orders/paid", money(s.listPaidOrders))
 	mux.Handle("GET /v1/plans/all", money(s.listPlans))
 	mux.Handle("POST /v1/orders/{id}/refund", money(s.refundOrder))
+	mux.Handle("GET /v1/sso", runs(s.identityProvider))
+	mux.Handle("PUT /v1/sso", runs(s.setIdentityProvider))
+	mux.Handle("DELETE /v1/sso", runs(s.clearIdentityProvider))
 	mux.Handle("GET /v1/orders/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.listReviewQueue))))
 	mux.Handle("POST /v1/orders/{id}/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.reviewOrder))))
 

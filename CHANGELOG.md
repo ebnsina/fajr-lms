@@ -32,6 +32,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- Signing in with a school account. A school points Fajr at its Google
+  Workspace, Microsoft Entra or any OpenID Connect provider, and people sign in
+  with the account they already have instead of waiting for a code. The school
+  chooses which email domains may sign in, what role a new person joins as, and
+  whether anybody the provider vouches for may join at all.
 - A course can be sold in instalments. The school sets how many payments and
   how far apart; a learner picks paying in full or in parts at checkout, is
   enrolled from the first payment, and can see what is left to pay. The office

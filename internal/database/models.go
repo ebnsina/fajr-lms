@@ -1104,6 +1104,21 @@ type Guardianship struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type IdentityProvider struct {
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	Label          string             `json:"label"`
+	Issuer         string             `json:"issuer"`
+	ClientID       string             `json:"client_id"`
+	ClientSecret   string             `json:"client_secret"`
+	AllowedDomains []string           `json:"allowed_domains"`
+	JoinRole       MemberRole         `json:"join_role"`
+	AutoJoin       bool               `json:"auto_join"`
+	Enabled        bool               `json:"enabled"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Lesson struct {
 	ID        uuid.UUID          `json:"id"`
 	TenantID  uuid.UUID          `json:"tenant_id"`
@@ -1387,6 +1402,23 @@ type SitePage struct {
 	UpdatedBy   uuid.NullUUID      `json:"updated_by"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SsoIdentity struct {
+	ProviderID uuid.UUID          `json:"provider_id"`
+	Subject    string             `json:"subject"`
+	UserID     uuid.UUID          `json:"user_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type SsoLogin struct {
+	State       string             `json:"state"`
+	ProviderID  uuid.UUID          `json:"provider_id"`
+	Nonce       string             `json:"nonce"`
+	Verifier    string             `json:"verifier"`
+	RedirectUri string             `json:"redirect_uri"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 type Submission struct {

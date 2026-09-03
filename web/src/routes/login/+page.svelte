@@ -89,6 +89,20 @@
 				{sending ? 'Sending…' : 'Send code'}
 			</button>
 		</form>
+
+		{#if data.sso}
+			<div class="my-5 flex items-center gap-3 text-sm text-ink-faint">
+				<span class="h-px flex-1 bg-line"></span>
+				or
+				<span class="h-px flex-1 bg-line"></span>
+			</div>
+			<form method="POST" action="?/sso">
+				<input type="hidden" name="school" value={data.school} />
+				<button class="btn btn-quiet w-full" type="submit">
+					Continue with {data.sso.label}
+				</button>
+			</form>
+		{/if}
 	{/if}
 
 	{#snippet footer()}

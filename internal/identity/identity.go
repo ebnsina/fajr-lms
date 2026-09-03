@@ -302,3 +302,49 @@ func minutes(d time.Duration) pgtype.Interval {
 func hours(n int) pgtype.Interval {
 	return minutes(time.Duration(n) * time.Hour)
 }
+
+// SignInFederated signs in whoever a school's identity provider vouched for.
+// The provider's own subject is what identifies them, so a school changing
+// somebody's address does not turn them into a new person here.
+func (s *Service) SignInFederated(ctx context.Context, providerID uuid.UUID,
+	subject, email, fullName, userAgent string, ip *netip.Addr) (Session, []Membership, error) {
+
+	q := s.store.Unscoped()
+	address := strings.ToLower(strings.TrimSpace(email))
+
+	user, err := q.SSOUser(ctx, database.SSOUserParams{ProviderID: providerID, Subject: subject})
+	if database.IsNotFound(err) {
+		user, err = q.FindUserForAuth(ctx, database.FindUserForAuthParams{Email: address})
+		if database.IsNotFound(err) {
+			name := strings.TrimSpace(fullName)
+			if name == "" {
+				name = address
+			}
+			user, err = q.SignupUser(ctx, database.SignupUserParams{Email: address, FullName: name})
+			if err != nil {
+				return Session{}, nil, fmt.Errorf("create user: %w", err)
+			}
+		} else if err != nil {
+			return Session{}, nil, fmt.Errorf("find user: %w", err)
+		}
+		if err := q.LinkSSOUser(ctx, database.LinkSSOUserParams{
+			ProviderID: providerID, Subject: subject, UserID: user.ID,
+		}); err != nil {
+			return Session{}, nil, fmt.Errorf("link account: %w", err)
+		}
+	} else if err != nil {
+		return Session{}, nil, fmt.Errorf("find linked user: %w", err)
+	}
+
+	session, err := s.startSession(ctx, user.ID, userAgent, ip)
+	if err != nil {
+		return Session{}, nil, err
+	}
+	session.FullName = user.FullName
+
+	members, err := s.Memberships(ctx, user.ID)
+	if err != nil {
+		return Session{}, nil, err
+	}
+	return session, members, nil
+}

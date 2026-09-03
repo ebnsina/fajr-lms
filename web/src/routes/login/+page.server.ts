@@ -5,9 +5,21 @@ import { api, ApiFailure } from '$lib/server/api';
 import { clearSession, saveSession, saveTenant } from '$lib/server/session';
 import type { Membership, User } from '$lib/types';
 
-export const load: PageServerLoad = ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	if (locals.token) redirect(303, '/');
-	return {};
+
+	// A school's own sign-in is offered when the link names the school.
+	const school = (url.searchParams.get('school') ?? '').trim().toLowerCase();
+	if (!school) return { school: '', sso: null };
+	try {
+		const sso = await api<{ available: boolean; label?: string }>(
+			`/v1/auth/sso/${encodeURIComponent(school)}`,
+			{ fetch }
+		);
+		return { school, sso: sso.available ? { label: sso.label ?? 'Your school account' } : null };
+	} catch {
+		return { school, sso: null };
+	}
 };
 
 type VerifyResponse = { token: string; user: User; memberships: Membership[] };
@@ -81,6 +93,28 @@ export const actions: Actions = {
 			if (slug) saveTenant(cookies, slug, !dev);
 		}
 		redirect(303, session.memberships.length === 1 ? '/' : '/tenant');
+	},
+
+	// Sends the browser to the school's provider, which sends it back to
+	// /login/sso with a code.
+	sso: async ({ request, url, fetch }) => {
+		const form = await request.formData();
+		const school = String(form.get('school') ?? '')
+			.trim()
+			.toLowerCase();
+		if (!school) return fail(422, { message: 'Which school are you signing in to?' });
+
+		try {
+			const start = await api<{ url: string }>(`/v1/auth/sso/${encodeURIComponent(school)}/start`, {
+				method: 'POST',
+				body: { redirect_uri: new URL('/login/sso', url.origin).toString() },
+				fetch
+			});
+			redirect(303, start.url);
+		} catch (error) {
+			if (error instanceof ApiFailure) return fail(error.status, { message: error.error.message });
+			throw error;
+		}
 	},
 
 	logout: async ({ cookies, locals, fetch }) => {
