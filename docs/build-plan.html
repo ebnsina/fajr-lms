@@ -592,6 +592,71 @@ type Provider interface {
 </section>
 
 <section>
+  <h2>The platform back office</h2>
+  <p>Everything so far is a school looking at itself. This is the other side of the glass: <em>you</em> looking at every school, every lead the demo brings in, and whether the thing is actually growing. It is deliberately last — a back office built before there is a business to run is a second product to maintain.</p>
+
+  <p><strong>Steps 1, 2 and 4 are built, and most of step 3.</strong> One staff account signs in with a password at <code>/admin</code>; the overview, the lead list with its states, notes and CSV export, the school list and one school's own page all read through named <code>SECURITY DEFINER</code> functions, and every read of a school and every lead worked is written to <code>staff_audit</code>. What is left is marked below.</p>
+
+  <p>The rule that keeps it honest: <strong>the back office reads, and barely writes.</strong> Every write it does need (suspend a tenant, mark a lead worked) is one named action, audited. It never edits a school's teaching content — that is the school's, and a support answer of "we changed it for you" is how tenant isolation dies in practice.</p>
+
+  <div class="phases">
+    <div class="phase">
+      <div class="phase-head"><span class="id">Step 1</span><h3>Who is staff, and how they get in</h3><span class="dur">2–3 days</span></div>
+      <ul>
+        <li>A <code>platform_staff</code> table keyed by user, with a role of <code>support</code> or <code>owner</code> — not a magic email list in an env var, which cannot be revoked without a deploy</li>
+        <li>A <code>RequireStaff</code> middleware beside <code>RequireAuth</code>, and a <code>/v1/admin/*</code> prefix that only it guards. No tenant header, no RLS scope: these routes read across schools by design, so they are the one place that must be small enough to read in one sitting</li>
+        <li>Every admin request written to <code>staff_audit</code>: who, what, which tenant, when. Written before the handler runs, so a failed action is still recorded</li>
+        <li>Reads go through <code>SECURITY DEFINER</code> functions named per view — the same pattern certificate verification already uses — rather than handing the app role a blanket bypass of RLS</li>
+      </ul>
+      <div class="done"><b>Built</b>A staff account reads across every tenant, a non-staff account gets 404 on every admin route, and the sign-in and every school read are in <code>staff_audit</code>. The env-var staff list was rejected as planned: staff live in <code>platform_staff</code>, keyed to a user, with the password beside them.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="id">Step 2</span><h3>Leads, which is why this exists now</h3><span class="dur">2–3 days</span></div>
+      <ul>
+        <li>Every demo submission is already in <code>demo_leads</code>: name, work email, phone, organisation, role, learner count, what they run, and what they asked to be shown</li>
+        <li>A list with a filter and a search, newest first, and the one thing a lead list needs to be useful: <em>state</em> — new, contacted, qualified, lost — plus a free-text note per lead</li>
+        <li>What the demo did next to each lead: which demo school they were sent to, whether they came back, whether they later opened a real school under the same address. That last join is the only lead metric that matters</li>
+        <li>CSV export, because your CRM is somebody else's product and always will be</li>
+      </ul>
+      <div class="done"><b>Built</b>Leads list with search and a state filter, a state and a note per lead, CSV export, and <code>leads_converted</code> on the overview — leads whose address later owns a real school. Still to come: which demo school each lead was sent to, and whether they came back.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="id">Step 3</span><h3>Every school, at a glance</h3><span class="dur">4–5 days</span></div>
+      <ul>
+        <li>A tenant list: name, kind, plan, when it opened, active learners, courses published, last activity — the six columns that tell you whether a school is alive</li>
+        <li>One tenant's own page: its members and roles, its courses, its payment history and any order stuck awaiting approval, its storage and media usage, its notification failures</li>
+        <li>Support actions, each audited and each requiring a typed reason: suspend a tenant, restore one, resend an invitation, retry a stuck payment reconciliation</li>
+        <li>Impersonation is <strong>not</strong> in this step. When it comes, it is time-boxed, consented to by an owner of that school, and stamped on every row it writes — or it is not built at all</li>
+      </ul>
+      <div class="done"><b>Mostly built</b>The list and the per-school page are there: members and roles, courses and their enrollments, every order and what is still awaiting approval, certificates issued. <strong>Still to come:</strong> the support actions — suspend, restore, resend an invitation, retry a reconciliation — each audited and each needing a typed reason. Impersonation remains out.</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><span class="id">Step 4</span><h3>Whether the business is working</h3><span class="dur">3–4 days</span></div>
+      <ul>
+        <li>Signups, demos, and demo-to-school conversion, weekly</li>
+        <li>Active learners and active schools — active meaning something was taught, not that a row exists</li>
+        <li>Money: what was billed, what settled, what is stuck in bank-transfer approval and for how long</li>
+        <li>Health that costs money: media egress per tenant, notification failures per channel, the slowest queries of the week</li>
+        <li>Every number is one SQL view. No metrics pipeline, no warehouse, no event bus — the database is small for years, and a view you can read is worth more than a dashboard you cannot check</li>
+      </ul>
+      <div class="done"><b>Built</b>Twelve numbers on one screen, in three groups — the business, the demo, teaching — each one a count in a single SQL function. No pipeline, no warehouse. <strong>Still to come:</strong> week-on-week movement, media egress per tenant, and notification failures per channel.</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>What this deliberately is not</h3>
+    <ul>
+      <li><strong>Not a CRM.</strong> Leads get a state, a note and an export. Pipelines, sequences and email campaigns belong in a tool built for it.</li>
+      <li><strong>Not a second admin UI for schools.</strong> Anything a school should be able to do, a school does. If support keeps doing something on their behalf, that is a missing feature in the product, not a page here.</li>
+      <li><strong>Not analytics for its own sake.</strong> Four numbers you check weekly beat forty you never open.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
   <h2>Deliberately not building</h2>
   <p>Every one of these is cheaper to buy, and each would cost you a phase to build badly.</p>
   <ul>

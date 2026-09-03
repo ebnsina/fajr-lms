@@ -1305,6 +1305,21 @@ type CourseTopic struct {
 	TenantID uuid.UUID `json:"tenant_id"`
 }
 
+type DemoLead struct {
+	ID           uuid.UUID          `json:"id"`
+	FullName     string             `json:"full_name"`
+	Email        string             `json:"email"`
+	Phone        string             `json:"phone"`
+	Organisation string             `json:"organisation"`
+	Role         string             `json:"role"`
+	Learners     string             `json:"learners"`
+	Runs         string             `json:"runs"`
+	Note         string             `json:"note"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	State        string             `json:"state"`
+	WorkedNote   string             `json:"worked_note"`
+}
+
 type Enrollment struct {
 	ID          uuid.UUID          `json:"id"`
 	TenantID    uuid.UUID          `json:"tenant_id"`
@@ -1594,6 +1609,14 @@ type Placement struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type PlatformStaff struct {
+	UserID       uuid.UUID          `json:"user_id"`
+	Role         string             `json:"role"`
+	PasswordHash string             `json:"password_hash"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	LastSeenAt   pgtype.Timestamptz `json:"last_seen_at"`
+}
+
 type PointAward struct {
 	ID        uuid.UUID          `json:"id"`
 	TenantID  uuid.UUID          `json:"tenant_id"`
@@ -1778,6 +1801,15 @@ type SsoLogin struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
+type StaffAudit struct {
+	ID        int64              `json:"id"`
+	UserID    uuid.NullUUID      `json:"user_id"`
+	Action    string             `json:"action"`
+	Subject   string             `json:"subject"`
+	Detail    string             `json:"detail"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type Subject struct {
 	ID        uuid.UUID          `json:"id"`
 	TenantID  uuid.UUID          `json:"tenant_id"`
@@ -1832,6 +1864,7 @@ type Tenant struct {
 	DomainVerifiedAt pgtype.Timestamptz `json:"domain_verified_at"`
 	Institution      InstitutionKind    `json:"institution"`
 	PointsOn         bool               `json:"points_on"`
+	Demo             bool               `json:"demo"`
 }
 
 type Term struct {

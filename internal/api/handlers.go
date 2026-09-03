@@ -119,7 +119,7 @@ func (s *Server) currentTenant(w http.ResponseWriter, r *http.Request) error {
 	return httpx.JSON(w, http.StatusOK, map[string]any{
 		"id": t.ID, "slug": t.Slug, "name": t.Name, "kind": t.Kind,
 		"default_dir": t.DefaultDir, "locale": t.Locale, "currency": t.Currency,
-		"site_theme": t.SiteTheme, "role": CurrentRole(r.Context()),
+		"site_theme": t.SiteTheme, "role": CurrentRole(r.Context()), "demo": t.Demo,
 	})
 }
 

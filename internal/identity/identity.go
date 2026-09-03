@@ -348,3 +348,34 @@ func (s *Service) SignInFederated(ctx context.Context, providerID uuid.UUID,
 	}
 	return session, members, nil
 }
+
+// SignInUnverified starts a session for an address nobody has proved they own.
+// It exists for the demo, which hands out a look at a school that cannot be
+// changed; never use it where a real account is at stake.
+func (s *Service) SignInUnverified(ctx context.Context, email, fullName, userAgent string,
+	ip *netip.Addr) (Session, error) {
+
+	q := s.store.Unscoped()
+	address := strings.ToLower(strings.TrimSpace(email))
+
+	user, err := q.FindUserForAuth(ctx, database.FindUserForAuthParams{Email: address})
+	if database.IsNotFound(err) {
+		name := strings.TrimSpace(fullName)
+		if name == "" {
+			name = address
+		}
+		user, err = q.SignupUser(ctx, database.SignupUserParams{Email: address, FullName: name})
+		if err != nil {
+			return Session{}, fmt.Errorf("create user: %w", err)
+		}
+	} else if err != nil {
+		return Session{}, fmt.Errorf("find user: %w", err)
+	}
+
+	session, err := s.startSession(ctx, user.ID, userAgent, ip)
+	if err != nil {
+		return Session{}, err
+	}
+	session.FullName = user.FullName
+	return session, nil
+}

@@ -47,6 +47,22 @@ func (s *Server) Routes() http.Handler {
 	}))
 	mux.Handle("GET /readyz", httpx.Handler(s.ready))
 
+	// The back office: one sign-in of its own, and every route behind it reads
+	// across schools, which nothing else here may do.
+	mux.Handle("POST /v1/admin/login", httpx.Handler(s.adminLogin))
+	staff := func(h httpx.Handler) http.Handler { return s.RequireAuth(s.RequireStaff(h)) }
+	mux.Handle("GET /v1/admin/overview", staff(s.adminOverview))
+	mux.Handle("GET /v1/admin/schools", staff(s.adminTenants))
+	mux.Handle("GET /v1/admin/schools/{id}", staff(s.adminTenant))
+	mux.Handle("GET /v1/admin/leads", staff(s.adminLeads))
+	mux.Handle("GET /v1/admin/leads.csv", staff(s.adminLeadsCSV))
+	mux.Handle("PUT /v1/admin/leads/{id}", staff(s.adminSetLead))
+
+	// Public: a look at a school that already has work in it, for the price of
+	// telling us who is asking.
+	mux.Handle("GET /v1/demo/kinds", httpx.Handler(s.demoKinds))
+	mux.Handle("POST /v1/demo", httpx.Handler(s.startDemo))
+
 	mux.Handle("POST /v1/auth/otp", httpx.Handler(s.requestOTP))
 	mux.Handle("POST /v1/auth/otp/verify", httpx.Handler(s.verifyOTP))
 	mux.Handle("GET /v1/auth/sso/{slug}", httpx.Handler(s.ssoOffered))

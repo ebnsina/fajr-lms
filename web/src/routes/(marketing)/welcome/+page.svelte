@@ -27,6 +27,11 @@
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
+	import Trophy from '@lucide/svelte/icons/trophy';
+	import MessagesSquare from '@lucide/svelte/icons/messages-square';
+	import Package from '@lucide/svelte/icons/package';
+	import KeyRound from '@lucide/svelte/icons/key-round';
+	import Building from '@lucide/svelte/icons/building-2';
 
 	// The first question is open, so the section never reads as a wall of bars.
 	let open = $state(0);
@@ -156,8 +161,33 @@
 		},
 		{
 			icon: Award,
-			title: 'Certificates',
-			body: 'Awarded on a finished course, carrying a serial anybody can check on a public page — no account, no login, no phone call to the office.'
+			title: 'Certificates you design',
+			body: 'Awarded on a finished course, carrying a serial anybody can check on a public page. Drag each line where it belongs and print it on your own paper, or keep the design we ship.'
+		},
+		{
+			icon: Building,
+			title: 'Classes, sections and subjects',
+			body: 'The year, its terms, and the classes and sections underneath them — the spine a school already runs on, so a roster means the same thing here as in the office.'
+		},
+		{
+			icon: Trophy,
+			title: 'Points, badges and a leaderboard',
+			body: 'Award points for work finished and badges for what deserves one, with a leaderboard the school can turn off entirely.'
+		},
+		{
+			icon: MessagesSquare,
+			title: 'Discussion in the course',
+			body: 'A thread per course for the questions that would otherwise arrive at midnight on a teacher\'s personal number.'
+		},
+		{
+			icon: Package,
+			title: 'SCORM packages',
+			body: 'Upload a package you already own and it plays inside the lesson, with its score reported back into the gradebook like anything else.'
+		},
+		{
+			icon: KeyRound,
+			title: 'Your own sign-in',
+			body: 'Bring the school\'s existing accounts through OpenID Connect, decide which domains may join, and what role they land in.'
 		},
 		{
 			icon: Wallet,
@@ -232,7 +262,7 @@
 				Get started free
 				<ArrowRight size={17} aria-hidden="true" />
 			</a>
-			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
+			<a class="btn btn-quiet" href="/get-a-demo">See a demo school</a>
 		</div>
 		<p class="mt-5 text-sm text-ink-soft" use:reveal={{ delay: 0.3 }}>
 			Free for your first fifty learners. No card to begin.
@@ -531,8 +561,12 @@
 				Get started free
 				<ArrowRight size={17} aria-hidden="true" />
 			</a>
-			<a class="btn btn-quiet" href="/pricing">See the pricing</a>
+			<a class="btn btn-quiet" href="/get-a-demo">Walk through a demo first</a>
 		</div>
+		<p class="mx-auto mt-5 max-w-xl text-sm text-ink-soft">
+			The demo is a school with a term already in it — courses, learners part way through, marks,
+			the register taken, and a certificate somebody earned. Nothing in it can be changed.
+		</p>
 	</div>
 </section>
 

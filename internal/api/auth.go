@@ -87,10 +87,22 @@ func (s *Server) RequireTenant(next http.Handler) http.Handler {
 			return
 		}
 
+		// A demo school is looked at, never changed. One refusal here covers
+		// every route rather than a guard in each of them.
+		if tenant.Demo && !readOnly(r.Method) {
+			httpx.WriteError(w, r, httpx.Errorf(http.StatusForbidden, "demo_read_only",
+				"This is a demo school, so nothing in it can be changed. Open your own school to try this for real."))
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), tenantKey, tenant)
 		ctx = context.WithValue(ctx, roleKey, member.Role)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func readOnly(method string) bool {
+	return method == http.MethodGet || method == http.MethodHead || method == http.MethodOptions
 }
 
 // RequireRole allows only the listed roles through.

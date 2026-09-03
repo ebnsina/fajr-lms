@@ -10,6 +10,7 @@ export type Tenant = {
 	currency: string;
 	site_theme?: 'plain' | 'gulf' | 'bengal';
 	role: string;
+	demo?: boolean;
 };
 
 export type User = { id: string; full_name: string };

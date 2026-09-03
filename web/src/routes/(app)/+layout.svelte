@@ -106,6 +106,18 @@
 		</header>
 
 		<main class="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+			{#if data.session?.tenant?.demo}
+				<!-- Every write is refused by the API; this says so before somebody tries. -->
+				<p class="banner mb-5 flex flex-wrap items-center gap-x-2 text-sm" role="status">
+					<span>
+						You are looking at a demo school. Everything is real except that nothing can be
+						changed.
+					</span>
+					<a class="font-medium underline underline-offset-4" href="/start">
+						Open your own school
+					</a>
+				</p>
+			{/if}
 			{@render children()}
 		</main>
 		</div>

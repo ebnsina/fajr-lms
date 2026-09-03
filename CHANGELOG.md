@@ -11,6 +11,15 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   letter fā' set in it. The tab icon and the home-screen icon match.
 
 ### Added
+- Anyone can see the product with work in it: **Get a demo** asks who you are
+  and what you run, then opens a demo school of that kind — a madrasah, a
+  school, a coaching centre, a teacher on their own, or a company — already
+  holding courses, learners part way through, marks, a register taken and a
+  certificate somebody earned. The demo schools are shared and read-only:
+  every screen opens, nothing can be changed.
+- The landing page now says what the product actually does: certificates you
+  design, classes and sections, points and badges, discussion in the course,
+  SCORM packages, and signing in with the school's own accounts.
 - A school can lay out its own certificate: drag each line — the learner's
   name, the course, the date, the serial, words of your own — where it belongs,
   set its size, colour and weight, and print it on paper of your own. The public

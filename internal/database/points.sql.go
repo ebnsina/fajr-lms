@@ -286,7 +286,7 @@ func (q *Queries) MyPoints(ctx context.Context, userID uuid.UUID) (int64, error)
 }
 
 const setPointsOn = `-- name: SetPointsOn :one
-UPDATE tenants SET points_on = $1 WHERE id = $2 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution, points_on
+UPDATE tenants SET points_on = $1 WHERE id = $2 RETURNING id, slug, name, kind, status, default_dir, locale, currency, created_at, updated_at, site_theme, custom_domain, domain_token, domain_verified_at, institution, points_on, demo
 `
 
 type SetPointsOnParams struct {
@@ -314,6 +314,7 @@ func (q *Queries) SetPointsOn(ctx context.Context, arg SetPointsOnParams) (Tenan
 		&i.DomainVerifiedAt,
 		&i.Institution,
 		&i.PointsOn,
+		&i.Demo,
 	)
 	return i, err
 }

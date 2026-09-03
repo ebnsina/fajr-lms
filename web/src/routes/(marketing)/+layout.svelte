@@ -43,6 +43,7 @@
 			</div>
 
 			<div class="ms-auto flex items-center gap-2 lg:ms-0">
+				<a class="btn btn-sm btn-quiet" href="/get-a-demo">See a demo</a>
 				<a class="btn btn-sm" href="/start">
 					Get started
 					<ArrowRight size={15} aria-hidden="true" />
@@ -80,6 +81,7 @@
 					<li><a class="transition-colors hover:text-ink" href="/welcome#website">Your website</a></li>
 					<li><a class="transition-colors hover:text-ink" href="/welcome#compare">Compare</a></li>
 					<li><a class="transition-colors hover:text-ink" href="/pricing">Pricing</a></li>
+					<li><a class="transition-colors hover:text-ink" href="/get-a-demo">See a demo</a></li>
 				</ul>
 			</div>
 
