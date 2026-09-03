@@ -53,6 +53,7 @@
 		uniform float u_time;
 		uniform float u_variant;
 		uniform vec3 u_brand;
+		uniform vec3 u_sun;
 
 		const vec2 A = vec2(-6.0, 54.0);
 		const vec2 B = vec2(16.0, 23.0);
@@ -89,7 +90,7 @@
 			vec2 g = vec2(fbm(p + drift), fbm(p + vec2(3.2, 1.5) - drift));
 			float f = fbm(p + 1.5 * g);
 
-			vec3 white = vec3(0.99, 1.0, 1.0);
+			vec3 white = u_sun;
 			vec3 sky  = mix(u_brand * 1.08, u_brand * 0.72, smoothstep(0.26, 0.82, f));
 			vec3 sun  = mix(white, mix(white, u_brand, 0.5), smoothstep(0.24, 0.8, f));
 			vec3 rock = u_brand * 0.42;
@@ -128,7 +129,7 @@
 			if (v == 5) {
 				// Ink tile, emerald sun, pale ridge.
 				vec3 ink = vec3(0.055, 0.075, 0.08);
-				vec3 glow = mix(u_brand * 1.9, u_brand * 1.1, smoothstep(0.24, 0.8, f));
+				vec3 glow = mix(u_sun * 1.15, u_sun * 0.85, smoothstep(0.24, 0.8, f));
 				col = mix(ink, glow, light);
 				col = mix(col, mix(white, u_brand * 1.3, 0.25), ridge);
 			} else if (v == 3) {
@@ -150,12 +151,19 @@
 	const RIDGE = 'M-6 54 16 23 24 33 32 27 54 54 54 64 -6 64Z';
 
 	// The still mark, which is what a favicon and a reduced-motion viewer get.
+	// The sun in both colours, compared live: white for contrast, or the dawn
+	// amber the product already uses for progress.
+	const WHITE = '#ffffff';
+	const AMBER = '#e8a33d';
+	let amber = $state(false);
+	const sunHex = $derived(amber ? AMBER : WHITE);
+
 	function stillMark(variant: (typeof VARIANTS)[number], px: number) {
 		const emerald = '#047857';
 		const ink = '#0e1214';
 		const tile = variant.id === 5 ? ink : emerald;
 		const rock = variant.id === 5 ? '#dfeee7' : '#0b3f2e';
-		const sunFill = variant.id === 5 ? '#12b981' : '#ffffff';
+		const sunFill = variant.id === 5 ? (amber ? AMBER : '#12b981') : sunHex;
 
 		let sun = '';
 		if (variant.id === 0) sun = `<circle cx="25" cy="18.5" r="13" fill="${sunFill}"/>`;
@@ -184,6 +192,20 @@
 		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return null;
 		return shader;
 	}
+
+	const drawn: { gl: WebGLRenderingContext; uSun: WebGLUniformLocation | null }[] = [];
+
+	function rgb(hex: string): [number, number, number] {
+		const n = parseInt(hex.replace('#', ''), 16);
+		return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+	}
+
+	$effect(() => {
+		const colour = rgb(sunHex);
+		for (const one of drawn) {
+			one.gl.uniform3f(one.uSun, ...colour);
+		}
+	});
 
 	function animate(canvas: HTMLCanvasElement, variant: (typeof VARIANTS)[number]) {
 		const context = canvas.getContext('webgl', { antialias: true, alpha: true });
@@ -221,6 +243,9 @@
 		gl.uniform2f(gl.getUniformLocation(program, 'u_resolution'), px, px);
 		gl.uniform1f(gl.getUniformLocation(program, 'u_variant'), variant.id);
 		gl.uniform3f(gl.getUniformLocation(program, 'u_brand'), 0.016, 0.47, 0.34);
+		const uSun = gl.getUniformLocation(program, 'u_sun');
+		gl.uniform3f(uSun, ...rgb(sunHex));
+		drawn.push({ gl, uSun });
 		const uTime = gl.getUniformLocation(program, 'u_time');
 
 		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -256,6 +281,18 @@
 			sizes beside it are the still version a favicon uses.
 		</p>
 	</header>
+
+	<div class="switch">
+		<button class="pick" class:on={!amber} type="button" onclick={() => (amber = false)}>
+			White sun
+		</button>
+		<button class="pick" class:on={amber} type="button" onclick={() => (amber = true)}>
+			Dawn amber
+		</button>
+		<span class="hint">
+			Both are live. The mark has to stand alone, so judge it at 16 and 28 pixels as much as large.
+		</span>
+	</div>
 
 	<div class="grid">
 		{#each VARIANTS as variant (variant.key)}
@@ -351,6 +388,19 @@
 	}
 	.lede { max-width: 62ch; color: var(--ink-soft); margin: 0; }
 	.lede b { color: var(--ink); font-weight: 600; }
+
+	.switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem; }
+	.pick {
+		font: 500 0.85rem/1 var(--sans);
+		color: var(--ink-soft);
+		background: var(--raised);
+		border: 1px solid var(--line);
+		border-radius: 0.6rem;
+		padding: 0.55rem 0.9rem;
+		cursor: pointer;
+	}
+	.pick.on { color: var(--ink); border-color: var(--brand); background: rgba(4, 120, 87, 0.16); }
+	.switch .hint { font-size: 0.8rem; color: var(--ink-faint); margin-inline-start: 0.4rem; }
 
 	.grid {
 		display: grid;
