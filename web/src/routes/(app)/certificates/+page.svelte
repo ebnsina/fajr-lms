@@ -3,6 +3,7 @@
 	import Award from '@lucide/svelte/icons/award';
 	import CertificateCard from '$lib/components/CertificateCard.svelte';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import PenLine from '@lucide/svelte/icons/pen-line';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -10,11 +11,18 @@
 
 <svelte:head><title>Certificates · Fajr LMS</title></svelte:head>
 
-<header class="mb-6">
-	<h1 class="text-2xl font-semibold tracking-tight">Certificates</h1>
-	<p class="mt-1 mb-0 text-sm text-ink-soft">
-		Every certificate carries a serial anyone can check, without an account.
-	</p>
+<header class="mb-6 flex flex-wrap items-start justify-between gap-3">
+	<div>
+		<h1 class="text-2xl font-semibold tracking-tight">Certificates</h1>
+		<p class="mt-1 mb-0 text-sm text-ink-soft">
+			Every certificate carries a serial anyone can check, without an account.
+		</p>
+	</div>
+	{#if data.runsSchool}
+		<a class="btn btn-sm btn-quiet" href="/certificates/design">
+			<PenLine size={16} aria-hidden="true" /> Design the certificate
+		</a>
+	{/if}
 </header>
 
 {#if form?.message}

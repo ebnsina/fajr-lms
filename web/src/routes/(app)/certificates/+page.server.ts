@@ -37,7 +37,8 @@ export const load: PageServerLoad = async ({ locals, parent, fetch }) => {
 	const claimable = enrollments.filter(
 		(row) => row.enrollment.status === 'completed' && !awarded.has(row.slug)
 	);
-	return { certificates, claimable };
+	const runsSchool = ['owner', 'admin'].includes(session.tenant.role);
+	return { certificates, claimable, runsSchool };
 };
 
 export const actions: Actions = {

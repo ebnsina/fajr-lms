@@ -11,6 +11,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   letter fā' set in it. The tab icon and the home-screen icon match.
 
 ### Added
+- A school can lay out its own certificate: drag each line — the learner's
+  name, the course, the date, the serial, words of your own — where it belongs,
+  set its size, colour and weight, and print it on paper of your own. The public
+  verification page draws the same layout, and a school that draws nothing keeps
+  the design we ship.
 - A mark for Fajr LMS: the dawn the name means, a sun rising behind a twin ridge
   in a squircle tile, drifting slowly like the Fajr AI orb and holding still
   under reduced motion. It sits above the school switcher in the sidebar, with

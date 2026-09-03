@@ -2,6 +2,7 @@ package api
 
 import (
 	"crypto/rand"
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -252,6 +253,9 @@ func (s *Server) verifyCertificate(w http.ResponseWriter, r *http.Request) error
 	}
 
 	if wantsHTML(r) {
+		if fields, background := s.layoutFor(r, view.Serial); len(fields) > 0 {
+			view.Laid, view.Background, view.Fields = true, background, place(fields, view)
+		}
 		return renderCertificate(w, http.StatusOK, view)
 	}
 	return httpx.JSON(w, http.StatusOK, map[string]any{
@@ -275,6 +279,50 @@ type certificateView struct {
 	// Where the product's own fonts are served from, so the printed page is
 	// set in the same faces as the app that issued it.
 	Assets string
+	// A school's own layout, when it has drawn one. Empty means the design we
+	// ship, which is what most schools will keep.
+	Laid       bool
+	Background bool
+	Fields     []placedField
+}
+
+// placedField is one field of a school's own layout, ready to draw: the words
+// already filled in, the position already a percentage.
+type placedField struct {
+	Text  string
+	X     float64
+	Y     float64
+	Size  float64
+	Align string
+	Bold  bool
+	Color string
+}
+
+// place fills a school's layout with this certificate's own words.
+func place(fields []certField, view certificateView) []placedField {
+	words := map[string]string{
+		"recipient": view.Recipient, "course": view.Course, "issuer": view.Issuer,
+		"date": view.IssuedOn, "serial": view.Serial,
+	}
+	if view.HasGrade {
+		words["grade"] = fmt.Sprintf("%d%%", view.Grade)
+	}
+
+	out := make([]placedField, 0, len(fields))
+	for _, field := range fields {
+		text := words[field.Token]
+		if field.Token == "text" {
+			text = field.Label
+		}
+		if text == "" {
+			continue
+		}
+		out = append(out, placedField{
+			Text: text, X: field.X, Y: field.Y, Size: field.Size,
+			Align: field.Align, Bold: field.Bold, Color: field.Color,
+		})
+	}
+	return out
 }
 
 func wantsHTML(r *http.Request) bool {
@@ -369,13 +417,35 @@ var certificateTemplate = template.Must(template.New("certificate").Parse(`<!doc
   .checked { max-inline-size: 52rem; margin: 1.25rem auto 0; text-align: center;
              font-size: 0.8rem; color: var(--ink-faint); }
 
+  /* A school's own layout: the paper it chose, and its fields placed on it. */
+  .laid { position: relative; max-inline-size: 52rem; margin-inline: auto; aspect-ratio: 297 / 210;
+          background: var(--paper) center / cover no-repeat; border: 1px solid var(--line);
+          border-radius: var(--radius-card); overflow: hidden; }
+  .laid .placed { position: absolute; transform: translate(-50%, -50%); margin: 0;
+                  inline-size: 90%; line-height: 1.25; }
+
   @media print {
     body { background: #fff; padding: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     .sheet { border: 0; border-radius: 0; max-inline-size: none; }
+    .laid { border: 0; border-radius: 0; max-inline-size: none; }
     .checked { display: none; }
   }
 </style>
-{{if .Found}}
+{{if and .Found .Laid}}
+<div{{if .Revoked}} class="void"{{end}}>
+  <div class="laid"{{if .Background}} style="background-image:url('{{.Assets}}/verify/{{.Serial}}/background')"{{end}}>
+    {{if .Revoked}}<span class="stamp" aria-hidden="true">REVOKED</span>{{end}}
+    {{range .Fields}}
+    <p class="placed" dir="auto" style="inset-inline-start:{{.X}}%; inset-block-start:{{.Y}}%;
+       font-size:{{.Size}}rem; text-align:{{.Align}}; {{if .Bold}}font-weight:700;{{end}}
+       {{if .Color}}color:{{.Color}};{{end}}">{{.Text}}</p>
+    {{end}}
+  </div>
+</div>
+<p class="checked">
+  {{if .Revoked}}This certificate has been revoked.{{else}}Checked against the issuing school's record.{{end}}
+</p>
+{{else if .Found}}
 <div{{if .Revoked}} class="void"{{end}}>
   <div class="sheet">
     {{if .Revoked}}<span class="stamp" aria-hidden="true">REVOKED</span>{{end}}

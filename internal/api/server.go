@@ -132,6 +132,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/submissions/{id}/grade", teaches(s.gradeWork))
 	// Public: anyone holding a serial can check a certificate.
 	mux.Handle("GET /verify/{serial}", httpx.Handler(s.verifyCertificate))
+	mux.Handle("GET /verify/{serial}/background", httpx.Handler(s.certificateBackground))
 
 	mux.Handle("POST /v1/courses/{id}/certificates", inTenant(httpx.Handler(s.issueCertificate)))
 	mux.Handle("GET /v1/courses/{id}/certificates", teaches(s.courseCertificates))
@@ -246,6 +247,13 @@ func (s *Server) Routes() http.Handler {
 
 	mux.Handle("POST /v1/academics/subjects", runs(s.createSubject))
 	mux.Handle("DELETE /v1/academics/subjects/{id}", runs(s.deleteSubject))
+
+	// A school lays out its own certificate.
+	mux.Handle("GET /v1/certificates/layout", teaches(s.certificateLayout))
+	mux.Handle("PUT /v1/certificates/layout", runs(s.saveCertificateLayout))
+	mux.Handle("GET /v1/certificates/layout/background", teaches(s.ownBackground))
+	mux.Handle("PUT /v1/certificates/layout/background", runs(s.setBackground))
+	mux.Handle("DELETE /v1/certificates/layout/background", runs(s.clearBackground))
 
 	mux.Handle("GET /v1/sso", runs(s.identityProvider))
 	mux.Handle("PUT /v1/sso", runs(s.setIdentityProvider))

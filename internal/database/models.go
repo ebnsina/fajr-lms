@@ -1196,6 +1196,14 @@ type Certificate struct {
 	IssuedBy      uuid.NullUUID      `json:"issued_by"`
 }
 
+type CertificateLayout struct {
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	Fields         []byte             `json:"fields"`
+	Background     []byte             `json:"background"`
+	BackgroundType string             `json:"background_type"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
 type CertificateVerification struct {
 	Serial        string             `json:"serial"`
 	RecipientName string             `json:"recipient_name"`
