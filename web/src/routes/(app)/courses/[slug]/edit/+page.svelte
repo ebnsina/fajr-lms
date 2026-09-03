@@ -7,6 +7,7 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
+	import MediaUpload from '$lib/components/MediaUpload.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -15,6 +16,7 @@
 	let addingModule = $state(false);
 	let editingCourse = $state(false);
 	let renamingModule = $state<string | null>(null);
+	let uploadingTo = $state<string | null>(null);
 
 	// An input keeps whatever it was created with, so the settings are held in
 	// state and resynced when the page reloads after a save.
@@ -264,6 +266,15 @@
 						<li class="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-4 py-3">
 							<span class="min-w-40 flex-1 font-medium" dir={lesson.dir}>{lesson.title}</span>
 							<span class="chip">{kindName(lesson.kind)}</span>
+							{#if takesLink(lesson.kind)}
+								<button
+									class="btn btn-sm btn-quiet"
+									type="button"
+									onclick={() => (uploadingTo = uploadingTo === lesson.id ? null : lesson.id)}
+								>
+									{lesson.media_id ? 'Replace the file' : 'Upload a file'}
+								</button>
+							{/if}
 							{#if lesson.kind === 'quiz' || lesson.kind === 'assignment'}
 								<a
 									class="btn btn-sm btn-quiet"
@@ -329,6 +340,16 @@
 									<Trash size={16} aria-hidden="true" />
 								</button>
 							</form>
+							{#if uploadingTo === lesson.id}
+								<div class="w-full border-t border-line pt-3">
+									<MediaUpload
+										lessonId={lesson.id}
+										kind={lesson.kind}
+										title={lesson.title}
+										endpoint="/courses/{data.slug}/edit/upload"
+									/>
+								</div>
+							{/if}
 						</li>
 					{/each}
 				</ol>
