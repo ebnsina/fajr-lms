@@ -16,10 +16,11 @@
 	// is never a circle sitting squarely in a square.
 	const SUN_AT = { x: 37, y: 42, r: 15 };
 
-	// Fā', the first letter of فجر. The real character in a naskh face rather
-	// than a drawn approximation of one, so the letterform is right.
-	const ARABIC =
-		"'Noto Naskh Arabic', 'Amiri', 'Scheherazade New', 'Geeza Pro', 'Noto Sans Arabic', serif";
+	// Fā', the first letter of فجر, drawn as an outline taken from Aref Ruqaa
+	// (SIL OFL) rather than set as text: a mark cannot depend on the reader
+	// having an Arabic face installed.
+	const FA =
+		'M27.82 7.72 24.90 5.00Q24.07 6.03 23.21 7.10Q22.34 8.17 21.52 9.24L24.44 11.96Q25.31 10.89 26.15 9.84Q27.00 8.79 27.82 7.72ZM8.31 33.61Q9.67 34.51 11.72 34.82Q13.78 35.13 16.17 34.90Q18.56 34.68 20.90 33.96Q23.25 33.24 25.25 32.11Q27.24 30.97 28.52 29.45Q29.92 27.80 30.82 25.89Q31.73 23.98 31.87 21.98Q32.02 19.98 31.07 18.17Q30.58 17.14 29.82 16.38Q29.05 15.62 28.27 15.48Q27.49 15.33 26.79 16.28Q25.97 17.43 25.33 18.75Q24.69 20.07 23.99 21.34Q23.70 21.92 23.72 22.76Q23.74 23.61 24.32 23.89Q25.31 24.39 26.36 24.06Q27.41 23.73 28.07 23.19Q28.23 22.99 28.46 23.36Q28.68 23.73 28.89 24.30Q29.10 24.88 29.24 25.33Q29.38 25.79 29.38 25.79Q28.77 26.40 27.28 27.10Q25.80 27.80 23.83 28.38Q21.85 28.96 19.67 29.35Q17.49 29.74 15.43 29.76Q13.37 29.78 11.72 29.35Q10.08 28.92 9.15 27.89Q8.23 26.86 8.39 25.09Q8.51 23.44 9.13 22.12Q9.75 20.81 10.37 19.69Q10.04 19.78 9.87 20.02Q9.71 20.27 9.54 20.52Q7.20 24.10 6.50 26.67Q5.80 29.24 6.35 30.95Q6.91 32.66 8.31 33.61Z';
 
 	// The squircle the orb draws in its shader, |x|^4 + |y|^4 = 1, fitted to four
 	// cubics: each handle lands at 0.919 of the half width.
@@ -235,16 +236,7 @@
 	<canvas bind:this={canvas} class:live></canvas>
 	<!-- The letter rides above the sky, whether the sky is drawn or painted. -->
 	<svg class="letter" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-		<text
-			x="20"
-			y="26"
-			font-family={ARABIC}
-			font-size="34"
-			fill="#fdf6e6"
-			fill-opacity="0.96"
-			text-anchor="middle"
-			dominant-baseline="middle">ف</text
-		>
+		<path d={FA} fill="#fdf6e6" fill-opacity="0.96" />
 	</svg>
 </div>
 
