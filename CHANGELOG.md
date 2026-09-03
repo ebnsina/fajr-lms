@@ -32,6 +32,9 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- A quiz can draw a few questions at random from a larger pool, and the shuffle
+  setting now really shuffles. Each attempt keeps the paper it was handed, so a
+  learner who reconnects gets the same questions back and is marked out of them.
 - Discount codes: a percentage or a fixed amount, tied to one course or open to
   all, capped by uses or by dates. A code is priced onto the order, so what the
   learner is told to pay is what the record says, and a use is only counted once

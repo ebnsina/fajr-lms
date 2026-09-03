@@ -11,6 +11,7 @@ type Quiz = {
 	max_attempts: number;
 	pass_percent: number;
 	shuffle: boolean;
+	draw_count: number | null;
 };
 
 type Question = {
@@ -113,7 +114,8 @@ export const actions: Actions = {
 					time_limit_s: Math.round(Number(form.get('minutes') ?? 0) * 60),
 					max_attempts: Number(form.get('max_attempts') ?? 1),
 					pass_percent: Number(form.get('pass_percent') ?? 50),
-					shuffle: form.get('shuffle') === 'on'
+					shuffle: form.get('shuffle') === 'on',
+					draw_count: Number(form.get('draw_count') ?? 0)
 				},
 				...scoped(locals, cookies, fetch)
 			});

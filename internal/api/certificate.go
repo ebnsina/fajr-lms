@@ -232,7 +232,8 @@ func (s *Server) verifyCertificate(w http.ResponseWriter, r *http.Request) error
 	row, err := s.store.Unscoped().VerifyCertificate(r.Context(), serial)
 	if database.IsNotFound(err) {
 		if wantsHTML(r) {
-			return renderCertificate(w, http.StatusNotFound, certificateView{Serial: serial})
+			return renderCertificate(w, http.StatusNotFound,
+				certificateView{Serial: serial, Assets: s.publicURL})
 		}
 		return httpx.ErrNotFound
 	}
@@ -244,7 +245,7 @@ func (s *Server) verifyCertificate(w http.ResponseWriter, r *http.Request) error
 		Found: true, Serial: row.Serial, Recipient: row.RecipientName,
 		Course: row.CourseTitle, Issuer: row.IssuerName,
 		IssuedOn: row.IssuedAt.Time.Format("2 January 2006"),
-		Revoked:  row.RevokedAt.Valid, Dir: string(row.TenantDir),
+		Revoked:  row.RevokedAt.Valid, Dir: string(row.TenantDir), Assets: s.publicURL,
 	}
 	if row.GradePercent != nil {
 		view.Grade, view.HasGrade = int(*row.GradePercent), true
@@ -271,6 +272,9 @@ type certificateView struct {
 	HasGrade  bool
 	Revoked   bool
 	Dir       string
+	// Where the product's own fonts are served from, so the printed page is
+	// set in the same faces as the app that issued it.
+	Assets string
 }
 
 func wantsHTML(r *http.Request) bool {
@@ -294,39 +298,122 @@ var certificateTemplate = template.Must(template.New("certificate").Parse(`<!doc
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{if .Found}}Certificate {{.Serial}}{{else}}Certificate not found{{end}}</title>
 <style>
-  :root { color-scheme: light; }
-  body { margin: 0; padding: 2rem 1rem; background: #f6f5f1; color: #1a1a1a;
-         font: 16px/1.7 system-ui, "Segoe UI", "Noto Sans", "Noto Sans Arabic", "Noto Sans Bengali", sans-serif; }
-  .sheet { max-width: 40rem; margin: 0 auto; background: #fff; border: 1px solid #ddd8cc;
-           border-radius: 4px; padding: 3rem 2rem; text-align: center; }
-  .name, .course { font-size: 1.6rem; font-weight: 600; margin: .5rem 0; line-height: 1.4; }
-  .label { text-transform: uppercase; letter-spacing: .1em; font-size: .75rem; color: #6b6b6b; }
-  .serial { font-family: ui-monospace, monospace; letter-spacing: .05em; }
-  .void { background: #fdeaea; border-color: #e0b4b4; }
-  .badge { display: inline-block; padding: .25rem .75rem; border-radius: 999px;
-           font-size: .8rem; font-weight: 600; }
-  .ok { background: #e7f4ec; color: #1b5e34; }
-  .bad { background: #fbe3e3; color: #8c1c1c; }
-  @media print { body { background: #fff; padding: 0; } .sheet { border: 0; } }
+  @font-face { font-family: 'Cabin'; src: url('{{.Assets}}/fonts/cabin-latin.woff2') format('woff2');
+               font-weight: 400 700; font-display: swap; }
+  @font-face { font-family: 'Geist Mono'; src: url('{{.Assets}}/fonts/geist-mono-latin.woff2') format('woff2');
+               font-weight: 300 600; font-display: swap; }
+
+  /* The product's own light tokens, so a printed certificate and the app that
+     issued it are recognisably the same thing. */
+  :root {
+    color-scheme: light;
+    --ink: #14171a; --ink-soft: #676f7b; --ink-faint: #9aa1ac;
+    --brand: #047857; --brand-text: #046b4e; --brand-soft: #e7f6f0; --brand-line: #bfe6d6;
+    --danger: #a03528; --danger-soft: #fdf0ee; --danger-line: #f0d3ce;
+    --paper: #fffdf8; --ground: #f1efe8; --line: #e0e2e7;
+    --radius-card: 1.5rem; --radius-control: 0.75rem;
+    --sans: 'Cabin', 'Noto Sans Arabic', 'Noto Sans Bengali', system-ui, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 2.5rem 1rem; background: var(--ground); color: var(--ink);
+         font: 16px/1.6 var(--sans); }
+  :lang(bn), :lang(ar), :lang(ur) { line-height: 1.85; }
+
+  .sheet { position: relative; max-inline-size: 52rem; margin-inline: auto;
+           background: var(--paper); border: 1px solid var(--line);
+           border-radius: var(--radius-card); padding: 3.5rem clamp(1.5rem, 6vw, 4.5rem);
+           text-align: center; }
+  /* The inner rule is the certificate's own border, drawn inside the sheet. */
+  .sheet::before { content: ''; position: absolute; inset: 0.75rem;
+                   border: 1px solid var(--brand-line); border-radius: 1rem; pointer-events: none; }
+  .sheet > * { position: relative; }
+
+  .crest { inline-size: 3rem; block-size: 3rem; margin-inline: auto; color: var(--brand-text); }
+  .label { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.75rem;
+           font-weight: 600; color: var(--ink-soft); margin: 0; }
+  .issuer-name { font-size: 1.05rem; font-weight: 600; margin: 0.35rem 0 0; }
+  .name { font-size: clamp(2rem, 6vw, 3rem); font-weight: 700; letter-spacing: -0.02em;
+          line-height: 1.25; margin: 0.75rem 0 1rem; }
+  .rule { inline-size: 8rem; block-size: 1px; margin: 0 auto 1.5rem; background: var(--brand-line);
+          border: 0; }
+  .course { font-size: clamp(1.15rem, 3vw, 1.5rem); font-weight: 600; margin: 0.4rem 0 0; }
+  .grade { display: inline-block; margin-top: 1rem; padding: 0.25rem 0.8rem;
+           border-radius: var(--radius-control); background: var(--brand-soft);
+           border: 1px solid var(--brand-line); color: var(--brand-text);
+           font-family: var(--mono); font-size: 0.85rem; }
+
+  .meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 3rem;
+          margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid var(--line);
+          text-align: center; }
+  .meta div { min-inline-size: 8rem; }
+  .meta dt { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.65rem;
+             font-weight: 600; color: var(--ink-faint); margin: 0 0 0.25rem; }
+  .meta dd { margin: 0; font-size: 0.95rem; }
+  .serial { font-family: var(--mono); letter-spacing: 0.06em; }
+
+  .badge { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 2rem;
+           padding: 0.35rem 0.9rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+           background: var(--brand-soft); border: 1px solid var(--brand-line); color: var(--brand-text); }
+  .badge.bad { background: var(--danger-soft); border-color: var(--danger-line); color: var(--danger); }
+
+  /* Revoked has to be unmistakable at a glance, printed or on screen. */
+  .void .sheet::before { border-color: var(--danger-line); }
+  .void .name, .void .course { color: var(--ink-soft); }
+  .stamp { position: absolute; inset-block-start: 50%; inset-inline-start: 50%;
+           transform: translate(-50%, -50%) rotate(-18deg); font-size: clamp(2.5rem, 10vw, 5rem);
+           font-weight: 700; letter-spacing: 0.15em; color: var(--danger); opacity: 0.14;
+           pointer-events: none; white-space: nowrap; }
+
+  .checked { max-inline-size: 52rem; margin: 1.25rem auto 0; text-align: center;
+             font-size: 0.8rem; color: var(--ink-faint); }
+
+  @media print {
+    body { background: #fff; padding: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .sheet { border: 0; border-radius: 0; max-inline-size: none; }
+    .checked { display: none; }
+  }
 </style>
 {{if .Found}}
-<div class="sheet{{if .Revoked}} void{{end}}">
-  <p class="label">{{if .Revoked}}Revoked certificate{{else}}Certificate of completion{{end}}</p>
-  <p class="name" dir="auto">{{.Recipient}}</p>
-  <p class="label">has completed</p>
-  <p class="course" dir="auto">{{.Course}}</p>
-  {{if .HasGrade}}<p>Final grade: {{.Grade}}%</p>{{end}}
-  <p>Issued by <span dir="auto">{{.Issuer}}</span> on {{.IssuedOn}}</p>
-  <p class="serial">{{.Serial}}</p>
-  <p><span class="badge {{if .Revoked}}bad{{else}}ok{{end}}">
-    {{if .Revoked}}This certificate has been revoked{{else}}Verified as genuine{{end}}
-  </span></p>
+<div{{if .Revoked}} class="void"{{end}}>
+  <div class="sheet">
+    {{if .Revoked}}<span class="stamp" aria-hidden="true">REVOKED</span>{{end}}
+    <svg class="crest" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+         stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Seal">
+      <circle cx="12" cy="8" r="6"/><path d="M8.2 13.4 7 22l5-3 5 3-1.2-8.6"/>
+    </svg>
+    <p class="label" style="margin-top:1rem">{{if .Revoked}}Revoked certificate{{else}}Certificate of completion{{end}}</p>
+    <p class="issuer-name" dir="auto">{{.Issuer}}</p>
+
+    <p class="label" style="margin-top:2rem">This is to certify that</p>
+    <p class="name" dir="auto">{{.Recipient}}</p>
+    <hr class="rule">
+    <p class="label">has completed the course</p>
+    <p class="course" dir="auto">{{.Course}}</p>
+    {{if .HasGrade}}<p class="grade">Final grade {{.Grade}}%</p>{{end}}
+
+    <dl class="meta">
+      <div><dt>Issued by</dt><dd dir="auto">{{.Issuer}}</dd></div>
+      <div><dt>Issued on</dt><dd>{{.IssuedOn}}</dd></div>
+      <div><dt>Serial</dt><dd class="serial">{{.Serial}}</dd></div>
+    </dl>
+
+    <p><span class="badge{{if .Revoked}} bad{{end}}">
+      {{if .Revoked}}This certificate has been revoked{{else}}Verified as genuine{{end}}
+    </span></p>
+  </div>
 </div>
+<p class="checked">Checked against {{.Issuer}}'s records on Fajr LMS.</p>
 {{else}}
-<div class="sheet void">
-  <p class="label">Not found</p>
-  <p class="name">No certificate matches that number</p>
-  <p class="serial">{{.Serial}}</p>
+<div class="void">
+  <div class="sheet">
+    <p class="label">Not found</p>
+    <p class="course" style="margin-top:0.75rem">No certificate matches that number</p>
+    <hr class="rule">
+    <p class="serial">{{.Serial}}</p>
+    <p><span class="badge bad">Nothing was issued under this serial</span></p>
+  </div>
 </div>
 {{end}}
 `))

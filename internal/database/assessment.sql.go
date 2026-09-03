@@ -166,9 +166,9 @@ func (q *Queries) CreateQuestion(ctx context.Context, arg CreateQuestionParams) 
 }
 
 const createQuiz = `-- name: CreateQuiz :one
-INSERT INTO quizzes (tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at
+INSERT INTO quizzes (tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, draw_count)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at, draw_count
 `
 
 type CreateQuizParams struct {
@@ -182,6 +182,7 @@ type CreateQuizParams struct {
 	PassPercent   int16     `json:"pass_percent"`
 	Shuffle       bool      `json:"shuffle"`
 	RevealAnswers bool      `json:"reveal_answers"`
+	DrawCount     *int32    `json:"draw_count"`
 }
 
 func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (Quiz, error) {
@@ -196,6 +197,7 @@ func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (Quiz, e
 		arg.PassPercent,
 		arg.Shuffle,
 		arg.RevealAnswers,
+		arg.DrawCount,
 	)
 	var i Quiz
 	err := row.Scan(
@@ -212,6 +214,7 @@ func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (Quiz, e
 		&i.RevealAnswers,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DrawCount,
 	)
 	return i, err
 }
@@ -373,7 +376,7 @@ func (q *Queries) GetQuestion(ctx context.Context, id uuid.UUID) (Question, erro
 }
 
 const getQuiz = `-- name: GetQuiz :one
-SELECT id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at FROM quizzes WHERE id = $1
+SELECT id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at, draw_count FROM quizzes WHERE id = $1
 `
 
 func (q *Queries) GetQuiz(ctx context.Context, id uuid.UUID) (Quiz, error) {
@@ -393,12 +396,13 @@ func (q *Queries) GetQuiz(ctx context.Context, id uuid.UUID) (Quiz, error) {
 		&i.RevealAnswers,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DrawCount,
 	)
 	return i, err
 }
 
 const getQuizByLesson = `-- name: GetQuizByLesson :one
-SELECT id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at FROM quizzes WHERE lesson_id = $1
+SELECT id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at, draw_count FROM quizzes WHERE lesson_id = $1
 `
 
 func (q *Queries) GetQuizByLesson(ctx context.Context, lessonID uuid.UUID) (Quiz, error) {
@@ -418,6 +422,7 @@ func (q *Queries) GetQuizByLesson(ctx context.Context, lessonID uuid.UUID) (Quiz
 		&i.RevealAnswers,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DrawCount,
 	)
 	return i, err
 }
@@ -657,6 +662,45 @@ func (q *Queries) ListQuestions(ctx context.Context, quizID uuid.UUID) ([]Questi
 	return items, nil
 }
 
+const listServedQuestions = `-- name: ListServedQuestions :many
+SELECT q.id, q.tenant_id, q.quiz_id, q.kind, q.prompt, q.dir, q.points, q.explanation, q.position, q.created_at, q.updated_at FROM attempt_questions a
+JOIN questions q ON q.id = a.question_id
+WHERE a.attempt_id = $1
+ORDER BY a.position
+`
+
+func (q *Queries) ListServedQuestions(ctx context.Context, attemptID uuid.UUID) ([]Question, error) {
+	rows, err := q.db.Query(ctx, listServedQuestions, attemptID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Question{}
+	for rows.Next() {
+		var i Question
+		if err := rows.Scan(
+			&i.ID,
+			&i.TenantID,
+			&i.QuizID,
+			&i.Kind,
+			&i.Prompt,
+			&i.Dir,
+			&i.Points,
+			&i.Explanation,
+			&i.Position,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markAnswer = `-- name: MarkAnswer :one
 UPDATE attempt_answers SET
   points_awarded = $1,
@@ -784,6 +828,22 @@ func (q *Queries) SaveAnswer(ctx context.Context, arg SaveAnswerParams) (Attempt
 	return i, err
 }
 
+const serveQuestions = `-- name: ServeQuestions :exec
+INSERT INTO attempt_questions (attempt_id, question_id, tenant_id, position)
+SELECT $1, unnest($2::uuid[]), $3, generate_subscripts($2::uuid[], 1)
+`
+
+type ServeQuestionsParams struct {
+	AttemptID   uuid.UUID   `json:"attempt_id"`
+	QuestionIds []uuid.UUID `json:"question_ids"`
+	TenantID    uuid.UUID   `json:"tenant_id"`
+}
+
+func (q *Queries) ServeQuestions(ctx context.Context, arg ServeQuestionsParams) error {
+	_, err := q.db.Exec(ctx, serveQuestions, arg.AttemptID, arg.QuestionIds, arg.TenantID)
+	return err
+}
+
 const startAttempt = `-- name: StartAttempt :one
 INSERT INTO quiz_attempts (tenant_id, quiz_id, enrollment_id, user_id, attempt_no, expires_at, points_possible)
 VALUES ($1, $2, $3, $4, $5,
@@ -859,7 +919,7 @@ UPDATE quizzes SET
   shuffle        = coalesce($6, shuffle),
   reveal_answers = coalesce($7, reveal_answers)
 WHERE id = $8
-RETURNING id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at
+RETURNING id, tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, created_at, updated_at, draw_count
 `
 
 type UpdateQuizParams struct {
@@ -899,6 +959,7 @@ func (q *Queries) UpdateQuiz(ctx context.Context, arg UpdateQuizParams) (Quiz, e
 		&i.RevealAnswers,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DrawCount,
 	)
 	return i, err
 }

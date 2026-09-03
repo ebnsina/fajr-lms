@@ -225,3 +225,116 @@ func TestQuizSheetIsStaffOnly(t *testing.T) {
 		}
 	})
 }
+
+// TestDrawnQuiz covers a quiz that hands out part of its pool: the learner
+// sees only what was drawn, and the score is out of that paper.
+func TestDrawnQuiz(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+
+	courseID := createdID(t, do(t, h, "POST", "/v1/courses", owner.token, owner.slug,
+		map[string]any{"title": "Seerah", "visibility": "public"}))
+	moduleID := createdID(t, do(t, h, "POST", "/v1/courses/"+courseID+"/modules", owner.token, owner.slug,
+		map[string]any{"title": "Unit"}))
+	lessonID := createdID(t, do(t, h, "POST", "/v1/modules/"+moduleID+"/lessons", owner.token, owner.slug,
+		map[string]any{"title": "Pop quiz", "kind": "quiz"}))
+	do(t, h, "PATCH", "/v1/lessons/"+lessonID, owner.token, owner.slug, map[string]any{"status": "published"})
+	do(t, h, "PUT", "/v1/courses/"+courseID+"/status", owner.token, owner.slug, map[string]any{"status": "published"})
+
+	quizID := createdID(t, do(t, h, "POST", "/v1/lessons/"+lessonID+"/quiz", owner.token, owner.slug,
+		map[string]any{"title": "Pop quiz", "pass_percent": 50, "draw_count": 2}))
+	for _, prompt := range []string{"One", "Two", "Three", "Four", "Five"} {
+		if rec := do(t, h, "POST", "/v1/quizzes/"+quizID+"/questions", owner.token, owner.slug, map[string]any{
+			"kind": "true_false", "prompt": prompt, "points": 3,
+			"options": []map[string]any{{"label": "True", "is_correct": true}, {"label": "False"}},
+		}); rec.Code != http.StatusCreated {
+			t.Fatalf("add question: got %d: %s", rec.Code, rec.Body)
+		}
+	}
+	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
+	}
+
+	t.Run("the pool stays back until an attempt starts", func(t *testing.T) {
+		if paper := readPaper(t, h, student, lessonID); len(paper.Questions) != 0 {
+			t.Fatalf("the pool leaked before the attempt: %d questions", len(paper.Questions))
+		}
+	})
+
+	rec := do(t, h, "POST", "/v1/quizzes/"+quizID+"/attempts", student.token, owner.slug, nil)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("start: got %d: %s", rec.Code, rec.Body)
+	}
+	var started struct {
+		Attempt struct {
+			ID             string `json:"id"`
+			PointsPossible int32  `json:"points_possible"`
+		} `json:"attempt"`
+		Questions []struct {
+			ID      string `json:"id"`
+			Options []struct {
+				ID    string `json:"id"`
+				Label string `json:"label"`
+			} `json:"options"`
+		} `json:"questions"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &started); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+
+	t.Run("the attempt is only as long as the draw", func(t *testing.T) {
+		if len(started.Questions) != 2 {
+			t.Fatalf("got %d questions, want 2", len(started.Questions))
+		}
+		if started.Attempt.PointsPossible != 6 {
+			t.Fatalf("marked out of %d, want 6", started.Attempt.PointsPossible)
+		}
+	})
+
+	t.Run("resuming gives back the same paper", func(t *testing.T) {
+		rec := do(t, h, "GET", "/v1/attempts/"+started.Attempt.ID, student.token, owner.slug, nil)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("resume: got %d: %s", rec.Code, rec.Body)
+		}
+		var resumed struct {
+			Questions []struct {
+				ID string `json:"id"`
+			} `json:"questions"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &resumed); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if len(resumed.Questions) != len(started.Questions) {
+			t.Fatalf("resumed with %d questions, started with %d", len(resumed.Questions), len(started.Questions))
+		}
+		for i, question := range resumed.Questions {
+			if question.ID != started.Questions[i].ID {
+				t.Fatalf("question %d changed on resume", i)
+			}
+		}
+	})
+
+	t.Run("a full mark is out of the drawn paper", func(t *testing.T) {
+		for _, question := range started.Questions {
+			if rec := do(t, h, "PUT", "/v1/attempts/"+started.Attempt.ID+"/answers", student.token, owner.slug,
+				map[string]any{"question_id": question.ID, "option_ids": []string{question.Options[0].ID}}); rec.Code != http.StatusOK {
+				t.Fatalf("answer: got %d: %s", rec.Code, rec.Body)
+			}
+		}
+		rec := do(t, h, "POST", "/v1/attempts/"+started.Attempt.ID+"/submit", student.token, owner.slug, nil)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("submit: got %d: %s", rec.Code, rec.Body)
+		}
+		var result struct {
+			Percent int  `json:"percent"`
+			Passed  bool `json:"passed"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &result); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if result.Percent != 100 || !result.Passed {
+			t.Fatalf("answered every drawn question and got %d%%", result.Percent)
+		}
+	})
+}

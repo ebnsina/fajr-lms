@@ -1,6 +1,6 @@
 -- name: CreateQuiz :one
-INSERT INTO quizzes (tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers)
-VALUES (@tenant_id, @lesson_id, @title, @instructions, @dir, @time_limit_s, @max_attempts, @pass_percent, @shuffle, @reveal_answers)
+INSERT INTO quizzes (tenant_id, lesson_id, title, instructions, dir, time_limit_s, max_attempts, pass_percent, shuffle, reveal_answers, draw_count)
+VALUES (@tenant_id, @lesson_id, @title, @instructions, @dir, @time_limit_s, @max_attempts, @pass_percent, @shuffle, @reveal_answers, sqlc.narg('draw_count'))
 RETURNING *;
 
 -- name: GetQuiz :one
@@ -142,3 +142,13 @@ RETURNING *;
 UPDATE quiz_attempts SET state = 'expired', submitted_at = coalesce(submitted_at, now())
 WHERE id = @id AND state = 'in_progress'
 RETURNING *;
+
+-- name: ServeQuestions :exec
+INSERT INTO attempt_questions (attempt_id, question_id, tenant_id, position)
+SELECT @attempt_id, unnest(@question_ids::uuid[]), @tenant_id, generate_subscripts(@question_ids::uuid[], 1);
+
+-- name: ListServedQuestions :many
+SELECT q.* FROM attempt_questions a
+JOIN questions q ON q.id = a.question_id
+WHERE a.attempt_id = @attempt_id
+ORDER BY a.position;

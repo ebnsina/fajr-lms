@@ -32,7 +32,7 @@ func (s *Server) myAttempt(w http.ResponseWriter, r *http.Request) error {
 		}
 		out.Attempt = attempt
 
-		if err := s.fillPaper(r, q, attempt.QuizID, &out); err != nil {
+		if err := s.fillPaper(r, q, &out); err != nil {
 			return err
 		}
 		rows, err := q.ListAnswers(r.Context(), attemptID)
@@ -181,7 +181,7 @@ func (s *Server) submitAttempt(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		questions, err := q.ListQuestions(r.Context(), attempt.QuizID)
+		questions, err := servedQuestions(r, q, attempt)
 		if err != nil {
 			return err
 		}

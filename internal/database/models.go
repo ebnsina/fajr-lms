@@ -960,6 +960,13 @@ type AttemptAnswer struct {
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
+type AttemptQuestion struct {
+	AttemptID  uuid.UUID `json:"attempt_id"`
+	QuestionID uuid.UUID `json:"question_id"`
+	TenantID   uuid.UUID `json:"tenant_id"`
+	Position   int32     `json:"position"`
+}
+
 type Attendance struct {
 	SessionID    uuid.UUID          `json:"session_id"`
 	EnrollmentID uuid.UUID          `json:"enrollment_id"`
@@ -1312,6 +1319,7 @@ type Quiz struct {
 	RevealAnswers bool               `json:"reveal_answers"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	DrawCount     *int32             `json:"draw_count"`
 }
 
 type QuizAttempt struct {

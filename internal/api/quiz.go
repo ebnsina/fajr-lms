@@ -1,7 +1,9 @@
 package api
 
 import (
+	"math/rand/v2"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -21,6 +23,7 @@ type quizRequest struct {
 	PassPercent   int16  `json:"pass_percent"`
 	Shuffle       bool   `json:"shuffle"`
 	RevealAnswers *bool  `json:"reveal_answers"`
+	DrawCount     int32  `json:"draw_count"`
 }
 
 func (s *Server) createQuiz(w http.ResponseWriter, r *http.Request) error {
@@ -52,6 +55,13 @@ func (s *Server) createQuiz(w http.ResponseWriter, r *http.Request) error {
 	if body.PassPercent < 0 || body.PassPercent > 100 {
 		return invalid("pass_percent", "The pass mark must be between 0 and 100.")
 	}
+	if body.DrawCount < 0 {
+		return invalid("draw_count", "Draw at least one question, or leave this empty for the whole quiz.")
+	}
+	var draw *int32
+	if body.DrawCount > 0 {
+		draw = &body.DrawCount
+	}
 	reveal := body.RevealAnswers == nil || *body.RevealAnswers
 
 	tenant := CurrentTenant(r.Context())
@@ -63,6 +73,7 @@ func (s *Server) createQuiz(w http.ResponseWriter, r *http.Request) error {
 			Instructions: strings.TrimSpace(body.Instructions), Dir: dir,
 			TimeLimitS: body.TimeLimitS, MaxAttempts: body.MaxAttempts,
 			PassPercent: body.PassPercent, Shuffle: body.Shuffle, RevealAnswers: reveal,
+			DrawCount: draw,
 		})
 		if err != nil {
 			return err
@@ -246,9 +257,16 @@ func (s *Server) quizForLearner(w http.ResponseWriter, r *http.Request) error {
 		if quiz, err = q.GetQuizByLesson(r.Context(), lessonID); err != nil {
 			return err
 		}
-		questions, err = s.learnerPaper(r, q, quiz.ID)
-		if err != nil {
-			return err
+		// A drawn quiz keeps its pool back until an attempt is started.
+		questions = []learnerQuestion{}
+		if quiz.DrawCount == nil {
+			rows, err := q.ListQuestions(r.Context(), quiz.ID)
+			if err != nil {
+				return err
+			}
+			if questions, err = s.learnerPaper(r, q, quiz.ID, rows); err != nil {
+				return err
+			}
 		}
 		attempts, err = q.ListMyAttempts(r.Context(), database.ListMyAttemptsParams{
 			QuizID: quiz.ID, UserID: userID,
@@ -346,11 +364,30 @@ func (s *Server) deleteQuestion(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (s *Server) learnerPaper(r *http.Request, q *database.Queries, quizID uuid.UUID) ([]learnerQuestion, error) {
-	rows, err := q.ListQuestions(r.Context(), quizID)
+// servedPaper is the paper one attempt was given, which for a shuffled or
+// drawn quiz is not the whole quiz and not in the quiz's own order.
+func (s *Server) servedPaper(r *http.Request, q *database.Queries, attempt database.QuizAttempt) ([]learnerQuestion, error) {
+	rows, err := servedQuestions(r, q, attempt)
 	if err != nil {
 		return nil, err
 	}
+	return s.learnerPaper(r, q, attempt.QuizID, rows)
+}
+
+// servedQuestions falls back to the whole quiz for attempts started before
+// papers were recorded.
+func servedQuestions(r *http.Request, q *database.Queries, attempt database.QuizAttempt) ([]database.Question, error) {
+	rows, err := q.ListServedQuestions(r.Context(), attempt.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(rows) > 0 {
+		return rows, nil
+	}
+	return q.ListQuestions(r.Context(), attempt.QuizID)
+}
+
+func (s *Server) learnerPaper(r *http.Request, q *database.Queries, quizID uuid.UUID, rows []database.Question) ([]learnerQuestion, error) {
 	options, err := q.ListOptionsForQuiz(r.Context(), quizID)
 	if err != nil {
 		return nil, err
@@ -424,7 +461,7 @@ func (s *Server) startAttempt(w http.ResponseWriter, r *http.Request) error {
 					"Your time ran out. Submit to see your result.")
 			}
 			out.Attempt = open
-			return s.fillPaper(r, q, quizID, &out)
+			return s.fillPaper(r, q, &out)
 		} else if !database.IsNotFound(err) {
 			return err
 		}
@@ -445,8 +482,9 @@ func (s *Server) startAttempt(w http.ResponseWriter, r *http.Request) error {
 		if len(questions) == 0 {
 			return httpx.Errorf(http.StatusConflict, "quiz_empty", "This quiz has no questions yet.")
 		}
+		paper := drawPaper(quiz, questions)
 		var possible int32
-		for _, question := range questions {
+		for _, question := range paper {
 			possible += question.Points
 		}
 
@@ -457,7 +495,16 @@ func (s *Server) startAttempt(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		return s.fillPaper(r, q, quizID, &out)
+		ids := make([]uuid.UUID, 0, len(paper))
+		for _, question := range paper {
+			ids = append(ids, question.ID)
+		}
+		if err := q.ServeQuestions(r.Context(), database.ServeQuestionsParams{
+			AttemptID: out.Attempt.ID, QuestionIds: ids, TenantID: tenant.ID,
+		}); err != nil {
+			return err
+		}
+		return s.fillPaper(r, q, &out)
 	})
 	if database.IsNotFound(err) {
 		return httpx.ErrNotFound
@@ -468,8 +515,8 @@ func (s *Server) startAttempt(w http.ResponseWriter, r *http.Request) error {
 	return httpx.JSON(w, http.StatusCreated, out)
 }
 
-func (s *Server) fillPaper(r *http.Request, q *database.Queries, quizID uuid.UUID, out *attemptResponse) error {
-	questions, err := s.learnerPaper(r, q, quizID)
+func (s *Server) fillPaper(r *http.Request, q *database.Queries, out *attemptResponse) error {
+	questions, err := s.servedPaper(r, q, out.Attempt)
 	if err != nil {
 		return err
 	}
@@ -478,6 +525,20 @@ func (s *Server) fillPaper(r *http.Request, q *database.Queries, quizID uuid.UUI
 		out.ExpiresIn = max(0, int(time.Until(out.Attempt.ExpiresAt.Time).Seconds()))
 	}
 	return nil
+}
+
+// drawPaper puts the questions in the order this attempt will see them, and
+// takes only as many as the quiz asks for.
+func drawPaper(quiz database.Quiz, questions []database.Question) []database.Question {
+	paper := questions
+	if quiz.Shuffle || quiz.DrawCount != nil {
+		paper = slices.Clone(questions)
+		rand.Shuffle(len(paper), func(i, j int) { paper[i], paper[j] = paper[j], paper[i] })
+	}
+	if quiz.DrawCount != nil && int(*quiz.DrawCount) < len(paper) {
+		paper = paper[:*quiz.DrawCount]
+	}
+	return paper
 }
 
 func expired(a database.QuizAttempt) bool {

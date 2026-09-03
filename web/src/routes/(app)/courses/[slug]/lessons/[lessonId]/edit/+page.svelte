@@ -105,6 +105,22 @@
 					dir="ltr"
 				/>
 			</div>
+			<div>
+				<label class="mb-1.5 block text-sm font-medium" for="draw_count">Questions per attempt</label>
+				<input
+					class="field font-mono"
+					id="draw_count"
+					name="draw_count"
+					type="number"
+					min="0"
+					placeholder="All of them"
+					dir="ltr"
+				/>
+				<p class="mt-1.5 mb-0 text-sm text-ink-soft">
+					Leave this empty to ask every question. Set a smaller number and each learner
+					gets that many, drawn at random.
+				</p>
+			</div>
 			<label class="flex items-center gap-2 self-end pb-3 text-sm">
 				<input class="choice" type="checkbox" name="shuffle" />
 				Shuffle the questions
@@ -119,7 +135,10 @@
 			<p class="mb-0 text-sm text-ink-soft">
 				Pass at {data.quiz.pass_percent}% · {data.quiz.max_attempts}
 				{data.quiz.max_attempts === 1 ? 'attempt' : 'attempts'} ·
-				{data.quiz.time_limit_s ? `${data.quiz.time_limit_s / 60} minutes` : 'no time limit'}
+				{data.quiz.time_limit_s ? `${data.quiz.time_limit_s / 60} minutes` : 'no time limit'}{data
+					.quiz.draw_count
+					? ` · ${data.quiz.draw_count} questions drawn per attempt`
+					: ''}
 			</p>
 		</div>
 
