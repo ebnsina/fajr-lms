@@ -5,13 +5,13 @@
 
 	const uid = $props.id();
 
-	// The hour the mark is named for: the indigo sky before sunrise, warming at
-	// the horizon, the sun still half behind the ridge. Its own palette rather
-	// than the product's emerald, because the mark stands on its own.
-	const SKY = '#101f3d';
-	const HORIZON = '#33305e';
-	const SUN = '#f6c667';
-	const ROCK = '#070f1f';
+	// The hour the mark is named for: a blue sky opening to cyan at the horizon,
+	// the sun still half behind the ridge. Its own palette rather than the
+	// product's emerald, because the mark stands on its own.
+	const SKY = '#0f4c81';
+	const HORIZON = '#57c7dd';
+	const SUN = '#ffd27a';
+	const ROCK = '#07223a';
 
 	// The squircle the orb draws in its shader, |x|^4 + |y|^4 = 1, fitted to four
 	// cubics: each handle lands at 0.919 of the half width.
@@ -91,7 +91,7 @@
 
 			// Cooler overhead, warmer at the horizon, with the sand drifting
 			// through both.
-			vec3 band = mix(u_sky, u_horizon, smoothstep(0.68, 0.02, uv.y));
+			vec3 band = mix(u_sky, u_horizon, smoothstep(0.95, 0.3, uv.y));
 			vec3 sky = mix(band * 1.1, band * 0.82, smoothstep(0.3, 0.8, f));
 
 			// No rim on the sun: a soft core bleeding into a wide bloom, which is
@@ -223,7 +223,7 @@
 		<defs>
 			<linearGradient id="fajr-sky-{uid}" x1="0" y1="0" x2="0" y2="1">
 				<stop offset="0" stop-color={SKY} />
-				<stop offset="1" stop-color={HORIZON} />
+				<stop offset="0.62" stop-color={HORIZON} />
 			</linearGradient>
 			<!-- The sun has no rim: a bloom that fades out into the sky. -->
 			<radialGradient id="fajr-sun-{uid}" cx="0.5" cy="0.5" r="0.5">

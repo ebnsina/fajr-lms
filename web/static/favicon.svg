@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Fajr LMS">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#101f3d"/><stop offset="1" stop-color="#33305e"/>
+      <stop offset="0" stop-color="#0f4c81"/><stop offset="0.62" stop-color="#57c7dd"/>
     </linearGradient>
     <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#f6c667" stop-opacity="1"/>
-      <stop offset="0.4" stop-color="#f6c667" stop-opacity="0.94"/>
-      <stop offset="0.7" stop-color="#f6c667" stop-opacity="0.34"/>
-      <stop offset="1" stop-color="#f6c667" stop-opacity="0"/>
+      <stop offset="0" stop-color="#ffd27a" stop-opacity="1"/>
+      <stop offset="0.4" stop-color="#ffd27a" stop-opacity="0.94"/>
+      <stop offset="0.7" stop-color="#ffd27a" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#ffd27a" stop-opacity="0"/>
     </radialGradient>
     <clipPath id="tile">
       <path d="M48 24C48 46.06 46.06 48 24 48C1.94 48 0 46.06 0 24C0 1.94 1.94 0 24 0C46.06 0 48 1.94 48 24Z"/>
@@ -16,6 +16,6 @@
   <path d="M48 24C48 46.06 46.06 48 24 48C1.94 48 0 46.06 0 24C0 1.94 1.94 0 24 0C46.06 0 48 1.94 48 24Z" fill="url(#sky)"/>
   <g clip-path="url(#tile)">
     <circle cx="25" cy="27" r="21" fill="url(#sun)"/>
-    <path d="M-6 54 16 23 24 33 32 27 54 54 54 64 -6 64Z" fill="#070f1f"/>
+    <path d="M-6 54 16 23 24 33 32 27 54 54 54 64 -6 64Z" fill="#07223a"/>
   </g>
 </svg>
