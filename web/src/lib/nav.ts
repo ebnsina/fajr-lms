@@ -10,6 +10,8 @@ import Receipt from '@lucide/svelte/icons/receipt';
 import Globe from '@lucide/svelte/icons/globe';
 import School from '@lucide/svelte/icons/school';
 import Megaphone from '@lucide/svelte/icons/megaphone';
+import Route from '@lucide/svelte/icons/route';
+import Trophy from '@lucide/svelte/icons/trophy';
 import HeartHandshake from '@lucide/svelte/icons/heart-handshake';
 import type { Component } from 'svelte';
 
@@ -35,8 +37,10 @@ const groups: NavGroup[] = [
 		items: [
 			{ label: 'Home', href: '/', icon: Home },
 			{ label: 'Courses', href: '/courses', icon: Library },
+			{ label: 'Paths', href: '/paths', icon: Route },
 			{ label: 'My grades', href: '/grades', icon: GraduationCap },
 			{ label: 'Certificates', href: '/certificates', icon: Award },
+			{ label: 'Standing', href: '/leaderboard', icon: Trophy },
 			{ label: 'Notifications', href: '/notifications', icon: Bell },
 			{ label: 'Your family', href: '/family', icon: HeartHandshake, guardiansOnly: true }
 		]
