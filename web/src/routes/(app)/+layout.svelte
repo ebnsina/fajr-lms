@@ -3,6 +3,7 @@
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
 	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
+	import Logo from '$lib/components/Logo.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import SchoolSwitcher from '$lib/components/SchoolSwitcher.svelte';
 	import { breadcrumbs } from '$lib/breadcrumbs';
@@ -41,17 +42,28 @@
 		class:max-lg:-translate-x-full={!open}
 		class:max-lg:rtl:translate-x-full={!open}
 	>
-		<div class="flex h-16 shrink-0 items-center px-3">
+		<div class="flex h-16 shrink-0 items-center gap-2.5 px-4">
+			<Logo size={28} />
+			<span class="text-[0.95rem] font-semibold tracking-tight">Fajr LMS</span>
+		</div>
+
+		<div class="shrink-0 px-3 pb-1">
 			<SchoolSwitcher schools={data.schools} current={session?.tenant ?? null} />
 		</div>
 
-		<Sidebar role={session?.tenant?.role} onNavigate={() => (open = false)} />
+		<Sidebar
+			role={session?.tenant?.role}
+			isGuardian={data.isGuardian}
+			onNavigate={() => (open = false)}
+		/>
 
 		{#if session?.user}
-			<div class="shrink-0 p-3">
+			<div class="shrink-0 px-3 pt-3">
 				<AccountMenu fullName={session.user.full_name} onNavigate={() => (open = false)} />
 			</div>
 		{/if}
+
+		<p class="shrink-0 px-6 pt-3 pb-4 text-[0.7rem] text-ink-faint">A product of Fajr Labs</p>
 	</aside>
 
 	<div class="flex min-w-0 flex-1 flex-col p-2 lg:ms-64 lg:ps-0">

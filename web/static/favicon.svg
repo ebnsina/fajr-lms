@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Fajr LMS">
-  <rect width="64" height="64" rx="16" fill="#047857"/>
-  <path d="M22 46V19h22v6H29v6h13v6H29v9z" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Fajr LMS">
+  <path id="t" d="M48 24C48 46.06 46.06 48 24 48C1.94 48 0 46.06 0 24C0 1.94 1.94 0 24 0C46.06 0 48 1.94 48 24Z" fill="#047857"/>
+  <clipPath id="c"><use href="#t"/></clipPath>
+  <g clip-path="url(#c)">
+    <circle cx="25" cy="18.5" r="13" fill="#fff"/>
+    <path d="M-6 54 16 23 24 33 32 27 54 54 54 64 -6 64Z" fill="#023a2a"/>
+  </g>
 </svg>

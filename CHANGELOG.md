@@ -5,6 +5,11 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 ## [Unreleased]
 
 ### Added
+- A mark for Fajr LMS: the dawn the name means, a sun rising behind a twin ridge
+  in a squircle tile, drifting slowly like the Fajr AI orb and holding still
+  under reduced motion. It sits above the school switcher in the sidebar, with
+  "A product of Fajr Labs" quietly beneath the account menu, and it is the tab
+  and home-screen icon too.
 - Fajr LMS has a front door of its own: a landing page, pricing, and a form
   that opens a school in about a minute without anybody talking to us.
 - A features section saying what each part of the product actually does, from
