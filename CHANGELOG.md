@@ -54,6 +54,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the bank details and reference, and tell the office what they paid.
 - Money is now formatted and read by the currency's own subunit, so a dinar's
   three decimal places and a yen's none are right instead of assumed to be two.
+- Every course has a discussion. Anybody on the course can ask and answer;
+  teachers pin what matters and close what is finished. A person can fix their
+  own words and nobody else's, and a removed post keeps its place in the thread
+  without keeping what it said.
 - Notices to guardians. A school tells one section, one class or everybody
   something — a closure, a fee due, an absence — and it reaches guardians in
   their inbox and by text message where the school has an SMS gateway. A

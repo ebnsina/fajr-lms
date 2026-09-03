@@ -1,4 +1,5 @@
 <script lang="ts">
+	import MessagesSquare from '@lucide/svelte/icons/messages-square';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import { dirOf, duration, meta } from '$lib/api';
 	import { lessonIcon } from '$lib/icons';
@@ -112,6 +113,13 @@
 		{/if}
 	</div>
 {/if}
+
+<div class="mb-6">
+	<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/forum">
+		<MessagesSquare size={16} aria-hidden="true" />
+		Discussion
+	</a>
+</div>
 
 <div class="stack space-y-6">
 	{#each data.outline.modules as module, index (module.id)}

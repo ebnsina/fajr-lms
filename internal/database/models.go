@@ -1222,6 +1222,34 @@ type Enrollment struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type ForumPost struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	ThreadID  uuid.UUID          `json:"thread_id"`
+	AuthorID  uuid.NullUUID      `json:"author_id"`
+	Body      string             `json:"body"`
+	Dir       TextDir            `json:"dir"`
+	RemovedAt pgtype.Timestamptz `json:"removed_at"`
+	RemovedBy uuid.NullUUID      `json:"removed_by"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ForumThread struct {
+	ID         uuid.UUID          `json:"id"`
+	TenantID   uuid.UUID          `json:"tenant_id"`
+	CourseID   uuid.UUID          `json:"course_id"`
+	Title      string             `json:"title"`
+	Dir        TextDir            `json:"dir"`
+	AuthorID   uuid.NullUUID      `json:"author_id"`
+	Pinned     bool               `json:"pinned"`
+	Locked     bool               `json:"locked"`
+	ReplyCount int32              `json:"reply_count"`
+	LastPostAt pgtype.Timestamptz `json:"last_post_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
 type GradeItem struct {
 	ID             uuid.UUID          `json:"id"`
 	TenantID       uuid.UUID          `json:"tenant_id"`

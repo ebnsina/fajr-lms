@@ -200,6 +200,16 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/academics/sections/{id}/roll", runs(s.placeStudent))
 	mux.Handle("DELETE /v1/academics/placements/{id}", runs(s.removePlacement))
 
+	// The course forum: anybody on the course may ask, staff moderate.
+	mux.Handle("GET /v1/courses/{id}/threads", inTenant(httpx.Handler(s.listThreads)))
+	mux.Handle("POST /v1/courses/{id}/threads", inTenant(httpx.Handler(s.startThread)))
+	mux.Handle("GET /v1/threads/{id}", inTenant(httpx.Handler(s.readThread)))
+	mux.Handle("POST /v1/threads/{id}/posts", inTenant(httpx.Handler(s.replyToThread)))
+	mux.Handle("PATCH /v1/posts/{id}", inTenant(httpx.Handler(s.editPost)))
+	mux.Handle("DELETE /v1/posts/{id}", inTenant(httpx.Handler(s.removePost)))
+	mux.Handle("PUT /v1/threads/{id}/flags", teaches(s.setThreadFlags))
+	mux.Handle("DELETE /v1/threads/{id}", teaches(s.deleteThread))
+
 	mux.Handle("POST /v1/notices", teaches(s.sendNotice))
 	mux.Handle("GET /v1/children", inTenant(httpx.Handler(s.myChildren)))
 
