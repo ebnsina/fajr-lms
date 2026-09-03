@@ -5,22 +5,21 @@
 
 	const uid = $props.id();
 
-	// The hour the mark is named for: a blue sky opening to cyan at the horizon,
-	// the sun still half behind the ridge. Its own palette rather than the
+	// The hour the mark is named for, said as simply as it can be: a sky, and
+	// the sun coming up out of the corner. Its own palette rather than the
 	// product's emerald, because the mark stands on its own.
 	const SKY = '#0f4c81';
 	const HORIZON = '#57c7dd';
 	const SUN = '#ffd27a';
-	const ROCK = '#07223a';
+
+	// The sun rises from the bottom right, off the tile's diagonal, so the mark
+	// is never a circle sitting squarely in a square.
+	const SUN_AT = { x: 37, y: 42, r: 15 };
 
 	// The squircle the orb draws in its shader, |x|^4 + |y|^4 = 1, fitted to four
 	// cubics: each handle lands at 0.919 of the half width.
 	const TILE =
 		'M48 24C48 46.06 46.06 48 24 48C1.94 48 0 46.06 0 24C0 1.94 1.94 0 24 0C46.06 0 48 1.94 48 24Z';
-
-	// A twin ridge: the tall peak bites the sun on the left, the shoulder on the
-	// right. The same five points drive the shader below.
-	const RIDGE = 'M-6 54 16 23 24 33 32 27 54 54 54 64 -6 64Z';
 
 	let canvas = $state<HTMLCanvasElement | null>(null);
 	let live = $state(false);
@@ -38,13 +37,6 @@
 		uniform vec3 u_sky;
 		uniform vec3 u_horizon;
 		uniform vec3 u_sun;
-		uniform vec3 u_rock;
-
-		const vec2 A = vec2(-6.0, 54.0);
-		const vec2 B = vec2(16.0, 23.0);
-		const vec2 C = vec2(24.0, 33.0);
-		const vec2 D = vec2(32.0, 27.0);
-		const vec2 E = vec2(54.0, 54.0);
 
 		float hash(vec2 p) {
 			return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -70,10 +62,6 @@
 				a *= 0.5;
 			}
 			return v;
-		}
-
-		float seg(float x, vec2 p, vec2 q) {
-			return p.y + (q.y - p.y) * (x - p.x) / (q.x - p.x);
 		}
 
 		void main() {
@@ -184,7 +172,6 @@
 		gl.uniform3f(gl.getUniformLocation(program, 'u_sky'), ...rgb(SKY));
 		gl.uniform3f(gl.getUniformLocation(program, 'u_horizon'), ...rgb(HORIZON));
 		gl.uniform3f(gl.getUniformLocation(program, 'u_sun'), ...rgb(SUN));
-		gl.uniform3f(gl.getUniformLocation(program, 'u_rock'), ...rgb(ROCK));
 		const uTime = gl.getUniformLocation(program, 'u_time');
 
 		const start = performance.now();
@@ -221,9 +208,10 @@
 >
 	<svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
 		<defs>
-			<linearGradient id="fajr-sky-{uid}" x1="0" y1="0" x2="0" y2="1">
+			<!-- Graded along the diagonal the sun comes up on. -->
+			<linearGradient id="fajr-sky-{uid}" x1="0" y1="0" x2="1" y2="1">
 				<stop offset="0" stop-color={SKY} />
-				<stop offset="0.62" stop-color={HORIZON} />
+				<stop offset="1" stop-color={HORIZON} />
 			</linearGradient>
 			<!-- The sun has no rim: a bloom that fades out into the sky. -->
 			<radialGradient id="fajr-sun-{uid}" cx="0.5" cy="0.5" r="0.5">
@@ -236,8 +224,7 @@
 		<path d={TILE} fill="url(#fajr-sky-{uid})" />
 		<clipPath id="fajr-tile-{uid}"><path d={TILE} /></clipPath>
 		<g clip-path="url(#fajr-tile-{uid})">
-			<circle cx="25" cy="27" r="21" fill="url(#fajr-sun-{uid})" />
-			<path d={RIDGE} fill={ROCK} />
+			<circle cx={SUN_AT.x} cy={SUN_AT.y} r={SUN_AT.r * 1.6} fill="url(#fajr-sun-{uid})" />
 		</g>
 	</svg>
 	<canvas bind:this={canvas} class:live></canvas>

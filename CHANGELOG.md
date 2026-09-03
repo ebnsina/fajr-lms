@@ -6,9 +6,9 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 
 ### Changed
 
-- The Fajr LMS mark has its own colours now: a blue sky opening to cyan above
-  the ridge, a soft amber sun with no hard edge, and a deep navy ridge. The tab
-  icon and the home-screen icon match.
+- The Fajr LMS mark is simpler and has its own colours: a sky graded from deep
+  blue to cyan, and a soft amber sun rising out of the bottom-right corner. The
+  tab icon and the home-screen icon match.
 
 ### Added
 - A mark for Fajr LMS: the dawn the name means, a sun rising behind a twin ridge
