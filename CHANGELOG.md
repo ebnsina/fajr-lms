@@ -53,6 +53,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
 - Review a bank transfer or wallet payment: the learner's transaction id, their
   note and the deposit slip on one card, with approving enrolling them straight
   away.
+- The home page is an overview rather than a list of courses: the date and a
+  running clock beside the greeting, stat cards and recent activity chosen for
+  what you do in the school, a chart of the work waiting to be graded, and a
+  ring showing how far through your lessons you are.
 
 ### Changed
 - The product is written as Fajr LMS throughout, and the wording is US English:
