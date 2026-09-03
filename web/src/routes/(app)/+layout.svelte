@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
+	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import SchoolSwitcher from '$lib/components/SchoolSwitcher.svelte';
@@ -67,30 +68,7 @@
 				<Menu size={16} aria-hidden="true" />
 			</button>
 
-			<nav aria-label="Breadcrumb" class="min-w-0">
-				<ol class="m-0 flex list-none items-center gap-1.5 overflow-hidden p-0 text-sm">
-					{#each crumbs as crumb, i (crumb.href)}
-						{#if i > 0}
-							<li class="text-ink-faint" aria-hidden="true">/</li>
-						{/if}
-						<li class="min-w-0 truncate">
-							{#if i === crumbs.length - 1}
-								<span class="font-medium text-ink" dir="auto" aria-current="page">
-									{crumb.label}
-								</span>
-							{:else}
-								<a
-									class="text-ink-soft transition-colors hover:text-ink"
-									dir="auto"
-									href={crumb.href}
-								>
-									{crumb.label}
-								</a>
-							{/if}
-						</li>
-					{/each}
-				</ol>
-			</nav>
+			<Breadcrumbs {crumbs} />
 
 			<div class="ms-auto flex items-center gap-2">
 				<div class="hidden sm:block">

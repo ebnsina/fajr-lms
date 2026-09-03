@@ -23,7 +23,8 @@
 	}
 
 	$effect(() => {
-		if (open && menu) menu.querySelector<HTMLElement>('[role="menuitemradio"]')?.focus();
+		if (!open || !menu) return;
+		menu.querySelector<HTMLElement>('[role="menuitemradio"]')?.focus({ preventScroll: true });
 	});
 </script>
 

@@ -188,6 +188,48 @@ func (ns NullDeliveryState) Value() (driver.Value, error) {
 	return string(ns.DeliveryState), nil
 }
 
+type DiscountKind string
+
+const (
+	DiscountKindPercent DiscountKind = "percent"
+	DiscountKindAmount  DiscountKind = "amount"
+)
+
+func (e *DiscountKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DiscountKind(s)
+	case string:
+		*e = DiscountKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DiscountKind: %T", src)
+	}
+	return nil
+}
+
+type NullDiscountKind struct {
+	DiscountKind DiscountKind `json:"discount_kind"`
+	Valid        bool         `json:"valid"` // Valid is true if DiscountKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDiscountKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.DiscountKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DiscountKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDiscountKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DiscountKind), nil
+}
+
 type EnrollmentSource string
 
 const (
@@ -973,6 +1015,23 @@ type ClassSession struct {
 	RecordingMediaID uuid.NullUUID      `json:"recording_media_id"`
 }
 
+type Coupon struct {
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	Code           string             `json:"code"`
+	Kind           DiscountKind       `json:"kind"`
+	Value          int64              `json:"value"`
+	CourseID       uuid.NullUUID      `json:"course_id"`
+	MaxRedemptions *int32             `json:"max_redemptions"`
+	Redeemed       int32              `json:"redeemed"`
+	StartsAt       pgtype.Timestamptz `json:"starts_at"`
+	EndsAt         pgtype.Timestamptz `json:"ends_at"`
+	Active         bool               `json:"active"`
+	CreatedBy      uuid.NullUUID      `json:"created_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Course struct {
 	ID          uuid.UUID          `json:"id"`
 	TenantID    uuid.UUID          `json:"tenant_id"`
@@ -1144,23 +1203,26 @@ type NotificationDelivery struct {
 }
 
 type Order struct {
-	ID           uuid.UUID          `json:"id"`
-	TenantID     uuid.UUID          `json:"tenant_id"`
-	UserID       uuid.UUID          `json:"user_id"`
-	CourseID     uuid.UUID          `json:"course_id"`
-	Provider     string             `json:"provider"`
-	AmountMinor  int64              `json:"amount_minor"`
-	Currency     string             `json:"currency"`
-	Status       OrderStatus        `json:"status"`
-	Reference    string             `json:"reference"`
-	ProviderRef  string             `json:"provider_ref"`
-	Note         string             `json:"note"`
-	ProofMediaID uuid.NullUUID      `json:"proof_media_id"`
-	ReviewedBy   uuid.NullUUID      `json:"reviewed_by"`
-	ReviewedAt   pgtype.Timestamptz `json:"reviewed_at"`
-	PaidAt       pgtype.Timestamptz `json:"paid_at"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	UserID          uuid.UUID          `json:"user_id"`
+	CourseID        uuid.UUID          `json:"course_id"`
+	Provider        string             `json:"provider"`
+	AmountMinor     int64              `json:"amount_minor"`
+	Currency        string             `json:"currency"`
+	Status          OrderStatus        `json:"status"`
+	Reference       string             `json:"reference"`
+	ProviderRef     string             `json:"provider_ref"`
+	Note            string             `json:"note"`
+	ProofMediaID    uuid.NullUUID      `json:"proof_media_id"`
+	ReviewedBy      uuid.NullUUID      `json:"reviewed_by"`
+	ReviewedAt      pgtype.Timestamptz `json:"reviewed_at"`
+	PaidAt          pgtype.Timestamptz `json:"paid_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	CouponID        uuid.NullUUID      `json:"coupon_id"`
+	ListAmountMinor *int64             `json:"list_amount_minor"`
+	DiscountMinor   int64              `json:"discount_minor"`
 }
 
 type OtpChallenge struct {

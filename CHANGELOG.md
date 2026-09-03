@@ -60,8 +60,15 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   searchable list once there is enough to scroll through.
 - The button that finishes a form now sits at the end of it rather than the
   start.
+- A trail deeper than three steps folds its middle into a button that lists the
+  steps in between, so the header stays readable on a lesson page.
+- The account menu no longer wears the chevron a dropdown wears. Only a chooser
+  — the school switcher, a select — carries one.
 
 ### Fixed
+- Opening a dropdown no longer shifts the page under it. Focusing inside the
+  open panel used to scroll whatever was around it, sometimes leaving a table
+  stuck part way down with no way to scroll it back.
 - Switching school now shows the new school straight away. It used to set the
   choice and leave the old school's courses, grades and notifications on screen
   until the page was reloaded by hand.

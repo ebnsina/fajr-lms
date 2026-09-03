@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { dismissible } from '$lib/actions/dismiss';
-	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
+	import MoreHorizontal from '@lucide/svelte/icons/more-horizontal';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Settings from '@lucide/svelte/icons/settings';
 
@@ -34,7 +34,8 @@
 	// Focus moves into the menu once it opens, and Escape (handled by the
 	// dismissible action) brings it back to the trigger.
 	$effect(() => {
-		if (open) menu?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+		if (!open) return;
+		menu?.querySelector<HTMLElement>('[role="menuitem"]')?.focus({ preventScroll: true });
 	});
 </script>
 
@@ -55,7 +56,8 @@
 			{initials}
 		</span>
 		<span class="min-w-0 flex-1 truncate font-medium" dir="auto">{fullName}</span>
-		<ChevronsUpDown class="shrink-0 text-ink-faint" size={15} aria-hidden="true" />
+		<!-- An ellipsis, not a chevron: a chevron would read as a form control. -->
+		<MoreHorizontal class="shrink-0 text-ink-faint" size={16} aria-hidden="true" />
 	</button>
 
 	{#if open}
