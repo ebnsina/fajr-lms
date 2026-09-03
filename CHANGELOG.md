@@ -49,6 +49,13 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the bank details and reference, and tell the office what they paid.
 - Money is now formatted and read by the currency's own subunit, so a dinar's
   three decimal places and a yen's none are right instead of assumed to be two.
+- Notices to guardians. A school tells one section, one class or everybody
+  something — a closure, a fee due, an absence — and it reaches guardians in
+  their inbox and by text message where the school has an SMS gateway. A
+  guardian with two children in the same class hears once, not twice.
+- A guardian signs in and sees their own children: where each one sits this
+  year and what the school records for them. Only their own, checked on every
+  read.
 - Hifz. A teacher keeps the daily record a madrasah already keeps — sabaq,
   sabqi and manzil, with the range heard, how it went and how many slips — and
   a student or their guardian can see how much has been committed, counted in

@@ -2,6 +2,8 @@ import type { LayoutServerLoad } from './$types';
 import { api } from '$lib/server/api';
 import { aiEnabled } from '$lib/server/ai';
 
+type Child = { student_id: string };
+
 type TenantSummary = {
 	id: string;
 	slug: string;
@@ -27,7 +29,8 @@ export const load: LayoutServerLoad = async ({ locals, parent, fetch }) => {
 			recentNotifications: [] as NotificationSummary[],
 			unread: 0,
 			schools: [] as TenantSummary[],
-			ai: aiEnabled()
+			ai: aiEnabled(),
+			isGuardian: false
 		};
 	}
 
@@ -53,13 +56,27 @@ export const load: LayoutServerLoad = async ({ locals, parent, fetch }) => {
 			tenant: session.tenant.slug,
 			fetch
 		});
-		return { recentNotifications: notifications, unread, schools, ai: aiEnabled() };
+		// Being a guardian is what puts the family page on the menu.
+		let isGuardian = false;
+		try {
+			const { children } = await api<{ children: Child[] }>('/v1/children', {
+				token: locals.token,
+				tenant: session.tenant.slug,
+				fetch
+			});
+			isGuardian = (children ?? []).length > 0;
+		} catch {
+			isGuardian = false;
+		}
+
+		return { recentNotifications: notifications, unread, schools, ai: aiEnabled(), isGuardian };
 	} catch {
 		return {
 			recentNotifications: [] as NotificationSummary[],
 			unread: 0,
 			schools: [] as TenantSummary[],
-			ai: aiEnabled()
+			ai: aiEnabled(),
+			isGuardian: false
 		};
 	}
 };

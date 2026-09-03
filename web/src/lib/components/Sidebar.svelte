@@ -2,8 +2,12 @@
 	import { page } from '$app/state';
 	import { isCurrent, navFor } from '$lib/nav';
 
-	let { role, onNavigate }: { role: string | undefined; onNavigate?: () => void } = $props();
-	let groups = $derived(navFor(role));
+	let {
+		role,
+		isGuardian = false,
+		onNavigate
+	}: { role: string | undefined; isGuardian?: boolean; onNavigate?: () => void } = $props();
+	let groups = $derived(navFor(role, isGuardian));
 </script>
 
 <nav class="flex h-full flex-col gap-6 overflow-y-auto p-4" aria-label="Sections">

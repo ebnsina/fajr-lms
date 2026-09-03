@@ -42,7 +42,11 @@ func newHarness(t *testing.T) (http.Handler, *captureChannel, *database.Store) {
 	t.Cleanup(store.Close)
 
 	ch := &captureChannel{}
-	return api.NewServer(store, identity.New(store, ch), testRegistry(t), testPayments(t), "https://fajr.test").Routes(), ch, store
+	server := api.NewServer(store, identity.New(store, ch), testRegistry(t), testPayments(t),
+		"https://fajr.test")
+	// Wired as production is, so a test can see what a person would be told.
+	server.UseNotifier(notify.NewService(server, "sms"))
+	return server.Routes(), ch, store
 }
 
 func do(t *testing.T, h http.Handler, method, path, token, tenant string, body any) *httptest.ResponseRecorder {

@@ -9,6 +9,8 @@ import Users from '@lucide/svelte/icons/users';
 import Receipt from '@lucide/svelte/icons/receipt';
 import Globe from '@lucide/svelte/icons/globe';
 import School from '@lucide/svelte/icons/school';
+import Megaphone from '@lucide/svelte/icons/megaphone';
+import HeartHandshake from '@lucide/svelte/icons/heart-handshake';
 import type { Component } from 'svelte';
 
 export type NavItem = {
@@ -17,6 +19,8 @@ export type NavItem = {
 	icon: Component;
 	/** Roles that may see it. Empty means everyone in the tenant. */
 	roles?: string[];
+	/** Shown only to somebody who is a guardian of a child at this school. */
+	guardiansOnly?: boolean;
 };
 
 export type NavGroup = { title: string; items: NavItem[] };
@@ -33,7 +37,8 @@ const groups: NavGroup[] = [
 			{ label: 'Courses', href: '/courses', icon: Library },
 			{ label: 'My grades', href: '/grades', icon: GraduationCap },
 			{ label: 'Certificates', href: '/certificates', icon: Award },
-			{ label: 'Notifications', href: '/notifications', icon: Bell }
+			{ label: 'Notifications', href: '/notifications', icon: Bell },
+			{ label: 'Your family', href: '/family', icon: HeartHandshake, guardiansOnly: true }
 		]
 	},
 	{
@@ -45,7 +50,8 @@ const groups: NavGroup[] = [
 				icon: ClipboardCheck,
 				roles: staff
 			},
-			{ label: 'Submissions', href: '/submissions', icon: Inbox, roles: staff }
+			{ label: 'Submissions', href: '/submissions', icon: Inbox, roles: staff },
+			{ label: 'Notices', href: '/notices', icon: Megaphone, roles: staff }
 		]
 	},
 	{
@@ -60,11 +66,15 @@ const groups: NavGroup[] = [
 ];
 
 /** Hides whole groups a role cannot use, rather than showing dead entries. */
-export function navFor(role: string | undefined): NavGroup[] {
+export function navFor(role: string | undefined, isGuardian = false): NavGroup[] {
 	return groups
 		.map((group) => ({
 			...group,
-			items: group.items.filter((item) => !item.roles || (role && item.roles.includes(role)))
+			items: group.items.filter(
+				(item) =>
+					(!item.roles || (role && item.roles.includes(role))) &&
+					(!item.guardiansOnly || isGuardian)
+			)
 		}))
 		.filter((group) => group.items.length > 0);
 }
