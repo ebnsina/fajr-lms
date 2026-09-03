@@ -9,6 +9,7 @@
 	import CalendarCheck from '@lucide/svelte/icons/calendar-check';
 	import PencilLine from '@lucide/svelte/icons/pencil-line';
 	import Video from '@lucide/svelte/icons/video';
+	import Award from '@lucide/svelte/icons/award';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -71,6 +72,10 @@
 			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/classes">
 				<Video size={15} aria-hidden="true" />
 				Live classes
+			</a>
+			<a class="btn btn-sm btn-quiet" href="/courses/{course.slug}/certificates">
+				<Award size={15} aria-hidden="true" />
+				Certificates
 			</a>
 		</span>
 	{/if}

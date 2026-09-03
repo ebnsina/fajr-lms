@@ -122,6 +122,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /verify/{serial}", httpx.Handler(s.verifyCertificate))
 
 	mux.Handle("POST /v1/courses/{id}/certificates", inTenant(httpx.Handler(s.issueCertificate)))
+	mux.Handle("GET /v1/courses/{id}/certificates", teaches(s.courseCertificates))
 	mux.Handle("GET /v1/certificates", inTenant(httpx.Handler(s.listMyCertificates)))
 	mux.Handle("POST /v1/certificates/{id}/revoke", teaches(s.revokeCertificate))
 

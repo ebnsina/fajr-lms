@@ -220,3 +220,48 @@ func TestCertificates(t *testing.T) {
 		}
 	})
 }
+
+func TestCourseCertificateList(t *testing.T) {
+	h, ch, store := newHarness(t)
+	owner := enroll(t, h, ch, store, "owner")
+	student := enrollIn(t, h, ch, store, owner.slug, "student")
+
+	courseID, _ := publishedCourse(t, h, owner, 1)
+	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/enrollments", student.token, owner.slug, nil); rec.Code != http.StatusCreated {
+		t.Fatalf("enroll: got %d: %s", rec.Code, rec.Body)
+	}
+	if rec := do(t, h, "POST", "/v1/courses/"+courseID+"/certificates", owner.token, owner.slug,
+		map[string]any{"user_id": student.userID.String()}); rec.Code != http.StatusCreated {
+		t.Fatalf("award: got %d: %s", rec.Code, rec.Body)
+	}
+
+	rec := do(t, h, "GET", "/v1/courses/"+courseID+"/certificates", owner.token, owner.slug, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("list: got %d: %s", rec.Code, rec.Body)
+	}
+	var out struct {
+		Certificates []struct {
+			FullName    string `json:"full_name"`
+			VerifyURL   string `json:"verify_url"`
+			Certificate struct {
+				Serial string `json:"serial"`
+			} `json:"certificate"`
+		} `json:"certificates"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(out.Certificates) != 1 {
+		t.Fatalf("want one certificate, got %d", len(out.Certificates))
+	}
+	if out.Certificates[0].VerifyURL == "" || out.Certificates[0].FullName == "" {
+		t.Errorf("the list is missing the name or the public address: %+v", out.Certificates[0])
+	}
+
+	t.Run("a learner cannot read the whole course list", func(t *testing.T) {
+		rec := do(t, h, "GET", "/v1/courses/"+courseID+"/certificates", student.token, owner.slug, nil)
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("got %d, want 403: %s", rec.Code, rec.Body)
+		}
+	})
+}

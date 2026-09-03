@@ -125,6 +125,40 @@ func (s *Server) withVerifyURL(c database.Certificate) certificateResponse {
 
 func (s *Server) verifyURL(serial string) string { return s.publicURL + "/verify/" + serial }
 
+// courseCertificates is the staff view: who has been awarded one on this
+// course, and whether it still stands.
+func (s *Server) courseCertificates(w http.ResponseWriter, r *http.Request) error {
+	courseID, err := pathUUID(r, "id")
+	if err != nil {
+		return err
+	}
+	limit, offset, err := pagination(r)
+	if err != nil {
+		return err
+	}
+
+	var rows []database.ListCourseCertificatesRow
+	err = s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
+		var err error
+		rows, err = q.ListCourseCertificates(r.Context(), database.ListCourseCertificatesParams{
+			CourseID: courseID, PageLimit: limit, PageOffset: offset,
+		})
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, map[string]any{
+			"certificate": row.Certificate, "full_name": row.FullName,
+			"verify_url": s.verifyURL(row.Certificate.Serial),
+		})
+	}
+	return httpx.JSON(w, http.StatusOK, map[string]any{"certificates": out})
+}
+
 func (s *Server) listMyCertificates(w http.ResponseWriter, r *http.Request) error {
 	var rows []database.ListMyCertificatesRow
 	err := s.store.InTenant(r.Context(), CurrentTenant(r.Context()).ID, func(q *database.Queries) error {
