@@ -450,8 +450,8 @@
 	</div>
 </section>
 
-<!-- The one quiet section: what is being built, said as what it is - not yet
-     shipped, and worded so nobody mistakes it for something they can use today. -->
+<!-- Drafting quizzes is real and switchable on; the rest is not. Both are said
+     plainly, so nobody mistakes one for the other. -->
 <section class="relative isolate overflow-hidden border-t border-line bg-sunken px-6 py-28">
 	<div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
 		<FluidOrb size={72} label="A slowly drifting orb of green light" />
@@ -462,13 +462,13 @@
 				The help a teacher would actually take
 			</h2>
 			<p class="mx-auto mt-4 max-w-xl text-lg text-ink-soft">
-				A first draft of a quiz from the lesson you already wrote. A transcript and subtitles for
-				the video you pasted, in the language you teach in. A first pass at grading fifty essays,
-				with every mark left for a person to accept or change.
+				A first draft of a quiz from the lesson you already wrote: it reads the lesson, suggests
+				the questions, and adds nothing until you say so. That part works today.
 			</p>
 			<p class="mx-auto mt-4 max-w-xl text-ink-soft">
-				None of it is on yet, and none of it will decide anything on its own. It drafts; the
-				teacher decides.
+				Subtitles for the video you pasted, and a first pass at marking a pile of essays, are
+				still being built. Nothing here decides anything on its own. It drafts; the teacher
+				decides.
 			</p>
 			<div class="mt-8 flex flex-wrap justify-center gap-3">
 				<a class="btn btn-quiet" href="/start">Get started free</a>

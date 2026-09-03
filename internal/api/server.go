@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/ebnsina/fajr-lms/internal/ai"
 	"github.com/ebnsina/fajr-lms/internal/database"
 	"github.com/ebnsina/fajr-lms/internal/httpx"
 	"github.com/ebnsina/fajr-lms/internal/identity"
@@ -20,6 +21,7 @@ type Server struct {
 	notifier  *notify.Service
 	publicURL string
 	dns       DNSLookup
+	ai        ai.Drafter
 }
 
 // UseNotifier wires the notification service after construction, since the
@@ -29,8 +31,11 @@ func (s *Server) UseNotifier(n *notify.Service) { s.notifier = n }
 func NewServer(store *database.Store, ident *identity.Service, registry *media.Registry,
 	payments *payment.Registry, publicURL string) *Server {
 	return &Server{store: store, identity: ident, media: registry, payments: payments,
-		publicURL: publicURL, dns: netLookup{}}
+		publicURL: publicURL, dns: netLookup{}, ai: ai.Off{}}
 }
+
+// UseAI replaces the model that drafts teaching material.
+func (s *Server) UseAI(drafter ai.Drafter) { s.ai = drafter }
 
 // Routes returns the full API surface, health probes included.
 func (s *Server) Routes() http.Handler {
@@ -159,6 +164,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/coupons", money(s.createCoupon))
 	mux.Handle("PUT /v1/coupons/{id}/active", money(s.setCouponActive))
 	mux.Handle("DELETE /v1/coupons/{id}", money(s.deleteCoupon))
+	mux.Handle("POST /v1/lessons/{id}/quiz/draft", teaches(s.draftQuestions))
 	mux.Handle("GET /v1/orders/paid", money(s.listPaidOrders))
 	mux.Handle("POST /v1/orders/{id}/refund", money(s.refundOrder))
 	mux.Handle("GET /v1/orders/review", inTenant(RequireRole("owner", "admin")(httpx.Handler(s.listReviewQueue))))

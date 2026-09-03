@@ -2,7 +2,9 @@
 	import { enhance } from '$app/forms';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash from '@lucide/svelte/icons/trash-2';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import type { PageProps } from './$types';
+	import type { DraftQuestion } from './+page.server';
 
 	let { data, form }: PageProps = $props();
 
@@ -15,6 +17,30 @@
 	];
 	const kindName = (kind: string) => kinds.find((k) => k.value === kind)?.label ?? kind;
 	const needsOptions = (kind: string) => kind === 'mcq_single' || kind === 'mcq_multi';
+
+	let drafted = $state<DraftQuestion[]>([]);
+	let busy = $state(false);
+
+	// The draft is held on the page, not written to the quiz: the teacher adds
+	// the ones they want and the rest are forgotten.
+	function drafting() {
+		busy = true;
+		return async ({
+			result,
+			update
+		}: {
+			result: { type: string; data?: Record<string, unknown> };
+			update: (o?: { reset?: boolean }) => Promise<void>;
+		}) => {
+			busy = false;
+			if (result.type === 'success' && result.data?.drafted) {
+				drafted = result.data.drafted as DraftQuestion[];
+				return;
+			}
+			// Anything else is a refusal worth reading, so let it through.
+			await update({ reset: false });
+		};
+	}
 
 	let kind = $state('mcq_single');
 	let choices = $state(['', '', '', '']);
@@ -141,6 +167,70 @@
 					: ''}
 			</p>
 		</div>
+
+		<section class="card mb-4">
+			<div class="flex flex-wrap items-center gap-3">
+				<Sparkles class="text-ink-soft" size={18} aria-hidden="true" />
+				<p class="mb-0 min-w-56 flex-1 text-sm text-ink-soft" dir="auto">
+					Fajr AI can read this lesson and suggest questions on it. Nothing is added until you
+					say so, and you can change any of it.
+				</p>
+				<form method="POST" action="?/draft" use:enhance={drafting}>
+					<button class="btn btn-sm" type="submit" disabled={busy}>
+						{busy ? 'Reading the lesson…' : 'Draft questions'}
+					</button>
+				</form>
+			</div>
+
+			{#if drafted.length > 0}
+				<ul class="mt-4 flex list-none flex-col gap-3 p-0">
+					{#each drafted as draft, index (index)}
+						<li class="rounded-xl border border-line bg-raised p-4">
+							<div class="mb-2 flex flex-wrap items-start justify-between gap-2">
+								<p class="mb-0 min-w-56 flex-1 font-medium" dir="auto">{draft.prompt}</p>
+								<span class="chip">{kindName(draft.kind)}</span>
+								<span class="chip font-mono">{draft.points} pts</span>
+							</div>
+							<ul class="mb-3 flex flex-col gap-1 text-sm">
+								{#each draft.options as option (option.label)}
+									<li class:text-ink-soft={!option.is_correct} dir="auto">
+										{option.is_correct ? '✓' : '·'}
+										{option.label}
+									</li>
+								{/each}
+							</ul>
+							{#if draft.explanation}
+								<p class="mb-3 text-sm text-ink-soft" dir="auto">{draft.explanation}</p>
+							{/if}
+							<div class="flex justify-end gap-2">
+								<button
+									class="btn btn-sm btn-quiet"
+									type="button"
+									onclick={() => (drafted = drafted.filter((_, at) => at !== index))}
+								>
+									Discard
+								</button>
+								<form
+									method="POST"
+									action="?/acceptDraft"
+									use:enhance={() => {
+										const taken = draft;
+										return async ({ update }) => {
+											await update({ reset: false });
+											drafted = drafted.filter((row) => row !== taken);
+										};
+									}}
+								>
+									<input type="hidden" name="quiz_id" value={data.quiz.id} />
+									<input type="hidden" name="question" value={JSON.stringify(draft)} />
+									<button class="btn btn-sm" type="submit">Add this one</button>
+								</form>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</section>
 
 		<div class="mb-4 flex flex-col gap-3">
 			{#each data.questions as question, index (question.id)}

@@ -23,6 +23,14 @@ type Question = {
 	options: { id: string; label: string; is_correct: boolean }[];
 };
 
+export type DraftQuestion = {
+	kind: string;
+	prompt: string;
+	points: number;
+	explanation: string;
+	options: { label: string; is_correct: boolean }[];
+};
+
 type Assignment = {
 	id: string;
 	title: string;
@@ -149,6 +157,41 @@ export const actions: Actions = {
 					explanation: String(form.get('explanation') ?? '').trim(),
 					options
 				},
+				...scoped(locals, cookies, fetch)
+			});
+		} catch (cause) {
+			return failed(cause);
+		}
+		return { added: true };
+	},
+
+	// A draft is offered, never saved. The teacher adds the ones they want.
+	draft: async ({ params, locals, cookies, fetch }) => {
+		try {
+			const { questions } = await api<{ questions: DraftQuestion[] }>(
+				`/v1/lessons/${params.lessonId}/quiz/draft`,
+				{ method: 'POST', ...scoped(locals, cookies, fetch) }
+			);
+			return { drafted: questions };
+		} catch (cause) {
+			return failed(cause);
+		}
+	},
+
+	acceptDraft: async ({ request, locals, cookies, fetch }) => {
+		const form = await request.formData();
+		const draft = String(form.get('question') ?? '');
+		let question: DraftQuestion;
+		try {
+			question = JSON.parse(draft) as DraftQuestion;
+		} catch {
+			return fail(422, { message: 'That draft could not be read. Draft again.' });
+		}
+
+		try {
+			await api(`/v1/quizzes/${form.get('quiz_id')}/questions`, {
+				method: 'POST',
+				body: { ...question, dir: 'auto' },
 				...scoped(locals, cookies, fetch)
 			});
 		} catch (cause) {

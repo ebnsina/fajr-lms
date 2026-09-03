@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ebnsina/fajr-lms/internal/ai"
 	"github.com/ebnsina/fajr-lms/internal/api"
 	"github.com/ebnsina/fajr-lms/internal/config"
 	"github.com/ebnsina/fajr-lms/internal/database"
@@ -101,6 +102,11 @@ func run() error {
 
 	server := api.NewServer(store, identity.New(store, primary), registry, payments, cfg.PublicURL)
 	server.UseNotifier(notify.NewService(server, primary.Name()))
+
+	if cfg.AI.Enabled() {
+		server.UseAI(ai.Anthropic{Key: cfg.AI.Key, Model: cfg.AI.Model})
+		slog.Info("fajr ai enabled", "model", cfg.AI.Model)
+	}
 
 	dispatcher := notify.NewDispatcher(server, primary)
 	go dispatcher.Run(ctx)

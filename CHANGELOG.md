@@ -32,6 +32,10 @@ All user-facing changes. Format: [Keep a Changelog](https://keepachangelog.com/e
   the recording afterwards, and anyone enrolled joins from there when it opens.
 - Certificates have a page: what you have been awarded, the serial anyone can
   check, and a claim on a course you have finished.
+- Fajr AI drafts quiz questions from a lesson a teacher has written. The draft
+  is offered on the lesson's page and nothing is saved until the teacher adds a
+  question; anything that could not be graded is dropped before it is shown.
+  Off unless a key is configured, and nothing leaves the server without it.
 - An answer written while the connection is gone is kept on the device and sent
   when it returns. The paper says how many are waiting.
 - A quiz being sat now shows the paper that attempt was served rather than the
