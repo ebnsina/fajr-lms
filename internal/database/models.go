@@ -360,6 +360,93 @@ func (ns NullGradeSource) Value() (driver.Value, error) {
 	return string(ns.GradeSource), nil
 }
 
+type HifzKind string
+
+const (
+	HifzKindSabaq  HifzKind = "sabaq"
+	HifzKindSabqi  HifzKind = "sabqi"
+	HifzKindManzil HifzKind = "manzil"
+)
+
+func (e *HifzKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = HifzKind(s)
+	case string:
+		*e = HifzKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for HifzKind: %T", src)
+	}
+	return nil
+}
+
+type NullHifzKind struct {
+	HifzKind HifzKind `json:"hifz_kind"`
+	Valid    bool     `json:"valid"` // Valid is true if HifzKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullHifzKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.HifzKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.HifzKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullHifzKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.HifzKind), nil
+}
+
+type HifzQuality string
+
+const (
+	HifzQualityExcellent HifzQuality = "excellent"
+	HifzQualityGood      HifzQuality = "good"
+	HifzQualityFair      HifzQuality = "fair"
+	HifzQualityWeak      HifzQuality = "weak"
+)
+
+func (e *HifzQuality) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = HifzQuality(s)
+	case string:
+		*e = HifzQuality(s)
+	default:
+		return fmt.Errorf("unsupported scan type for HifzQuality: %T", src)
+	}
+	return nil
+}
+
+type NullHifzQuality struct {
+	HifzQuality HifzQuality `json:"hifz_quality"`
+	Valid       bool        `json:"valid"` // Valid is true if HifzQuality is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullHifzQuality) Scan(value interface{}) error {
+	if value == nil {
+		ns.HifzQuality, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.HifzQuality.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullHifzQuality) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.HifzQuality), nil
+}
+
 type InstitutionKind string
 
 const (
@@ -1169,6 +1256,23 @@ type Guardianship struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type HifzEntry struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	StudentID uuid.UUID          `json:"student_id"`
+	TeacherID uuid.NullUUID      `json:"teacher_id"`
+	OnDate    pgtype.Date        `json:"on_date"`
+	Kind      HifzKind           `json:"kind"`
+	FromSurah int16              `json:"from_surah"`
+	FromAyah  int16              `json:"from_ayah"`
+	ToSurah   int16              `json:"to_surah"`
+	ToAyah    int16              `json:"to_ayah"`
+	Quality   HifzQuality        `json:"quality"`
+	Mistakes  int16              `json:"mistakes"`
+	Note      string             `json:"note"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type IdentityProvider struct {
 	ID             uuid.UUID          `json:"id"`
 	TenantID       uuid.UUID          `json:"tenant_id"`
@@ -1569,6 +1673,13 @@ type Submission struct {
 	GradedAt      pgtype.Timestamptz `json:"graded_at"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Surah struct {
+	Number    int16  `json:"number"`
+	NameAr    string `json:"name_ar"`
+	NameEn    string `json:"name_en"`
+	AyahCount int16  `json:"ayah_count"`
 }
 
 type Tenant struct {

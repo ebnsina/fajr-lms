@@ -200,6 +200,13 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /v1/academics/sections/{id}/roll", runs(s.placeStudent))
 	mux.Handle("DELETE /v1/academics/placements/{id}", runs(s.removePlacement))
 
+	// Hifz: a teacher writes the record, and a learner or their guardian reads
+	// their own.
+	mux.Handle("POST /v1/hifz", teaches(s.recordHifz))
+	mux.Handle("GET /v1/hifz", teaches(s.hifzOnDate))
+	mux.Handle("DELETE /v1/hifz/{id}", teaches(s.deleteHifz))
+	mux.Handle("GET /v1/hifz/students/{id}", inTenant(httpx.Handler(s.studentHifz)))
+
 	mux.Handle("POST /v1/academics/subjects", runs(s.createSubject))
 	mux.Handle("DELETE /v1/academics/subjects/{id}", runs(s.deleteSubject))
 
