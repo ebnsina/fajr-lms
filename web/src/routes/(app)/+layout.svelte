@@ -63,7 +63,6 @@
 			</div>
 		{/if}
 
-		<p class="shrink-0 px-6 pt-3 pb-4 text-[0.7rem] text-ink-faint">A product of Fajr Labs</p>
 	</aside>
 
 	<div class="flex min-w-0 flex-1 flex-col p-2 lg:ms-64 lg:ps-0">

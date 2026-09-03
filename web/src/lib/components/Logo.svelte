@@ -69,22 +69,31 @@
 			vec2 uv = gl_FragCoord.xy / u_resolution.xy;
 			vec2 q = vec2(uv.x, 1.0 - uv.y) * 48.0;
 
-			float t = u_time * 0.16;
+			float t = u_time * 0.42;
 			vec2 drift = vec2(
 				sin(t) + 0.6 * sin(t * 1.7 + 1.3),
 				cos(t * 0.8) + 0.6 * cos(t * 1.3 + 2.1)
 			);
-			vec2 p = vec2(uv.x * 1.6, uv.y) + drift * 0.5;
+			vec2 p = vec2(uv.x * 1.6, uv.y) * 2.2 + drift * 0.9;
 			vec2 g = vec2(fbm(p + drift), fbm(p + vec2(3.2, 1.5) - drift));
-			float f = fbm(p + 1.2 * g);
+			float f = fbm(p + 1.8 * g);
+
+			// A slow band of light crossing the whole tile. The fine sand alone is
+			// invisible at the size a sidebar mark is drawn; the wide sweep is what
+			// carries the movement.
+			float sweep = 0.5 + 0.5 * sin((uv.x + uv.y) * 2.4 - u_time * 0.55);
+			float shade = mix(f, sweep, 0.55);
 
 			vec3 white = vec3(0.99, 1.0, 1.0);
-			vec3 sky = mix(u_brand, u_brand * 0.84, smoothstep(0.32, 0.76, f));
-			vec3 sun = mix(white, mix(white, u_brand, 0.4), smoothstep(0.3, 0.74, f));
+			vec3 sky = mix(u_brand * 1.25, u_brand * 0.62, smoothstep(0.18, 0.86, shade));
+			vec3 sun = mix(white, mix(white, u_brand, 0.62), smoothstep(0.2, 0.85, shade));
 			vec3 rock = u_brand * 0.44;
 
 			float aa = 48.0 / u_resolution.x * 1.2;
-			float disc = smoothstep(13.0 + aa, 13.0 - aa, distance(q, vec2(25.0, 18.5)));
+			// The sun breathes a little, which is what carries the motion at
+			// the size this sits in a sidebar.
+			float breath = 13.0 + 0.55 * sin(u_time * 0.7);
+			float disc = smoothstep(breath + aa, breath - aa, distance(q, vec2(25.0, 18.5)));
 
 			float y = seg(q.x, A, B);
 			y = mix(y, seg(q.x, B, C), step(B.x, q.x));
@@ -128,7 +137,13 @@
 		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 		if (reduce.matches) return;
 
-		const context = canvas.getContext('webgl', { antialias: true, alpha: true });
+		// The buffer is kept so the mark survives a compositor frame it did not
+		// draw, and so what it is drawing can be read back.
+		const context = canvas.getContext('webgl', {
+			antialias: true,
+			alpha: true,
+			preserveDrawingBuffer: true
+		});
 		if (!context) return;
 		const gl: WebGLRenderingContext = context;
 
