@@ -68,7 +68,12 @@ func Load() (Config, error) {
 		}
 	}
 
+	// This address ends up on certificates people verify and in payment
+	// callbacks, so in production it has to be the real one.
 	c.PublicURL = strings.TrimSuffix(env("FAJR_PUBLIC_URL", "http://localhost:8080"), "/")
+	if c.IsProduction() && strings.Contains(c.PublicURL, "localhost") {
+		return Config{}, fmt.Errorf("config: FAJR_PUBLIC_URL must be the address people reach this service at")
+	}
 
 	c.SSLCommerz = SSLCommerzConfig{
 		StoreID:     env("FAJR_SSLCOMMERZ_STORE_ID", ""),
